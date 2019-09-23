@@ -1,0 +1,22 @@
+html
+    title Data View Example
+body
+    div
+        h1 Data:
+    hr
+    h2 #{message}
+    hr
+    - var colour = 'lightgrey'
+    - var toggle = {'lightgrey':'lightyellow', 'lightyellow':'lightgrey'}
+    table(style='width: auto; border: 1px solid black')
+        tr
+            each field in fields
+                th #{field}
+        each record in dataset
+            - colour = toggle[colour]            
+            tr(style='background-color: ' + colour)
+                each field in fields
+                    td #{record[field]}
+    hr
+    h5 Fields: #{JSON.stringify(fields)}
+    h5 Dump: #{JSON.stringify(dataset, null, 2)}
