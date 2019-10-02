@@ -1,0 +1,58 @@
+$base-colour: rgb(93, 148, 208);
+
+// Default Table Colours
+table {
+  padding: 1rem;
+}
+table th.heading {
+  color: white;
+  background-color: $base-colour;
+  padding: 1rem;
+  text-align: center;
+}
+
+// Tab Element Themes
+/* Define colour and border specs for Standard/Tab elements */
+
+$tab-background: transparent;
+$tab-text-colour: #666;
+$tab-separator: ''; // may benefit from standard width specs (flexbox: ?)
+$active-colour: black;
+$active-background: lightgray;
+$hover-background: silver;
+$hover-colour: black;
+$active-border-top: '';
+$active-border-bottom: '';
+$full-border-bottom: solid lightgray 2px;
+$full-border-top: solid lightgray 2px;
+
+.tabBar {
+  border-bottom: $full-border-bottom;
+  border-top: $full-border-top;
+}
+
+.visible-tab {
+  background-color: $tab-background;
+}
+
+.visible-tab a {
+  color: $tab-text-colour;
+  text-align: center;
+  text-decoration: none;
+  font-size: 17px;
+  border-left: $tab-separator;
+  border-right: $tab-separator;
+}
+
+.visible-tab a:hover {
+  background-color: $hover-background;
+  color: $hover-colour;
+}
+
+a.activetab {
+  color: $active-colour;
+  background-color: $active-background;
+  font-weight: normal;
+  border-bottom: $active-border-bottom;
+  border-top: $active-border-top;
+}

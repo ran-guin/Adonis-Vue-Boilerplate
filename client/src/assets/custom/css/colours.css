@@ -1,0 +1,200 @@
+.primaryColour {
+  color: #3c457d;
+}
+.primaryLight {
+  color: #8a8fb1;
+}
+.primaryVLight {
+  color: #d8dae5;
+}
+.primaryDark {
+  color: #24294b;
+}
+.primaryVDark {
+  color: #0c0e19;
+}
+.secondaryColour {
+  color: #b1bbec;
+}
+.secondaryLight {
+  color: #d0d6f4;
+}
+.secondaryDark {
+  color: #6a708e;
+}
+.contrast {
+  color: #8cc739;
+}
+.contrastLight {
+  color: #afd874;
+}
+.contrastVLight {
+  color: #d1e9b0;
+}
+.contrastDark {
+  color: #628b28;
+}
+.contrastVDark {
+  color: #385017;
+}
+
+.lightBackground {
+  color: #3c457d;
+  background-color: #d0d6f4; 
+}
+.messagePrompt {
+  color: green;
+}
+.warningPrompt {
+  color: orange;
+}
+.errorPrompt {
+  color: red;
+}
+
+.error--text {
+  color: red;
+}
+
+.myHeader {
+  color: #3c457d;
+  background-color: transparent;
+}
+.myFooter {
+  background-color: #0c0e19;
+  color: #b1bbec;
+}
+h1, h2, h3, h4 {
+  color: #3c457d;
+  padding: 1rem;
+}
+a.heading {
+  color: #8cc739;
+  text-decoration: none;
+}
+a.heading:hover {
+  color: #628b28;
+  text-decoration: none;
+}
+a.foot {
+  color: #b1bbec;
+  text-decoration: none;
+  font-size: medium;
+}
+a.foot:hover {
+  color: white;
+  text-decoration: none;
+}
+.btn-primary {
+  /* color: #b1bbec !important; */
+  /* background-color: #3c457d !important; */
+  color: black !important;
+  background-color: #8cc739 !important;
+}
+.btn-primary:hover {
+  color: white !important;
+  background-color: #628b28 !important;
+}
+.btn-close {
+  color: #3c457d !important;
+  background-color: #999 !important;
+}
+.btn-close:hover {
+  color: #3c457d !important;
+  background-color: #ccc !important;
+}
+
+.btn-secondary {
+  color: #3c457d !important;
+  background-color: #b1bbec !important;
+}
+.btn-secondary:hover {
+  color: black !important;
+}
+.btn-contrast {
+  color: #3c457d !important;
+  background-color: #8cc739 !important;
+}
+.btn-contrast:hover {
+  color: black !important;
+}
+.btn-pgkyc, .btn-idvpn{
+  color: #3c457d !important;
+  background-color: #8cc739 !important;
+  font-weight:bold;
+}
+.btn-pgkyc:hover, .btn-idvpn:hover {
+  color: black !important;
+  font-weight:900;
+}
+.stdColor, .stdColour {
+  color: #3c457d;
+}
+.contrastColour {
+  color: #8cc739;
+}
+a.contrast {
+  color: #8cc739;
+}
+a.contrast:hover {
+  color: #afd874;
+}
+.stdHeading {
+  background-color: #b1bbec;
+  color: #3c457d;
+  padding: 1.5rem;
+}
+.contrastHeading {
+  background-color: #3c457d;
+  color: #b1bbec;
+  padding: 1.5rem;
+}
+.reverseHeading {
+  background-color: #b1bbec;
+  color: #3c457d;
+  padding: 1.5rem;
+}
+.smallBox {
+  border: 3px solid #b1bbec;
+  background-color: white;
+}
+
+.stdBox {
+  border: 10px solid #b1bbec;
+}
+
+media screen 
+.v-input__icon--prepend {
+  color: #3c457d;
+}
+.v-input__icon--prepend.theme--light {
+  color: #3c457d;
+}
+.v-input__icon--prepend.primary--text {
+  color: #8cc739;
+}
+
+.subHeading {
+  color: #b1bbec;
+}
+hr.thick {
+  border: 3px solid #243665 !important;
+}
+.thickColourLine {
+  border: 3px solid #3c457d;
+}
+.thickBlackLine {
+  border: 3px solid black;
+}
+.thinColourLine {
+  border: 1px solid #3c457d;
+}
+.thinBlackLine {
+  border: 1px solid black;
+}
+.text-success {
+  color: green;
+}
+.text-danger {
+  color: red;
+}

@@ -1,0 +1,129 @@
+.h1 {
+  color: #006E90  
+}
+
+.std-colour {
+  color: rgb(93,148,208);
+}
+
+.full-width-padding {
+  padding: 40px 50px;
+}
+
+.transluscent {
+  opacity: 0.3;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+.circle {
+	border-radius: 50%;
+}
+
+.customMenu a {
+  color: gray;
+}
+.customMenu a:hover {
+  color: black;
+}
+
+.custom-menu {
+  position: absolute;
+  background-color: lightblue;
+  box-shadow: 0 0 3pt 2pt gray;
+  border: 1px solid gray;
+  z-index: 5;
+}
+
+.messagePrompt {
+  color: green !important;
+}
+.errorPrompt {
+  color: red !important;
+}
+.mandatoryPrompt {
+  color: red !important;
+}
+.mandatoryPromptOK {
+  color: green !important;
+}
+.mandatoryInputOK {
+  border-color: 1px solid green !important;
+}
+.mandatoryInputNotOK {
+  border-color: red !important;
+}
+
+.warningPrompt {
+  color: orange;
+}
+
+.dropdown-option-cell {
+  min-width: (90vw)
+}
+@media screen and (min-width: 768px) {
+  .dropdown-option-cell{
+    min-width: 300px;
+  }
+}
+.lightShadow {
+  -webkit-box-shadow: 3px 3px 5px 6px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    3px 3px 5px 6px #ccc;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         3px 3px 5px 6px #ccc;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
+  border: 0px !important;
+}
+
+.darkShadow {
+  -webkit-box-shadow: 3px 3px 5px 6px #333;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    3px 3px 5px 6px #333;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         3px 3px 5px 6px #333;  /* Opera 10.5, IE 9, Firefox 4+, Chrome 6+, iOS 5 */
+  border: 0px !important;
+}
+
+table.dropdown-table {
+  border: 1px solid gray;
+  opacity: 1;
+  border-radius: 6px;
+  min-width: 200px;
+  background-color: white;
+}
+.dropdown-option-cell {
+  color: gray;
+  background-color: white;
+}
+.dropdown-option-cell:hover {
+  background-color: #eee;
+  color: black;
+}
+.dropdown-option-label {
+  color: gray;
+}
+.dropdown-option-label:hover {
+  color: black;
+}
+
+.customMenu a {
+  color: gray;
+}
+.customMenu a:hover {
+  font-weight: normal;
+  text-decoration: none;
+  color: black;
+}
+
+.firstOption {
+  border-bottom: 1px solid black;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.lastOption {
+  border-top: 1px solid black;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.menu-title {
+  font-size: 2rem;
+}

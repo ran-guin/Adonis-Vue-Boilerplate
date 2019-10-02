@@ -1,0 +1,6 @@
+.login, .register {
+  background-color: lightgray;
+  padding: 2rem;
+  margin: 20%;
+  border: 2px solid black;
+}

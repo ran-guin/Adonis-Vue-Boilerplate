@@ -1,0 +1,142 @@
+.smallBox {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+@media screen and (min-width: 768px) {
+  .smallBox {
+    width: 60%;
+  }
+}
+@media screen and (min-width: 1028px) {
+  .smallBox {
+    width: 50%;
+  }
+}
+
+.user-dropdown {
+    top: 0px;
+    width: 300px;
+    position: fixed;
+    right: 20px;
+    z-index: 9;
+    background-color: white;
+}
+.nav-path {
+    position: relative;
+    top: 0px;
+}
+
+.wideWrapper {
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+.myContainer {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+@media screen and (min-width: 768px) {
+  .myContainer {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .myContainer {
+    padding-left: 10%;
+    padding-right: 10%;
+  }
+}
+
+/* simulating bold on hover below by using shadow to avoid text size changing */
+a.shadow {
+  letter-spacing: .1em;
+  transition: text-shadow .3s;
+  cursor: pointer;
+}
+
+a.shadow:hover {
+  text-shadow: 0 0 .65px #333, 0 0 .65px #333;
+  /* use the line below if you want a more intense effect */
+  /* text-shadow: 0 0 .9px #333, 0 0 .9px #333, 0 0 .9px #333; */
+}
+
+a {
+  font-weight: normal;
+  letter-spacing: .02em;
+  transition: text-shadow .3s;
+  cursor: pointer;
+}
+
+a:hover {
+  text-shadow: 0 0 .3px #333, 0 0 .3px #333;
+  /* use the line below if you want a more intense effect */
+  /* text-shadow: 0 0 .9px #333, 0 0 .9px #333, 0 0 .9px #333; */
+}
+
+.right {
+	float: right;
+}
+
+.top-right {
+  float: right;
+  position: relative;
+  top: 20px;
+}
+
+.padded-wrapper {
+  display: inline-block;
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+@media screen and (min-width: 768px) {
+  .padded-wrapper {
+    padding-left: 10%;
+    padding-right: 10%;
+  }
+}
+
+.mini-kyc-circle {
+  height: 5px;
+  width: 5px;
+  padding: 2px;
+  border-radius: 50%;
+}
+.kyc-circle {
+  height: 25px;
+  width: 25px;
+  padding: 5px;
+}
+.kyc-circle {
+  position: relative;
+}
+
+.kyc-circle-container {
+  position: relative
+}
+.kyc-circle-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.yes {
+  background-color: lightgreen;
+  border: 3px solid black;
+}
+.no {
+  background-color: lightgray;
+  border: 1px solid black;
+}
+.alert {
+  color: white;
+  background-color: red;
+  border: 3px solid black;
+}
