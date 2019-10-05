@@ -4,26 +4,45 @@ const Database = use('Database')
 const Config = use('Config')
 const Logger = use('Logger')
 const Model = use('Model')
-const { validate } = use('Validator')
+// const { validate } = use('Validator')
 	
 const customConfig = Config.get('custom.database')
 
 class GenericController {
 
 	async search ({ request, response, session }) {
+		var {table, fields, condition} = request.all()
+		console.log('search ' + table)
 
-		const DBsearchable = customConfig.search || {}
+		var query = Database
+			// .select('id')
+			.from(table)
+		
+		if (condition) {
+			query = query
+				.whereRaw(condition)
+		}
 
-		console.log("search ")
+		var results = await query
 
-		// var Model = new Model('Tea')
-		const table = 'Tea'
+		if (results && results.length && !fields) { 
+			fields = Object.keys(results[0])
+		}
+		return response.json({data : results, fields: fields})
+	}
 
-		return await use('Database').from(table)
-		// var list = yield Model.all()
-		// Logger.debug(JSON.stringify(list))
+	async describe ({ request, response, session }) {
+		var {table, fields, condition} = request.all()
+		console.log('describe ' + table)
 
-		// return list
+		var query = Database.raw('desc ' + table)
+		
+		var results = await query
+
+		if (results && results.length && !fields) { 
+			fields = Object.keys(results[0])
+		}
+		return response.json(results)
 	}
 
 	async upload ({ request, response, session }) {
