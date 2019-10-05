@@ -18,7 +18,7 @@ const Logger = use('Logger')
 const Config = use('Config')
 const Database = use('Database')
 
-var custom_routes = require('./custom/routes.js')
+const custom_routes = require('./custom/routes.js')
 
 console.log('load routes..')
 
@@ -103,4 +103,9 @@ Route.get('/loadTable', 'DBFormController.loadTable')
 Route.get('/loadTable/:table', 'DBFormController.loadTable')
 Route.post('/loadTable', 'DBFormController.loadTable')
 Route.post('/saveForm', 'DBFormController.saveRecord')
+
+// Generic routes
+Route.get('/search', 'GenericController.search')
+Route.get('/getData', 'GenericController.search')
+Route.get('/describe', 'GenericController.describe')
 
