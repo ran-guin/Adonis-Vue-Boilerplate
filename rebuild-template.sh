@@ -1,16 +1,16 @@
 adonis new rebuilt
 echo 'Building template...'
 cd rebuilt
-npm install -S mysql2 dotenv-flow idle-vue vue-async-computed browser-cookies
+npm install -S mysql2 browser-cookies dotenv-flow idle-vue vue-async-computed
 npm install -D adonis-pug
-vue create client -d
+vue create client -p full-featured
 
 cd client
 
 vue add vuetify
 vue add router
-npm install -S axios
-npm install -D pug pug-plain-loader
+npm install -D pug pug-plain-loader material-design-icons-iconfont
+npm install -S axios dotenv-flow idle-vue vue-async-computed browser-cookies
 
 cd ..
 cd ..
