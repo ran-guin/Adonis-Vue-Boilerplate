@@ -1,7 +1,7 @@
 <template lang='pug'>
  div.fullscreen
     PageLayout(:noRefresh=noRefresh :noMobileHeader='noMobileHeader' :noLogin='noLogin')
-      div.myContainer.lightBackground(style='height: 100%')
+      div.myContainer(style='height: 100%')
         Messaging(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
         p &nbsp;
         div(v-if="mode==='Login'")
@@ -532,7 +532,7 @@ export default {
       console.log('validate input')
       if (e && e.target) {
         console.log('val: ' + e.target.name + ' = ' + e.target.value)
-        const form = document.querySelector('.form')
+        // const form = document.querySelector('.form')
         const parent = e.target.parentElement
         console.log('found ')
         parent.classList.add('has-error')
@@ -586,7 +586,7 @@ export default {
     },
     launchLogin: function () {
       if (this.mode === 'Login') {
-        opt.show = true
+        this.loginOptions.show = true
       }
       // if (this.env !== 'production') {
       //   opt.title = 'Note:  You are logging into the ' + this.env + ' system'
@@ -597,7 +597,7 @@ export default {
     },
     launchSignUp: function () {
       if (this.mode === 'SignUp') {
-        opt.show = true
+        this.signupOptions.show = true
       }
       // if (this.env !== 'production') {
       //   opt.title = 'Note:  You are signuping in the ' + this.env + ' system'

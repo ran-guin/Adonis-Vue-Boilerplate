@@ -4,7 +4,7 @@
     span(style='flex:3') Connecting Communities One Event at a Time...
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
-      v-tab(v-if='link.public' v-for='link in headerLinks')
+      v-tab(v-if='link.public' v-for='link in headerLinks' :key='link.name')
         router-link(:to='link.target || link.name')
           v-btn.btn-primary {{link.name}}
 </template>

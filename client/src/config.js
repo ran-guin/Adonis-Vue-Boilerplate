@@ -1,7 +1,19 @@
 export default {
-  apiURL: 'http://localhost:3333',
-  lpURL: 'http://localhost:3333',
-  apiHeader: {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+  apiURL: {
+    production: 'https://idvpn.ca',
+    development: 'https://dev.idvpn.ca',
+    demo: 'https://demo.idvpn.ca',
+    test: 'https://test.idvpn.ca',
+    local: 'http://127.0.0.1:3331'
+  },
+  lpURL: {
+    production: 'https://idvpn.ca',
+    development: 'https://dev.idvpn.ca',
+    demo: 'https://demo.idvpn.ca',
+    test: 'https://test.idvpn.ca',
+    local: 'http://127.0.0.1:3331'
+  },
+  demo_payload: {user: {id: 2, name: 'DemoUser'}},
   rules: {
     required: v => !!v || 'Name is required',
     min: function (m) {
@@ -15,4 +27,3 @@ export default {
     date: v => /$\d\d\d\d-\d\d-\d\d$/.test(v) ? true : 'Valid Date should be YYYY-MM-DD'  
   }
 }
-

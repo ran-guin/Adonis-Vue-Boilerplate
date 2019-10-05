@@ -369,6 +369,8 @@ img.bgimg {
   position: absolute;
   top: 0;
   padding-bottom: $footer-height; // only when footer is fixed...
+  background-color: teal;
+  color: lightgrey;
 }
 
 @media screen and (max-height: 590px) {
