@@ -53,7 +53,7 @@ export default {
     },
     methods: {
         loadTable: function () {
-            const url = this.apiURL + '/describe?table=users'
+            const url = this.apiURL + '/tables/users/'
             console.log('get data from ' + url)
             const _this = this
             axios.get(url)
@@ -65,9 +65,8 @@ export default {
                     }
                 })
         },
-
         loadData: function () {
-            const url = this.apiURL + '/getData?table=users'
+            const url = this.apiURL + '/dataset/users'
             console.log('get data from ' + url)
             const _this = this
             axios.get(url)
