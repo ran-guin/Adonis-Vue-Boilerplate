@@ -15,7 +15,7 @@ export default {
   // call api to login and return token
   login (context, creds, redirect) {
     console.log('get auth.index.login for ' + process.env.NODE_ENV + ' : ' + apiURL)
-    console.log('redirect to: ' + redirect)
+    if (redirect) { console.log('redirect to: ' + redirect) }
     return axios.post(apiURL + '/login', creds)
   },
   // call api to register new user
