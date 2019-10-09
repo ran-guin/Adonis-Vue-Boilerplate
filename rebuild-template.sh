@@ -1,6 +1,8 @@
 adonis new rebuilt
 echo 'Building template...'
 cd rebuilt
+adonis install @adonisjs/validator
+
 npm install -S mysql2 browser-cookies dotenv-flow idle-vue vue-async-computed
 npm install -D adonis-pug
 vue create client -p full-featured
