@@ -26,7 +26,7 @@ module.exports = {
   | are signed and encrypted.
   |
   */
-  cookieName: 'adonis-session',
+  cookieName: 'pgkyc-session',
 
   /*
   |--------------------------------------------------------------------------
@@ -91,11 +91,5 @@ module.exports = {
   | the redis file. But you are free to define an object here too.
   |
   */
-  redis: {
-    host: '127.0.0.1',
-    port: 6379,
-    password: null,
-    db: 0,
-    keyPrefix: ''
-  }
+  redis: 'self::redis.local'
 }
