@@ -9,9 +9,14 @@ const Model = use('Model')
 const customConfig = Config.get('custom.database')
 
 class GenericController {
-
-	async search ({ request, response, session }) {
+	async tables ({ request, response, session }) {
 		var {table, fields, condition} = request.all()
+		console.log('get tables..')
+	}
+
+	async search ({ request, response, session, params }) {
+		var {table, fields, condition} = request.all()
+		if (params.table) { table = params.table }
 		console.log('search ' + table)
 
 		var query = Database
@@ -31,8 +36,9 @@ class GenericController {
 		return response.json({data : results, fields: fields})
 	}
 
-	async describe ({ request, response, session }) {
+	async describe ({ request, response, session, params }) {
 		var {table, fields, condition} = request.all()
+		if (params.table) { table = params.table }
 		console.log('describe ' + table)
 
 		var query = Database.raw('desc ' + table)
@@ -42,11 +48,23 @@ class GenericController {
 		if (results && results.length && !fields) { 
 			fields = Object.keys(results[0])
 		}
+		response.status(200)
 		return response.json(results)
 	}
 
-	async upload ({ request, response, session }) {
+	async update ({ request, response, session, params }) {
+		var {table, id, data} = request.all()
+		if (params.table) { table = params.table }
+		if (params.id) { id = params.id }
+		console.log('update ' + table)
+		var updated
+		response.status(200)
+		return response.json(updated)
+	}
+
+	async append ({ request, response, session, params }) {
 		Logger.info('custom: ' + JSON.stringify(customConfig))
+		if (params.table) { table = params.table }
 
 		const DBuploadable = customConfig.upload || {}
 		const uploadableTables = Object.keys(DBuploadable) || []
@@ -120,7 +138,18 @@ class GenericController {
 
 		const id = await use('Database').table(table).insert(record)
 		Logger.info('id: ' + id)
+		response.status(201)
 		return record
+	}
+
+	async delete ({ request, response, session, params }) {
+		var {table, id} = request.all()
+		if (params.table) { table = params.table }
+		if (params.id) { id = params.id }
+		console.log('delete ' + table)
+		var updated
+		response.status(200)
+		return response.json(updated)
 	}
 
 }
