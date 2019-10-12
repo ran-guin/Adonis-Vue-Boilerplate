@@ -2,28 +2,34 @@
   PageLayout()
     v-container(app dark)
       h1 About
-      h3 This is a boilerplate for Adonis + View with:
+      h3 This is a boilerplate for Adonis + View which includes:
       ul
-        li
-          router-link(to='Login') Login
-        li
-          router-link(to='Search') Data Search
-      hr
-      img.logo(src='@/assets/images/sine.svg' height='300px')
-      hr
-      p &nbsp;
-      Logo
+        li(v-for='comp in components') {{comp}}
 
 </template>
 
 <script>  
 import PageLayout from '@/layouts/PageLayout'
-import Logo from '@/components/Logo'
+import Logo from '@/components/CosineLogo'
 
 export default {
   components: {
     PageLayout,
     Logo
+  },
+  data () {
+    return {
+      animateLogo: true,
+      components: [
+        'Login Functionality (with default users for guest, admin)',
+        'Data Search',
+        'Public Page Default (when not logged in)',
+        'Private Page Default (when logged in)',
+        'Options for Tab navigation (for both public & private pages)',
+        'CRUD Data control for Admins',
+        'Admin page (when logged in as admin)'
+      ]
+    }
   },
   methods: {
     dval: function (offset) {
