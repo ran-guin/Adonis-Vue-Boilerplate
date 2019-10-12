@@ -5,7 +5,7 @@
     div(style='float: right; display: flex; flex-direction: row; height: 100%')
       i.midline.minitext() powered by: &nbsp; &nbsp;
       a.midline.footer-logo(v-on:click="$router.push('/Home')")
-        Logo(theme='dark' height='50' :animate='false')
+        Logo(theme='dark' height='50' :animate='animateLogo' speed=0.4)
 
 </template>
 
@@ -13,6 +13,11 @@
 import Logo from '@/components/CosineLogo'
 
 export default {
+  data () {
+    return {
+      animateLogo: true
+    }
+  },
   components: {
     Logo
   }
