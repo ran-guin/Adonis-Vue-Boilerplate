@@ -1,15 +1,16 @@
 <template lang='pug'>
   div.insideFooter(app dark)
-    b Social Platform Affecting Real Connections
-    div.footer-logo(style='float: right')
-      b powered by &nbsp;
-        a(v-on:click="$router.push('/Home')")
-          img.logo(src='@/assets/images/cosine.logo.png' height='80px')
+    div(style='float: left; display: flex; height: 100%')
+      b.midline Social Platform Affecting Real Connections
+    div(style='float: right; display: flex; flex-direction: row; height: 100%')
+      i.midline.minitext() powered by: &nbsp; &nbsp;
+      a.midline.footer-logo(v-on:click="$router.push('/Home')")
+        Logo(theme='dark' height='50' :animate='false')
 
 </template>
 
 <script>
-import Logo from '@/components/Standard/Logo'
+import Logo from '@/components/CosineLogo'
 
 export default {
   components: {
@@ -22,5 +23,13 @@ export default {
   display: flex row;
   width: 100%;
   display: inline-block;
+}
+
+.midline {
+  display: flex;
+  align-items: center;
+}
+.minitext {
+  font-size: 12px;
 }
 </style>
