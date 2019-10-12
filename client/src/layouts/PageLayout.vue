@@ -5,7 +5,7 @@
       hr.std-colour
       v-container(app)
         slot
-    Footer.myFooter.light(:payload='payload')
+    Footer.myFooter.dark(:payload='payload')
 </template>
 
 <script>
