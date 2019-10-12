@@ -3,9 +3,9 @@
     Header.myHeader
     div.myBody
       hr.std-colour
-      v-container
+      v-container(app)
         slot
-    Footer.myFooter(:payload='payload')
+    Footer.myFooter.light(:payload='payload')
 </template>
 
 <script>
@@ -25,6 +25,7 @@ export default {
   data () {
     return {
       underConstruction: false,
+      darkTheme: true,
       test: false,
       public: [
         '/AboutUs',
@@ -255,7 +256,7 @@ $footer-padding: 20px;
 
 .myHeader {
   color: $header-colour;
-  background-color: $header-background-colour;
+  // background-color: $header-background-colour;
   padding: $header-padding;
   // font-size: $header-font-size; // leaks into signup modal
 }
@@ -266,7 +267,7 @@ $footer-padding: 20px;
 }
 
 .mySubheader {
-  background-color: $subheader-background-colour;
+  // background-color: $subheader-background-colour;
   width: 100%;
   z-index: 1;
 }
@@ -312,9 +313,6 @@ img.bgimg {
 
 /* Responsive - mobile first */
 
-.myHeader {
-  /* height: $header-height; */
-}
 .mySubheader {
   height: $subheader-height;
 }
@@ -322,16 +320,10 @@ img.bgimg {
   position: fixed;
   bottom: 0;
   height: $footer-height;
-  background-color: $footer-background;
-  color: $footer-colour;
+  // background-color: $footer-background;
+  // color: $footer-colour;
 }
 
-.myFooter .a {
-  color: $footer-colour
-}
-.myFooter .a:hover {
-  color: $footer-hover-colour
-}
 /*
 @media screen and (min-width: 768px) {
   .myBody {
@@ -369,8 +361,8 @@ img.bgimg {
   position: absolute;
   top: 0;
   padding-bottom: $footer-height; // only when footer is fixed...
-  background-color: teal;
-  color: lightgrey;
+  // background-color: teal;
+  // color: lightgrey;
 }
 
 @media screen and (max-height: 590px) {

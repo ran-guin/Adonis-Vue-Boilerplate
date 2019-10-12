@@ -1,7 +1,11 @@
 <template lang='pug'>
-  div.insideFooter()
+  div.insideFooter(app dark)
     b Social Platform Affecting Real Connections
-    Logo(style='float: right')
+    div.footer-logo(style='float: right')
+      b powered by &nbsp;
+        a(v-on:click="$router.push('/Home')")
+          img.logo(src='@/assets/images/cosine.logo.png' height='80px')
+
 </template>
 
 <script>
