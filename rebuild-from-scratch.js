@@ -27,6 +27,7 @@ const include = [
   { dir: 'client/src/', files: 'router.js' },
   { dir: 'config/', files: 'cors.js' },
   { dir: 'config/', files: 'database.js' },
+  { dir: 'config/', files: 'shield.js' },
   { dir: 'client/src/assets/', files: '*' },
   { dir: 'client/src/components/', files: '*.*' },
   { dir: './', files: '.env.*' },
