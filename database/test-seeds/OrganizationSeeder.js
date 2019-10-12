@@ -15,7 +15,7 @@ const Database = use('Database')
 class OrganizationSeeder {
   static async run () {
   	const orgs = await Database.table('organizations').insert([
-          {id: 1, name: 'Company Inc', type: 'admin'}
+          {id: 1, name: 'Company Inc'}
   	])
   	console.log('added orgs: ' + orgs)
   }
