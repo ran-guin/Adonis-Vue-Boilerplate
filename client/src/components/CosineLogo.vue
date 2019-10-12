@@ -1,38 +1,72 @@
 <template lang='pug'>
     svg.logo(:height='height' :width='width')
         defs
-            path.sine.wave#wave1(:d='sineWave')
-            path.cosine.wave#wave2(:d='cosineWave')
-        use(xlink:href='#wave1' x="0" y="0")
-            animate(attributeName='x' :from="-width/2" :to="width/2" dur="5s" repeatCount="indefinite")
-        use(xlink:href='#wave2' x="0" y="0")
-            animate(attributeName='x' :from="width/2" :to="-width/2" dur="5s" repeatCount="indefinite")
-        //- path.sine.wave(:d='sineWave')
-        //- path.cosine.wave(:d='cosineWave')
-        path.axis(:d='xaxis')
-        path.axis(:d='yaxis')
-        text.text.cosine(:x="text.x1" :y="text.y1") C O S I N E
-        text.text.systems(:x="text.x2" :y="text.y2") S Y S T E M S
+            path.sine.wave#wave1(:d='sineWave' x="0" y="0" :stroke="stroke('sine')")
+            path.cosine.wave#wave2(:d='cosineWave' x="0" y="0" :stroke="stroke('cosine')")
+        
+        use(v-if='animate && animateType==="svg"' xlink:href='#wave1')
+            animate(attributeName='x' :from="-width/2" :to="width/2" :dur="duration" repeatCount="indefinite")
+        use(v-if='animate && animateType==="svg"' xlink:href='#wave2')
+            animate(attributeName='x' :from="width/2" :to="-width/2" :dur="duration" repeatCount="indefinite")
+        
+        path.sine.wave(v-if='!animate || animateType==="math"' :d='sineWave' :stroke="stroke('sine')")
+        path.cosine.wave(v-if='!animate || animateType==="math"' :d='cosineWave' :stroke="stroke('cosine')")
+
+        path.axis(:d='xaxis' :stroke="stroke('axis')")
+        path.axis(:d='yaxis'  :stroke="stroke('axis')")
+
+        text.text.cosine(:x="text.x1" :y="text.y1" :font-size='height/6' :stroke="stroke('text')" :fill="stroke('text')" :textLength='height*1.5' lengthAdjust="spacingAndGlyphs") C O S I N E
+        text.text.systems(:x="text.x2" :y="text.y2" :font-size='height/6' :stroke="stroke('text')" :fill="stroke('text')" :textLength='height*1.5' lengthAdjust="spacingAndGlyphs") S Y S T E M S
 </template>
 
 <script>
 export default {
     data () {
         return {
+            animateType: 'math', // svg: (move along axis) OR math: (calculate ypos & loop requestAnimationFrame) 
             scale: 90,
-            height: 120,
-            width: 250,
             offset: -90,
             cycles: 1,
-            wave: {
-                offset: -90,
-                amplitude: 100,
-                wavelength: 200
-            },
+            // wave: {
+            //     offset: -90,
+            //     amplitude: 100,
+            //     wavelength: 200
+            // },
             segments: [],
             delay: 0,
             sineWave: '',
-            cosineWave: ''
+            cosineWave: '',
+            Colours: {
+                light: {
+                    axis: 'grey',
+                    sine: 'red',
+                    cosine: 'blue',
+                    text: 'black'
+                },
+                dark: {
+                    axis: 'grey',
+                    sine: 'red',
+                    cosine: 'blue',
+                    text: 'white'
+                }
+            }
+        }
+    },
+    props: {
+        theme: {
+            type: String,
+            default: 'light'
+        },
+        height: {
+            type: String,
+            default: '120'
+        },
+        animate: {
+            type: Boolean
+        },
+        speed: {
+            type: String,
+            default: '1' // scale based on 4 second cycle
         }
     },
     methods: {
@@ -50,7 +84,7 @@ export default {
                 return [x, sine, cosine]
             })
 
-            this.delay++
+            this.delay = this.delay + 1 * this.speed
 
             var sinePath = points.map( p => {
                 return p[0] + ' ' + p[1]
@@ -62,56 +96,38 @@ export default {
 
             this.sineWave = 'M' + sinePath
             this.cosineWave = 'M' + cosinePath
-            // requestAnimationFrame(this.animateWave)
+            if (this.animate && this.animateType === 'math' && this.speed) { requestAnimationFrame(this.animateWave) }
+        },
+        stroke: function (item) {
+            return this.Colours[this.theme][item]
         }
     },
     computed: {
+        width: function () {
+            return this.height * 2
+        },
         xaxis: function () {
             return 'M0 ' + this.height/2 + ' L ' + this.width + ' ' + this.height/2
         },
         yaxis: function () {
-            return 'M' + this.width*0.2 + ' 0 L ' + this.width*0.2 + ' ' + this.height
+            return 'M' + this.width*0.243 + ' 0 L ' + this.width*0.243 + ' ' + this.height
+        },
+        duration: function () {
+            var seconds = 4 * this.speed
+            return seconds + 's'
         },
         text: function () {
             return {
-                x1: this.width * 0.1,
-                x2: this.width * 0.3,
-                y1: this.height / 2 - this.height / 5 + 14, // add font height
-                y2: this.height / 2 + this.height / 5
+                x1: this.width * 0.06,
+                x2: this.width * 0.25,
+                y1: this.height / 2 - this.height / 10, // add font height
+                y2: this.height / 2 + this.height / 10 + this.height/6
             } 
         },
         sinewave: function () {
             // Static Sine Wave
             var dstring = 'M10 80 Q 77.5 10, 145 80 T 280 80'
             return dstring
-        },
-        buildWave: function () {
-            // Generate Bezier curve wave (NOT USED)
-            var amp = this.wave.amplitude * this.scale / 100
-            var m = 0.512286623256592433;
-            var ypos = this.height / 2
-            var xpos = this.wave.offset || 0
-            
-            var pathData = [
-                'M', xpos, ypos + (amp / 2) - 1 , 
-                'c',  amp * m, 0,
-                amp * (1 - m), -amp, 
-                amp, -amp,
-                's', amp * (1 - m), amp,
-                amp, amp,
-                's', amp * (1 - m), -amp,
-                amp, -amp,
-                's', amp * (1 - m), amp,
-                amp, amp,
-                's', amp * (1 - m), -amp,
-                amp, -amp,
-                's', amp * (1 - m), amp,
-                amp, amp,
-                's', amp * (1 - m), -amp,
-                amp, -amp
-            ].join(' ');
-
-            return pathData
         }
     },
     created: function () {
@@ -128,19 +144,19 @@ export default {
 } */
 
 path.sine {
-    stroke: red
+    /* stroke: red */
 }
 path.cosine {
-    stroke: blue
+    /* stroke: blue */
 }
 path.wave {
-  stroke-width: 5px;
+  stroke-width: 1px;
   fill: none;
   stroke-linecap: round;
-  opacity: 0.2
+  /* opacity: 0.5 */
 }
 path.axis {
-    stroke: grey;
+    /* stroke: grey; */
     stroke-width: 1px;
     fill: none;
     stroke-linecap: round;
@@ -148,5 +164,14 @@ path.axis {
 .text {
     letter-spacing: 5px;
     font-family: Helvetica;
+    stroke-width: 0.5px;
+    /* font-stretch: 'ultra-expanded'; */
+    /* stretch: 3; */
+}
+.text.cosine {
+    /* font-size: 16px; */
+}
+.text.systems {
+    /* font-size: 16px; */
 }
 </style>
