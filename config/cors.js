@@ -16,8 +16,8 @@ module.exports = {
   | Function - Receives the current origin and should return one of the above values.
   |
   */
+  // origin: 'http://localhost:3333, http://localhost:3333/login, http://localhost:8081, https://idvpn.ca, https://dev.idvpn.ca',
   origin: '*',
-
   /*
   |--------------------------------------------------------------------------
   | Methods
