@@ -62,7 +62,7 @@ export default {
       console.log('using auth token: ' + pass)
       return token
     } else {
-      console.log('no current token')
+      console.log('no current token to update')
       return null
     }
   },
