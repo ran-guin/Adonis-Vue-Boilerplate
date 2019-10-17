@@ -44,7 +44,7 @@ if (authStorage === 'local') {
     axios.defaults.headers.common['Authorization'] = pass
     console.log('using auth token: ' + pass)
   } else {
-    console.log('no current token')
+    console.log('no initial token (? .. okay prior to login)')
   }
 } else if (authStorage === 'cookie') {
   const csrf = cookies.get('XSRF-TOKEN')
