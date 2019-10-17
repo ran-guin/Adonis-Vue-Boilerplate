@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Home from './pages/Home.vue'
 import Data from './pages/Data.vue'
-import About from './pages/About.vue'
+import Public from './pages/Public.vue'
 import Login from './pages/Login.vue'
 import Contact from './pages/ContactUs.vue'
 import Admin from './pages/Admin.vue'
@@ -17,7 +17,7 @@ export default new Router({
     {
       path: '/',
       name: 'default',
-      component: About
+      component: Public
     },
     {
       path: '/home',
@@ -30,12 +30,36 @@ export default new Router({
       component: Login
     },
     {
-      path: '/about',
-      name: 'about',
+      path: '/Register',
+      name: 'Login',
+      component: Login,
+      props: {
+        mode: 'Register'
+      }
+    },
+    {
+      path: '/Recover',
+      name: 'Login',
+      component: Login,
+      props: {
+        mode: 'Recover'
+      }
+    },
+    {
+      path: '/Public',
+      name: 'Public',
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './pages/About.vue')
+      component: Public
+    },
+    {
+      path: '/About',
+      name: 'About',
+      // route level code-splitting
+      // this generates a separate chunk (about.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('./pages/About.vue')
     },
     {
       path: '/data',
