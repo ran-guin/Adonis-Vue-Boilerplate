@@ -23,7 +23,8 @@ export default {
       linkType: 'text',
       publicHeaders: [
         {name: 'About', public: true},
-        {name: 'Login', public: true}
+        {name: 'Login', public: true},
+        {name: 'Register', public: true}
       ],
       privateHeaders: [
         {name: 'Logout', private: true},
