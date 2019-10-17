@@ -16,7 +16,7 @@ module.exports = {
   | Available Serializers - lucid, database
   |
   */
-  authenticator: 'session',
+  authenticator: 'jwt',
 
   /*
   |--------------------------------------------------------------------------
@@ -72,7 +72,9 @@ module.exports = {
     uid: 'email',
     password: 'password',
     options: {
-      secret: Env.get('APP_KEY')
+      secret: Env.get('APP_KEY'),
+      // Force timeout as well, but need to fix token / user_id issue first
+      expiresIn: 10 * 60 // ... logout using idle-vue to monitor activity.
     }
   },
 

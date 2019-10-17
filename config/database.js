@@ -1,9 +1,6 @@
 'use strict'
 
-/** @type {import('@adonisjs/framework/src/Env')} */
 const Env = use('Env')
-
-/** @type {import('@adonisjs/ignitor/src/Helpers')} */
 const Helpers = use('Helpers')
 
 module.exports = {
@@ -16,7 +13,7 @@ module.exports = {
   | interacting with SQL databases.
   |
   */
-  connection: Env.get('DB_CONNECTION', 'mysql'),
+  connection: Env.get('DB_CONNECTION', 'sqlite'),
 
   /*
   |--------------------------------------------------------------------------
@@ -55,7 +52,8 @@ module.exports = {
       user: Env.get('DB_USER', 'root'),
       password: Env.get('DB_PASSWORD', ''),
       database: Env.get('DB_DATABASE', 'adonis')
-    }
+    },
+    debug: true
   },
 
   /*
