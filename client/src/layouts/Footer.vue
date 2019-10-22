@@ -1,7 +1,7 @@
 <template lang='pug'>
   div.insideFooter(app dark)
     div(style='float: left; display: flex; height: 100%')
-      b.midline Social Platform Affecting Real Connections
+      b.midline {{footer}} 
     div(style='float: right; display: flex; flex-direction: row; height: 100%')
       i.midline.minitext() powered by: &nbsp; &nbsp;
       a.midline.footer-logo(v-on:click="$router.push('/Home')")
@@ -11,6 +11,7 @@
 
 <script>
 import Logo from '@/components/CosineLogo'
+import config from '@/config'
 
 export default {
   data () {
@@ -20,6 +21,11 @@ export default {
   },
   components: {
     Logo
+  },
+  computed: {
+    footer: function () {
+      return config.footer || ''
+    }
   }
 }
 </script>

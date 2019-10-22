@@ -2,8 +2,8 @@
   v-app-bar(app hide-on-scroll)
     div.header-logo(style='flex: 1')
       a(v-on:click="$router.push('/Home')")
-        img.logo(src='@/assets/images/logo.svg' height='50px')
-    span(style='flex:3') Connecting Communities One Event at a Time...
+        img.logo(:src='logo' height='50px')
+    span(style='flex:3') {{header}} 
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
       v-tab(v-for='link in headerLinks' :key='link.name')
@@ -38,9 +38,12 @@ export default {
     Logo
   },
   computed: {
+    header: function () {
+      return config.header || ''
+    },
     logo: function () {
       var file = config.headerLogo || 'logo.svg'
-      return '@/assets/images/' + file
+      return 'images/' + file
     },
     headerLinks: function () {
       if (this.payload && this.payload.userid) {
