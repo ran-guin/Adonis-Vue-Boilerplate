@@ -10,16 +10,16 @@
               VForm.login-form(:form='form' :options='loginOptions' :remoteErrors='formErrors')
               router-link(to='/Recover') Forgot Password ?
               p.error(v-if='authError') {{authError}}
-              p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
-                span(style='float:right') v{{env.codeVersion}}
+              //- p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
+              //-   span(style='float:right') v{{env.codeVersion}}
         div(v-else-if="mode==='SignUp'")          <!-- explicit registration page -->
           div.centred
             div.smallBox.darkShadow(style='background-color: white')
               VForm.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors')
               p.error(v-if='authError')
                 span {{authError}}
-              p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
-                span(style='float:right') v{{env.codeVersion}}
+              //- p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
+              //-   span(style='float:right') v{{env.codeVersion}}
         div(v-else-if="mode==='Recover'")
           div.centred
             div.smallBox.darkShadow(style='background-color: white')
@@ -127,7 +127,8 @@ export default {
       error: '',
       noRefresh: true,
       redirect_default: Config.lpURL[process.env.NODE_ENV],
-      rules: Config.rules
+      rules: Config.rules,
+      invitationRequired: false
     }
   },
   props: {
@@ -140,6 +141,11 @@ export default {
     }
   },
   created: function () {
+    if (this.page === 'Logout') {
+      this.logout()
+      this.page = 'Login'
+    }
+
     this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri || this.redirect_default
     this.inviteToken = this.invitationToken || this.$route.params.token || this.$route.query.token
     console.log('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
@@ -164,7 +170,10 @@ export default {
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
     this.$set(this.signupOptions, 'onCancel', this.cancel)
 
-    if (this.inviteToken) {
+    if (!this.invitationRequired) {
+      this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
+      this.changeToRegister('publicAccess')
+    } else if (this.inviteToken) {
       this.changeToRegister()
     } else {
       this.changeToRequest()
@@ -221,6 +230,9 @@ export default {
     this.loadEnv()
   },
   computed: {
+    payload: function () {
+      return this.$store.getters.payload || {}
+    },
     myId: function () {
       if (this.mode === 'Login') {
         return 'login-modal'
@@ -264,7 +276,7 @@ export default {
         .catch(function (err) {
           console.log('Error retrieving env: ' + err)
           // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
-          this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
+          _this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
         })
     },
     clearLocalMessages: function () {
@@ -319,22 +331,19 @@ export default {
       }
     },
     adjustForEnv: function () {
-      if (this.env && this.env.codeVersion === 'production') {
-        console.log('production environment')
-      } else if (this.env) {
-        if (this.env.db === 'pgkyc') {
-          this.loginOptions.header = this.loginOptions.header + ' Warning - accessing production database (?)'
-          this.signupOptions.header = this.signupOptions.header + 'Warning - accessing production database (?)'
-        } else {
-          // this.loginOptions.header = this.loginOptions.header + '(login as guest@pgkyc.com : demoPassword)'
-          if (this.mode === 'Login') {
-            this.loginOptions.fields[0].prompt += ' - try  guest@pgkyc.com'
+      if (this.env) {
+        // this.loginOptions.header = this.loginOptions.header + '(login as guest@pgkyc.com : demoPassword)'
+        if (this.mode === 'Login') {
+          if (process.env.NODE_ENV !== 'production') {
+            this.loginOptions.fields[0].prompt += ' - try  guest@' + this.defaultDomain
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
-          } else if (this.mode === 'SignUp') {
-           this.signupOptions.fields[1].prompt += ' - (' + this.env.codeVersion + ' mode)'
-            this.signupOptions.fields[2].prompt += ' - (valid for today only)'        
-            // this.signupOptions.header = this.signupOptions.header + '(this will enable login for the remainder of the day)'
           }
+        } else if (this.mode === 'SignUp') {
+          if (process.env.NODE_ENV) {
+            this.signupOptions.fields[1].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
+          }
+          // this.signupOptions.fields[2].prompt += ' - (valid for today only)'        
+          // this.signupOptions.header = this.signupOptions.header + '(this will enable login for the remainder of the day)'
         }
 
         console.log('adjusted options: ' + JSON.stringify(this.loginOptions))
@@ -367,6 +376,11 @@ export default {
       }
       return this.initializeSession(response)
     },
+    async logout () {
+      var loginId = this.payload.login_id
+      console.log('logout via auth...')
+      auth.logout(this, loginId)
+    },
     async signup (form) {
       var fields = this.signupOptions.fields
       var credentials = { shortForm: true }
@@ -387,32 +401,37 @@ export default {
 
       console.log('Signing up with credentials: ')
       // this.$store.dispatch('logMessage', 'Submitting registration request...')
-      var response = await auth.signup(this, credentials)
-      console.log('SignUp call:' + JSON.stringify(response))
+      try {
+        var response = await auth.signup(this, credentials)
+        console.log('SignUp call:' + JSON.stringify(response))
 
-      if (response.data.error) {
-        this.$set(this.formErrors, 'form', response.data.error)
-        console.error(response.data.error)
+        if (response.data.error) {
+          this.$set(this.formErrors, 'form', response.data.error)
+          console.error(response.data.error)
 
-        if (response.data.validation_errors && response.data.validation_errors[0].message === 'unique validation failed on email') {
-          this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?email=' + this.form.email)
-          // this.warning = 'Looks like you are already registered... redirecting you to recover password'
+          if (response.data.validation_errors && response.data.validation_errors[0].message === 'unique validation failed on email') {
+            this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?email=' + this.form.email)
+            // this.warning = 'Looks like you are already registered... redirecting you to recover password'
 
-          // var _this = this
-          // setTimeout(function () {
-          //   _this.setToRecover()
-          // }, 2000); //will call the function after 2 secs.
-        }
-      } else {
-        console.log('redirect ? ' + this.redirect_uri)
-        if (this.redirect_uri) {
-          console.log('** redirecting to ' + this.redirect_uri)
-          this.delayedRedirect('Submitting registration request', 'message', this.redirect_uri)
+            // var _this = this
+            // setTimeout(function () {
+            //   _this.setToRecover()
+            // }, 2000); //will call the function after 2 secs.
+          }
         } else {
-          console.log('no redirect..')
-          const message = response.data.message || 'Created Account'
-          return this.initializeSession(response, message)
+          console.log('redirect ? ' + this.redirect_uri)
+          if (this.redirect_uri) {
+            console.log('** redirecting to ' + this.redirect_uri)
+            this.delayedRedirect('Submitting registration request', 'message', this.redirect_uri)
+          } else {
+            console.log('no redirect..')
+            const message = response.data.message || 'Created Account'
+            return this.initializeSession(response, message)
+          }
         }
+      } catch (err) {
+        console.debug('Failed to sign up...')
+        return 
       }
     },
     async recoverPassword (form) {
@@ -438,11 +457,11 @@ export default {
             _this.delayedRedirect('Password recovery link sent to \'' + email + '\' (if account exists)')
             return response
           }
-        })
-        .catch(function (err) {
-          _this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
-          console.log('Error Generating Password Recovery ' + err)
-        })
+      })
+      .catch(function (err) {
+        _this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
+        console.log('Error Generating Password Recovery ' + err)
+      })
     },
     delayedRedirect: function (message, type, path) {
       if (type === 'error') {
@@ -505,6 +524,7 @@ export default {
           if (response.data.payload) {
             console.log('initialized payload: ' + JSON.stringify(response.data.payload))
             this.$store.dispatch('CACHE_PAYLOAD', response.data.payload)
+            this.$router.push('/Home')
             // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
           }
           return { success: true }
@@ -531,10 +551,7 @@ export default {
     checkInput (e) {
       console.log('validate input')
       if (e && e.target) {
-        console.log('val: ' + e.target.name + ' = ' + e.target.value)
-        // const form = document.querySelector('.form')
         const parent = e.target.parentElement
-        console.log('found ')
         parent.classList.add('has-error')
         this.note = 'Failed Validation'
       }
@@ -635,12 +652,18 @@ export default {
     changeToRegister: function (hold) {
       if (this.mode === 'SignUp') {
         // Token provided: enable direct registration
-
+        if (this.invitationRequired) {
+          this.signupOptions.header = 'Register for Beta version'
+          this.signupOptions.fields[0].type = 'text'
+        } else {
+          this.signupOptions.header = 'Register'
+          this.signupOptions.fields[0].type = 'hidden'
+        }
+        this.signupOptions.fields[2].type = 'password'
+        
         // Note: fields (in order) are: promo/token, email, password
         console.log('include password in form')
         this.signupOptions.fields[0].value = hold
-        this.signupOptions.fields[2].type = 'password'
-        this.signupOptions.header = 'Register for Beta version'
         this.signupOptions.submitButton = 'Register'
       }
     }    
