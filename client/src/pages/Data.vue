@@ -4,8 +4,6 @@
             v-text-field(light v-model='table' style='background-color: white; padding: 0.5rem;' label='Database Table')
             v-text-field(light v-model='condition' style='background-color: white; padding: 0.5rem;' label='Condition')
             div(style='display: inline-block')
-                v-btn.btn-primary(v-if='table' @click='loadTable') Load Table
-                span &nbsp; &nbsp;
                 v-btn.btn-primary(v-if='table' @click='loadData') Load Data
         hr
         v-container(fluid v-if='dataFields')
@@ -21,14 +19,18 @@
                         template(v-slot:top)
                             v-dialog(v-model="dialog" max-width="500px")
                                 template(v-slot:activator="{ on }")
-                                    v-btn(color="primary" dark class="mb-2" v-on="on") New Item
+                                    v-container
+                                        v-btn(color="primary" dark class="mb-2" v-on="on") New Item
                                 v-card
                                     v-card-title Dataset:
                                     v-card-text
                                         v-container
-                                            v-row
-                                                v-col(cols="12" sm="6" md="4")
-                                                    v-text-field(v-for='fld in dataFields' v-model="form[fld]" :label="fld" :key='fld')
+                                            VForm(:form='dataForm' :options='formOptions')
+                                            hr
+                                            h3 {{dataForm}}
+                                            //- v-row
+                                                //- v-col(cols="12" sm="6" md="4")
+                                                    //- v-text-field(v-for='fld in dataFields' v-model="form[fld]" :label="fld" :key='fld')
                                     v-card-actions
                                         div.flex-grow-1
                                             v-btn(color="blue darken-1" text @click="close") Cancel
@@ -40,6 +42,7 @@
                             v-btn(color='primary' @click='initialize') Reset
                 v-tab-item(value='tab-1')
                     h3 Graph...:
+                    h4 Form {{JSON.stringify(dataForm, null, 2)}}
                 v-tab-item(value='tab-2')
                     h3 Dump:
                     h4 Fields: {{JSON.stringify(dataFields, null, 2)}}
@@ -52,10 +55,12 @@
 import axios from 'axios'
 import config from '@/config'
 import PageLayout from '@/layouts/PageLayout'
+import VForm from '@/components/Standard/Vuetify/VForm'
 
 export default {
     components: {
-        PageLayout
+        PageLayout,
+        VForm
     },
     data () {
         return {
@@ -64,6 +69,7 @@ export default {
             table: 'users',
             condition: '',
             dataFields: [],
+            fieldInfo: {},
             headers: [],
             pickFields: [],
             apiURL: config.apiURL[process.env.NODE_ENV],
@@ -71,7 +77,9 @@ export default {
             crud: true,
             editedIndex: -1,
             form: {},
-            dialog: false
+            dialog: false,
+            formOptions: { fields: [] },
+            dataForm: {}
         }
     },
     created: function () {
@@ -88,26 +96,28 @@ export default {
     methods: {
         initialize: function () {
             this.dataset = []
+            this.tableFields = []
             this.pickFields = []
             this.dataFields = []
             this.headers = []
         },
-        loadTable: function () {
+        async loadTable () {
             const url = this.apiURL + '/tables/' + this.table
             console.log('desc table from ' + url)
             const _this = this
-            axios.get(url)
+            return axios.get(url)
                 .then(function (response) {
                     console.log('Response: ' + JSON.stringify(response.data))
                     if (response.data) {
-                        _this.$set(_this, 'dataset', response.data[0])
-                        _this.parseFields(_this.tableFields)
+                        _this.$set(_this, 'tableFields', response.data[0])
+                        _this.parseFields(response.data[0])
                     }
+                    return _this.tableFields
                 })
         },
-        loadData: function () {
+        async loadData () {
             var url = this.apiURL + '/dataset/' + this.table
-
+            await this.loadTable()
             if (this.condition) { url = url + '?condition=' + this.condition }
 
             console.log('get data from ' + url)
@@ -119,20 +129,33 @@ export default {
                         var fields = []
                         if (response.data.data) {
                             _this.$set(_this, 'dataset', response.data.data)
-                        }
-                        if (response.data.fields) {
-                            fields = response.data.fields
+                            if (response.data.fields) {
+                                fields = response.data.fields
+                            } else {
+                                fields = Object.keys(response.data.data[0])
+                            }
+                            _this.parseData(fields)
                         } else {
-                            fields = Object.keys(response.data.data[0])
+                            console.debug('no response data')
                         }
-                        _this.parseFields(fields)
                     } else {
                         console.error('no data response...')
                     }
                 })
         },
-
-        parseFields: function (fields) {
+        async parseFields (fields) {
+            this.fieldInfo = {}
+            this.formFields = []
+            for (var i = 0; i < fields.length; i++) {
+                var fld = fields[i].Field
+                this.$set(this.fieldInfo, fld, fields[i])
+                var type = fields[i].Type
+                this.formOptions.fields.push({name: fld, type: type})
+            }
+            console.debug('field Info: ' + JSON.stringify(this.fieldInfo))
+            console.debug('form Options: ' + JSON.stringify(this.formOptions))
+        },
+        parseData: function (fields) {
             this.dataFields = []
             this.headers = []
             for (var i = 0; i < fields.length; i++) {
@@ -164,9 +187,9 @@ export default {
 
             for (var i = 0; i < this.dataFields.length; i++) {
                 var fld = this.dataFields[i]
-                this.$set(this.form, fld, this.dataset[this.editedIndex][fld])
+                this.$set(this.dataForm, fld, this.dataset[this.editedIndex][fld])
             }
-            console.log('Form: ' + JSON.stringify(this.form))
+            console.log('Form: ' + JSON.stringify(this.dataForm))
             this.editedItem = Object.assign({}, item)
             this.dialog = true
         },
@@ -179,6 +202,12 @@ export default {
 
         close () {
             this.dialog = false
+
+            const keys = Object.keys(this.dataForm)
+            for (var i = 0; i < keys.length; i++) {
+                this.$set(this.dataForm, keys[i], '')
+            }
+            // this.$set(this, 'dataForm', {})
             setTimeout(() => {
                 this.editedItem = Object.assign({}, this.defaultItem)
                 this.editedIndex = -1
