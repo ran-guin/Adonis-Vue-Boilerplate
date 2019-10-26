@@ -2,6 +2,8 @@
 const Hash = use('Hash')
 const Database = use('Database')
 const User = use('App/Models/User')
+const Invitation = use('App/Models/Invitation')
+const Promo = use('App/Models/Promo')
 const Recovery = use('App/Models/PasswordRecovery')
 const Login = use('App/Models/Login')
 const { validate } = use('Validator')
@@ -331,43 +333,48 @@ class AuthController {
       if (token) {
         // invitation token
         console.log('checking registration token: ' + token)
-        invitation = await Invitation.findBy('token', token)
-        var promo = await Promo.findBy('code', token)
-        var invite_id
+        try {
+          invitation = await Invitation.findBy('token', token)
+          var promo = await Promo.findBy('code', token)
+          var invite_id
 
-        if (promo) {
-          console.log('promo: ' + JSON.stringify(promo))
-          if (promo.status !== 'active') {
-            console.log('promo code status is ' + promo.status)
-            failed = 'promo code ' + promo.status
-          } else {
-            invitation = new Invitation()
-            invitation.token = token
-            invitation.email = email
-            invitation.requested = new Date()
-
-            console.log('generated invitation record for promo usage')
-          }
-        } else if (invitation) {
-          console.log('invite: ' + JSON.stringify(invitation))
-          if (invitation.status !== 'sent') {
-            failed = 'Invitation status ' + invitation.status
-          } else {
-            const now = new Date()
-            const timediff = now.getTime() - then.getTime()
-            console.log('time diff = ' + timediff/1000/60 + ' minutes')
-            if (timediff > maxInvite) {
-              console.log('expired invitation')
-              invitation.status = 'expired'
-
-              failed = 'Invitation link has expired.  You must request another invite'
+          if (promo) {
+            console.log('promo: ' + JSON.stringify(promo))
+            if (promo.status !== 'active') {
+              console.log('promo code status is ' + promo.status)
+              failed = 'promo code ' + promo.status
             } else {
-              invite_id = invitation.id
+              invitation = new Invitation()
+              invitation.token = token
+              invitation.email = email
+              invitation.requested = new Date()
+
+              console.log('generated invitation record for promo usage')
             }
+          } else if (invitation) {
+            console.log('invite: ' + JSON.stringify(invitation))
+            if (invitation.status !== 'sent') {
+              failed = 'Invitation status ' + invitation.status
+            } else {
+              const now = new Date()
+              const timediff = now.getTime() - then.getTime()
+              console.log('time diff = ' + timediff/1000/60 + ' minutes')
+              if (timediff > maxInvite) {
+                console.log('expired invitation')
+                invitation.status = 'expired'
+
+                failed = 'Invitation link has expired.  You must request another invite'
+              } else {
+                invite_id = invitation.id
+              }
+            }
+          } else {
+            console.log('no promo or invitation...')
+            failed = 'invalid invitation token'
           }
-        } else {
-          console.log('no promo or invitation...')
-          failed = 'invalid invitation token'
+        } catch (err) {
+          console.log('problem checking for invitations / promo codes')
+          response.json({success: false})
         }
       } else {
         var invite = new Invitation()
@@ -418,7 +425,7 @@ class AuthController {
 
             if (invitation) {
               // should always be defined as long as invites are required
-              invitation.user = reloaded.id
+              invitation.user_id = reloaded.id
               invitation.status = 'accepted'
               invitation.save()
             }
@@ -465,6 +472,11 @@ class AuthController {
               console.log('caught registration error: ' + error)
               response.json({error: msg})
           }
+        // } catch (error) {
+        //   var msg = 'Failed to register'
+        //   console.log('caught registration error: ' + error)
+        //   response.json({error: msg})
+        // }
         } else {
           console.log('passwords did not match')
           response.json({error: 'Password Error'})
