@@ -84,7 +84,7 @@ export default {
           { name: 'password', type: 'password', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock' }
         ],
         submitButtonClass: 'btn-primary btn-lg',
-        buttonType: 'submit',
+        // buttonType: 'submit',
         header: '',
         title: 'Login',
       },
@@ -97,7 +97,7 @@ export default {
         ],
         submitButtonClass: 'btn-primary btn-lg',
         submitButton: 'Request Beta Access',
-        buttonType: 'submit',
+        // buttonType: 'submit',
         header: 'Request access to Beta version',
         title: ''
       },
@@ -332,24 +332,18 @@ export default {
     },
     adjustForEnv: function () {
       if (this.env) {
-        // this.loginOptions.header = this.loginOptions.header + '(login as guest@pgkyc.com : demoPassword)'
-        if (this.mode === 'Login') {
-          if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production') {
+          if (this.mode === 'Login') {
             this.loginOptions.fields[0].prompt += ' - try  guest@' + this.defaultDomain
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
-          }
-        } else if (this.mode === 'SignUp') {
-          if (process.env.NODE_ENV) {
+          } else if (this.mode === 'SignUp') {
             this.signupOptions.fields[1].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
+            this.signupOptions.header = this.signupOptions.header + '(this will enable login for the remainder of the day)'
+            this.signupOptions.fields[2].prompt += ' - (valid for today only)'        
           }
-          // this.signupOptions.fields[2].prompt += ' - (valid for today only)'        
-          // this.signupOptions.header = this.signupOptions.header + '(this will enable login for the remainder of the day)'
+          console.log('adjusted options: ' + JSON.stringify(this.loginOptions))
+          console.log('adjust titles for ' + process.env.NODE_ENV + ' : ' + this.env.codeVersion + ' / ' + this.env.db)
         }
-
-        console.log('adjusted options: ' + JSON.stringify(this.loginOptions))
-        console.log('adjust titles for ' + this.env.codeVersion + ' / ' + this.env.db)
-        // this.loginOptions.title = 'Note:  You are in ' + this.env.codeVersion + ' mode.'
-        // this.signupOptions.title = 'Note:  You are signing up in the ' + this.env.codeVersion + ' mode'
       } else {
         console.log('no env')
       }
@@ -530,13 +524,11 @@ export default {
           return { success: true }
         } else if (response.data.message) {
           console.log('log message error: ' + response.data.message)
-          this.$set(this, 'authError', response.data.message)
-          // this.$store.dispatch('logError', response.data.error)
+          this.$set(this, 'authError','Sorry - Authorization Failed')
           return { error: response.data.message }
         } else if (response.data.error) {
           console.log('log error: ' + response.data.error)
-          this.$set(this, 'authError', response.data.error)
-          // this.$store.dispatch('logError', response.data.error)
+          this.$set(this, 'authError', 'Sorry - Authorization Failed')
           return { error: response.data.error }
         } else {
           this.$store.dispatch('logWarning', 'unrecognized data response')
