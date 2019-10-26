@@ -13,7 +13,9 @@ export default {
     test: 'https://test.idvpn.ca',
     local: 'http://127.0.0.1:3331'
   },
-  demo_payload: {user: {id: 2, name: 'DemoUser'}},
+  header: 'My App Title',
+  defaultEmailDomain: 'gmail.com',
+  footer: 'My App Footer',
   rules: {
     required: v => !!v || 'Name is required',
     min: function (m) {
