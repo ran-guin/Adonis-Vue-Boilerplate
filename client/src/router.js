@@ -27,14 +27,33 @@ export default new Router({
     {
       path: '/Login',
       name: 'Login',
-      component: Login
+      component: Login,
+      props: {
+        page: 'Login'
+      }
+    },
+    {
+      path: '/Logout',
+      name: 'Logout',
+      component: Login,
+      props: {
+        page: 'Logout'
+      }
+    },
+    {
+      path: '/SignUp',
+      name: 'SignUp',
+      component: Login,
+      props: {
+        page: 'SignUp'
+      },
     },
     {
       path: '/Register',
-      name: 'Login',
+      name: 'Register',
       component: Login,
       props: {
-        mode: 'Register'
+        page: 'SignUp'
       }
     },
     {
@@ -42,7 +61,7 @@ export default new Router({
       name: 'Login',
       component: Login,
       props: {
-        mode: 'Recover'
+        page: 'Recover'
       }
     },
     {
