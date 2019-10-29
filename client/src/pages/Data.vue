@@ -6,8 +6,6 @@
             div(style='display: inline-block')
                 v-btn.btn-primary(v-if='table' @click='loadData') Load Data
         hr
-        v-container(fluid v-if='dataFields')
-            v-checkbox(v-for='fld in dataFields' v-model='pickFields' :label='fld' :value='fld' :key='fld' @change='reRenderTable')
         v-container(dark)
             v-tabs(model='tab' hide-slider)
                 v-tab(href='#tab-0') Data
@@ -15,12 +13,16 @@
                 v-tab(href='#tab-2') Dump
                 hr
                 v-tab-item(value='tab-0')
-                    v-data-table(v-if='dataset' :headers='headers' :items='dataset' :items-per-page='20' class='elevation-9')
+                    v-data-table(v-if='dataset && dataset.length' :headers='headers' :items='dataset' :items-per-page='20' class='elevation-9')
                         template(v-slot:top)
                             v-dialog(v-model="dialog" max-width="500px")
                                 template(v-slot:activator="{ on }")
                                     v-container
                                         v-btn(color="primary" dark class="mb-2" v-on="on") New Item
+                                        br
+                                        v-container.showFields(fluid v-if='dataFields')
+                                            b Display: &nbsp;
+                                            v-checkbox.showField(v-for='fld in dataFields' v-model='pickFields' :label='fld' :value='fld' :key='fld' @change='reRenderTable')
                                 v-card
                                     v-card-title Dataset:
                                     v-card-text
@@ -40,6 +42,8 @@
                             v-icon.mr-2(small @click='deleteItem(item)') delete
                         template(v-slot:no-data)
                             v-btn(color='primary' @click='initialize') Reset
+                    //- div(v-else)
+                    //-     p No data
                 v-tab-item(value='tab-1')
                     h3 Graph...:
                     h4 Form {{JSON.stringify(dataForm, null, 2)}}
@@ -229,5 +233,10 @@ export default {
 th {
     background-color: lightyellow;
     color: blue;
+}
+
+.showFields {
+    display: flex;
+    justify-content: spae-between
 }
 </style>
