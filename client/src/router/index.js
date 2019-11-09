@@ -1,12 +1,12 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Home from './pages/Home.vue'
-import Data from './pages/Data.vue'
-import Public from './pages/Public.vue'
-import Login from './pages/Login.vue'
-import Contact from './pages/ContactUs.vue'
-import Admin from './pages/Admin.vue'
-import Construction from './pages/Construction.vue'
+import Home from '@/pages/Home.vue'
+import Data from '@/pages/Data.vue'
+import Public from '@/pages/Public.vue'
+import Login from '@/pages/Login.vue'
+import Contact from '@/pages/ContactUs.vue'
+import Admin from '@/pages/Admin.vue'
+import Construction from '@/pages/Construction.vue'
 
 Vue.use(Router)
 
@@ -78,7 +78,7 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('./pages/About.vue')
+      component: () => import('@/pages/About.vue')
     },
     {
       path: '/data',
