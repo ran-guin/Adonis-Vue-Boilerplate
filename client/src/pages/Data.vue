@@ -27,7 +27,7 @@
                                     v-card-title Dataset:
                                     v-card-text
                                         v-container
-                                            VForm(:form='dataForm' :options='formOptions')
+                                            rgv-form(:form='dataForm' :options='formOptions')
                                             hr
                                             h3 {{dataForm}}
                                             //- v-row
@@ -59,12 +59,10 @@
 import axios from 'axios'
 import config from '@/config'
 import PageLayout from '@/layouts/PageLayout'
-import VForm from '@/components/Standard/Vuetify/VForm'
 
 export default {
     components: {
-        PageLayout,
-        VForm
+        PageLayout
     },
     data () {
         return {

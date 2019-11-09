@@ -13,7 +13,7 @@
             hr
             <!-- DataGrid(v-if='data' :data='data') -->
           v-card-text(v-else-if="item==='Docs'")
-            Docs(:scopes='scopes' :docs='docs')
+            rgv-docs(:scopes='scopes' :docs='docs')
           v-card-text(v-else-if="item==='Stats'")
             h4 Custom Stats to be developed
             ul
@@ -28,7 +28,7 @@
             hr
             <!-- DataGrid(v-if='data' :data='data') -->
           v-card-text(v-else-if="item==='Accounts'")
-            VModal(prompt='Send Invitation' :form='inviteOptions' :message='inviteMessage')
+            rgv-modal(prompt='Send Invitation' :form='inviteOptions' :message='inviteMessage')
 
             h3 Monitor:
             div.myContainer
@@ -80,7 +80,7 @@
           v-card-text(v-else)
             b {{item}} ??
     p &nbsp;
-    Modal(id='adminModal' type='data' :options='modal_options' :data='data' :note='note')
+    rgv-modal(id='adminModal' type='data' :options='modal_options' :data='data' :note='note')
     <!-- VModal(id='adminModal' :data='data' :fullscreen='true') -->
 
     p &nbsp;
@@ -88,20 +88,12 @@
 
 <script>
 import PageLayout from '@/layouts/PageLayout'
-import Modal from '@/components/Standard/Modal'
-import VModal from '@/components/Standard/Vuetify/Modal'
-import DataGrid from '@/components/Standard/DataGrid'
-import Docs from '@/components/Standard/Docs'
 import config from '@/config'
 import axios from 'axios'
 
 export default {
   components: {
-    PageLayout,
-    Modal,
-    VModal,
-    DataGrid,
-    Docs
+    PageLayout
   },
   data () {
     return {

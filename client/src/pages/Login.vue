@@ -2,12 +2,12 @@
  div.fullscreen
     PageLayout(:noRefresh=noRefresh :noMobileHeader='noMobileHeader' :noLogin='noLogin')
       div.myContainer(style='height: 100%')
-        Messaging(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
+        rgv-messaging(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
         p &nbsp;
         div(v-if="mode==='Login'")
           div.centred
             div.smallBox.darkShadow(style='background-color: white')
-              VForm.login-form(:form='form' :options='loginOptions' :remoteErrors='formErrors')
+              rgv-form.login-form(:form='form' :options='loginOptions' :remoteErrors='formErrors')
               router-link(to='/Recover') Forgot Password ?
               p.error(v-if='authError') {{authError}}
               //- p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
@@ -15,7 +15,7 @@
         div(v-else-if="mode==='SignUp'")          <!-- explicit registration page -->
           div.centred
             div.smallBox.darkShadow(style='background-color: white')
-              VForm.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors')
+              rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors')
               p.error(v-if='authError')
                 span {{authError}}
               //- p(v-if='env.codeVersion && !env.codeVersion.match(/prod/)') &nbsp;
@@ -23,16 +23,16 @@
         div(v-else-if="mode==='Recover'")
           div.centred
             div.smallBox.darkShadow(style='background-color: white')
-              VForm.recover-form(:form='form' :options='recoverOptions' :remoteErrors='formErrors')
+              rgv-form.recover-form(:form='form' :options='recoverOptions' :remoteErrors='formErrors')
               p.error(v-if='authError')
                 span {{authError}}
         div(v-else-if="mode==='Construction'")
-          Modal.signup-modal(type='record' id='construction-modal' title='Under Construction' :options='constructionOptions')
+          rgv-modal.signup-modal(type='record' id='construction-modal' title='Under Construction' :options='constructionOptions')
         div(v-else)
           span.wasSmallScreen
-            Modal(type='record' :sub_options='loginOptions')
+            rgv-modal(type='record' :sub_options='loginOptions')
             br
-            Modal(type='record' :sub_options='signupOptions')
+            rgv-modal(type='record' :sub_options='signupOptions')
             p.error(v-if='authError')
               span {{authError}}
         //- Modal.wideScreen.login-signup(type='record' :id='myId' :error='authError' :options='myOptions' :note='note' :remoteErrors='formErrors')
@@ -42,21 +42,15 @@
 
 <script>
 import PageLayout from '@/layouts/PageLayout'
-import Messaging from '@/components/Standard/Messaging'
-import VForm from '@/components/Standard/Vuetify/VForm'
-import Modal from '@/components/Standard/Modal'
 import Config from '@/config.js'
 import axios from 'axios'
 import auth from '@/auth'
 
-import FormValidator from '@/components/Standard/mixins/FormValidator'
+import FormValidator from '@/mixins/FormValidator'
 
 export default {
   components: {
-    Messaging,
-    PageLayout,
-    VForm,
-    Modal
+    PageLayout
   },
   mixins: [
     FormValidator
@@ -148,23 +142,23 @@ export default {
 
     this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri || this.redirect_default
     this.inviteToken = this.invitationToken || this.$route.params.token || this.$route.query.token
-    console.log('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
+    this.$myConsole.debug('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
 
-    console.log('url query ?: ' + JSON.stringify(this.$route.query))
-    console.log('url params ?: ' + JSON.stringify(this.$route.params))
+    this.$myConsole.debug('url query ?: ' + JSON.stringify(this.$route.query))
+    this.$myConsole.debug('url params ?: ' + JSON.stringify(this.$route.params))
 
-    console.log('Rules: ' + JSON.stringify(this.rules))
-    console.log('apiURL' + process.env.NODE_ENV + ' -> ' + this.apiURL)
+    this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
+    this.$myConsole.debug('apiURL' + process.env.NODE_ENV + ' -> ' + this.apiURL)
 
-    console.log('Login options: ' + JSON.stringify(this.loginOptions))
+    this.$myConsole.debug('Login options: ' + JSON.stringify(this.loginOptions))
     this.$set(this.loginOptions, 'onSubmit', this.login)
     this.$set(this.loginOptions, 'onBlur', this.checkInput)
     this.$set(this.loginOptions, 'onFocus', this.inputFocus)
     this.$set(this.loginOptions, 'onCancel', this.cancel)
 
-    console.log('initialized login options...')
+    this.$myConsole.debug('initialized login options...')
 
-    console.log('Signup options: ' + JSON.stringify(this.signupOptions))
+    this.$myConsole.debug('Signup options: ' + JSON.stringify(this.signupOptions))
     this.$set(this.signupOptions, 'onSubmit', this.signup)
     this.$set(this.signupOptions, 'onBlur', this.checkInput)
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
@@ -178,11 +172,11 @@ export default {
     } else {
       this.changeToRequest()
     }
-    console.log('Recovery options: ' + JSON.stringify(this.recoverOptions))
+    this.$myConsole.debug('Recovery options: ' + JSON.stringify(this.recoverOptions))
     this.$set(this.recoverOptions, 'onSubmit', this.recoverPassword)
     this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
     this.$set(this.recoverOptions, 'onCancel', this.cancel)
-    console.log('Connection: ' + JSON.stringify(this.request))
+    this.$myConsole.debug('Connection: ' + JSON.stringify(this.request))
     this.$store.dispatch('AUTH_LOGOUT')
 
     var path = this.$route.path.match(/\/?(\w+)/)
@@ -194,39 +188,39 @@ export default {
     }
     // var email = this.$route.params.email || this.$route.query.email
     // if (email) { 
-    //   console.log('*** preset email: ' + email)
+    //   this.$myConsole.debug('*** preset email: ' + email)
     //   this.form.email = email
     // }
 
     if (this.page) {
       this.mode = this.page
-      console.log('Mode: ' + this.mode)
+      this.$myConsole.debug('Mode: ' + this.mode)
     } else if (this.$route.query.mode || this.$route.params.mode) {
       this.mode = this.$route.query.mode || this.$route.params.mode
-      console.log('input mode: ' + this.mode)
+      this.$myConsole.debug('input mode: ' + this.mode)
     } else if (!this.mode && path) {
-      console.log('default mode to path: ' + path[1])
+      this.$myConsole.debug('default mode to path: ' + path[1])
       this.mode = path[1]
     } else {
-      console.log('Default mode to Login')
+      this.$myConsole.debug('Default mode to Login')
       this.mode = 'Login'
     }
 
     this.$store.dispatch('clearMessages')
-    console.log('*** get url messages/warnings...')
+    this.$myConsole.debug('*** get url messages/warnings...')
     this.message = this.$route.query.message
     this.warning = this.$route.query.warning
     this.error = this.$route.query.error
 
-    console.log('url message: ' + this.message)
+    this.$myConsole.debug('url message: ' + this.message)
 
     const delayed_redirect = this.$route.params.delayed_redirect || this.$route.query.delayed_redirect
     if (delayed_redirect) {
-      console.log('redirecting to ' + delayed_redirect)
+      this.$myConsole.debug('redirecting to ' + delayed_redirect)
       this.delayedRedirect(this.message, 'message', delayed_redirect)
     }
 
-    console.log('Route Path: ' + JSON.stringify(path) + '; Mode: ' + this.mode)
+    this.$myConsole.debug('Route Path: ' + JSON.stringify(path) + '; Mode: ' + this.mode)
     this.loadEnv()
   },
   computed: {
@@ -244,7 +238,7 @@ export default {
     },
     options: function () {
       if (this.mode === 'Login') {
-        console.log('opt = ' + JSON.stringify(this.loginOptions))
+        this.$myConsole.debug('opt = ' + JSON.stringify(this.loginOptions))
         return this.loginOptions
       } else if (this.mode === 'Recover') {
         return this.recoverOptions
@@ -259,22 +253,22 @@ export default {
   methods: {
     loadEnv () {
       var _this = this
-      console.log('env: ' + process.env.NODE_ENV)
-      console.log(JSON.stringify(Config.apiURL))
-      console.log('axios: get env from ' + this.apiURL)
+      this.$myConsole.debug('env: ' + process.env.NODE_ENV)
+      this.$myConsole.debug(JSON.stringify(Config.apiURL))
+      this.$myConsole.debug('axios: get env from ' + this.apiURL)
       axios.get(this.apiURL + '/env')
         .then(function (response) {
           if (response.data && response.data.codeVersion) {
-            console.log('*** env: ')
-            console.log(JSON.stringify(response.data))
+            this.$myConsole.debug('*** env: ')
+            this.$myConsole.debug(JSON.stringify(response.data))
             _this.env = response.data
             _this.initializeOptions()
           } else {
-            console.log('*** no env detected: ' + JSON.stringify(response))
+            this.$myConsole.debug('*** no env detected: ' + JSON.stringify(response))
           }
         })
         .catch(function (err) {
-          console.log('Error retrieving env: ' + err)
+          this.$myConsole.debug('Error retrieving env: ' + err)
           // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
           _this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
         })
@@ -285,36 +279,36 @@ export default {
       this.error = ''
       this.authError = ''
       this.formErrors = {}
-      console.log('cleared local messages...')
+      this.$myConsole.debug('cleared local messages...')
       this.$store.dispatch('clearMessages')
     },
     setToLogin: function (reset) {
       this.mode = 'Login'
       this.clearLocalMessages()
       this.adjustForEnv()
-      console.log('set login options: ')
-      console.log(JSON.stringify(this.loginOptions))
+      this.$myConsole.debug('set login options: ')
+      this.$myConsole.debug(JSON.stringify(this.loginOptions))
       if (reset) { this.clearLocalMessages() }
     },
     setToSignup: function (reset) {
       this.mode = 'SignUp'
       this.clearLocalMessages()
       this.adjustForEnv()
-      console.log('signup options: ')
-      console.log(JSON.stringify(this.signupOptions))
+      this.$myConsole.debug('signup options: ')
+      this.$myConsole.debug(JSON.stringify(this.signupOptions))
       if (reset) { this.clearLocalMessages() }
     },
     setToRecover: function (reset) {
       this.clearLocalMessages()
       this.adjustForEnv()
       this.mode = 'Recover'
-      console.log('set recover options: ')
-      console.log(JSON.stringify(this.recoverOptions))
+      this.$myConsole.debug('set recover options: ')
+      this.$myConsole.debug(JSON.stringify(this.recoverOptions))
       if (reset) { this.clearLocalMessages() }
     },
     initializeOptions: function () {
       if (this.inviteToken) {
-        console.log('hide invitation token field')
+        this.$myConsole.debug('hide invitation token field')
         this.signupOptions.fields[0].value = this.inviteToken
       }
 
@@ -325,7 +319,7 @@ export default {
       } else if (this.mode === 'SignUp') {
         this.setToSignup()
       } else {
-        console.log('unrecognized mode: ' + this.mode)
+        this.$myConsole.debug('unrecognized mode: ' + this.mode)
         this.myOptions = {}
         this.adjustForEnv()
       }
@@ -338,14 +332,12 @@ export default {
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
           } else if (this.mode === 'SignUp') {
             this.signupOptions.fields[1].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
-            this.signupOptions.header = this.signupOptions.header + '(this will enable login for the remainder of the day)'
-            this.signupOptions.fields[2].prompt += ' - (valid for today only)'        
+            this.signupOptions.header = this.signupOptions.header
+            this.signupOptions.preForm = '(valid for today only)'
           }
-          console.log('adjusted options: ' + JSON.stringify(this.loginOptions))
-          console.log('adjust titles for ' + process.env.NODE_ENV + ' : ' + this.env.codeVersion + ' / ' + this.env.db)
         }
       } else {
-        console.log('no env')
+        // this.$myConsole.debug('no env')
       }
     },
     async login (form) {
@@ -353,16 +345,16 @@ export default {
         email: form.email,
         password: form.password
       }
-      console.log('login ' + form.email)
+      // this.$myConsole.debug('login ' + form.email)
       try {
         delete axios.defaults.headers.common['Authorization']
         var response = await auth.login(this, credentials)
         if (response && response.expired) {
           this.$store.dispatch('logWarning', 'Session Expired.  Please log in again.')
         }
-        console.log('Login response:' + JSON.stringify(response))
+        // this.$myConsole.debug('Login response:' + JSON.stringify(response))
       } catch (err) {
-        console.log('caught login error: ' + err)
+        // this.$myConsole.debug('caught login error: ' + err)
         if (err === 'Network Error') {
           this.$store.dispatch('logError', 'Connection temporarily unavailable...')
         }
@@ -372,7 +364,7 @@ export default {
     },
     async logout () {
       var loginId = this.payload.login_id
-      console.log('logout via auth...')
+      this.$myConsole.debug('logout via auth...')
       auth.logout(this, loginId)
     },
     async signup (form) {
@@ -393,11 +385,11 @@ export default {
         credentials.redirect_uri = this.redirect_uri
       }
 
-      console.log('Signing up with credentials: ')
+      this.$myConsole.debug('Signing up with credentials: ')
       // this.$store.dispatch('logMessage', 'Submitting registration request...')
       try {
         var response = await auth.signup(this, credentials)
-        console.log('SignUp call:' + JSON.stringify(response))
+        this.$myConsole.debug('SignUp call:' + JSON.stringify(response))
 
         if (response.data.error) {
           this.$set(this.formErrors, 'form', response.data.error)
@@ -413,12 +405,12 @@ export default {
             // }, 2000); //will call the function after 2 secs.
           }
         } else {
-          console.log('redirect ? ' + this.redirect_uri)
+          this.$myConsole.debug('redirect ? ' + this.redirect_uri)
           if (this.redirect_uri) {
-            console.log('** redirecting to ' + this.redirect_uri)
+            this.$myConsole.debug('** redirecting to ' + this.redirect_uri)
             this.delayedRedirect('Submitting registration request', 'message', this.redirect_uri)
           } else {
-            console.log('no redirect..')
+            this.$myConsole.debug('no redirect..')
             const message = response.data.message || 'Created Account'
             return this.initializeSession(response, message)
           }
@@ -430,14 +422,14 @@ export default {
     },
     async recoverPassword (form) {
       this.message = 'Generating Recovery Email...'
-      console.log('Form: ' + JSON.stringify(form))
+      this.$myConsole.debug('Form: ' + JSON.stringify(form))
       const email = form.email
-      console.log('recover my password via ' + this.apiURL + '/recoverPassword ... for ' + email)
+      this.$myConsole.debug('recover my password via ' + this.apiURL + '/recoverPassword ... for ' + email)
       var _this = this
       axios.post(this.apiURL + '/recoverPassword', {email: email})
         .then(function (response) {
           if (response && response.data && response.data.validation_errors) {
-            console.log('get service response')
+            this.$myConsole.debug('get service response')
             var val = _this.validateResponse(response)
             if (val.formErrors) { _this.$set(_this, 'formErrors', val.formErrors) }
             return response.data
@@ -445,7 +437,7 @@ export default {
             _this.$store.dispatch('logError', response.error)
             return response
           } else if (response && response.data) {
-            console.log('recover response: ' + JSON.stringify(response))
+            this.$myConsole.debug('recover response: ' + JSON.stringify(response))
             _this.setToLogin(1)
 
             _this.delayedRedirect('Password recovery link sent to \'' + email + '\' (if account exists)')
@@ -454,7 +446,7 @@ export default {
       })
       .catch(function (err) {
         _this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
-        console.log('Error Generating Password Recovery ' + err)
+        this.$myConsole.debug('Error Generating Password Recovery ' + err)
       })
     },
     delayedRedirect: function (message, type, path) {
@@ -482,9 +474,8 @@ export default {
       }, 2000); //will call the function after 2 secs.
     },
     initializeSession (response, onSuccess) {
-      // console.log('initialize session for ' + response)
       if (response && response.data && response.data.validation_errors) {
-        console.log('get service response')
+        this.$myConsole.debug('get service response')
         var val = this.validateResponse(response)
         if (val.formErrors) { this.$set(this, 'formErrors', val.formErrors) }
         return response.data
@@ -495,39 +486,39 @@ export default {
         if (response.data.success) {
           if (response.data.token) {
             var refreshToken = response.data.refreshToken
-            console.log('token cached: ' + response.data.token)
-            console.log('refresh token: ' + refreshToken)
+            this.$myConsole.debug('token cached: ' + response.data.token)
+            this.$myConsole.debug('refresh token: ' + refreshToken)
             this.$store.dispatch('AUTH_TOKEN', {token: response.data.token, refreshToken: refreshToken})
 
             var pass = 'Bearer ' + response.data.token
             axios.defaults.headers.common['Authorization'] = pass
             // auth.updateToken()
-            console.log('updated token...')
+            this.$myConsole.debug('updated token...')
           }
           if (onSuccess) { alert(onSuccess) }
           if (this.redirect_uri) {
-            console.log('** reroute to ' + this.redirect_uri)
+            this.$myConsole.debug('** reroute to ' + this.redirect_uri)
             window.location = this.redirect_uri
           } else {
             this.$router.push('/Home?message=' + onSuccess)
           }
           if (onSuccess) {
-            console.log('dispatch log message: ' + onSuccess)
+            this.$myConsole.debug('dispatch log message: ' + onSuccess)
             this.$store.dispatch('logMessage', onSuccess)
           }
           if (response.data.payload) {
-            console.log('initialized payload: ' + JSON.stringify(response.data.payload))
+            this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
             this.$store.dispatch('CACHE_PAYLOAD', response.data.payload)
             this.$router.push('/Home')
             // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
           }
           return { success: true }
         } else if (response.data.message) {
-          console.log('log message error: ' + response.data.message)
+          this.$myConsole.debug('log message error: ' + response.data.message)
           this.$set(this, 'authError','Sorry - Authorization Failed')
           return { error: response.data.message }
         } else if (response.data.error) {
-          console.log('log error: ' + response.data.error)
+          this.$myConsole.debug('log error: ' + response.data.error)
           this.$set(this, 'authError', 'Sorry - Authorization Failed')
           return { error: response.data.error }
         } else {
@@ -541,7 +532,7 @@ export default {
     },
 
     checkInput (e) {
-      console.log('validate input')
+      this.$myConsole.debug('validate input')
       if (e && e.target) {
         const parent = e.target.parentElement
         parent.classList.add('has-error')
@@ -549,20 +540,20 @@ export default {
       }
     },
     onChange (e) {
-      console.log('on change')
+      this.$myConsole.debug('on change')
       if (e && e.target) {
-        console.log('val: ' + e.target.name + ' = ' + e.target.value)
+        this.$myConsole.debug('val: ' + e.target.name + ' = ' + e.target.value)
       }
     },
     onKeyup (e) {
-      console.log('on change')
+      this.$myConsole.debug('on change')
       if (e && e.target) {
-        console.log('val: ' + e.target.name + ' = ' + e.target.value)
+        this.$myConsole.debug('val: ' + e.target.name + ' = ' + e.target.value)
       }
 
       if (e && e.target && e.target.name === 'token') {
         const hold = e.target.value // form reset on field change below so keep track of value
-        console.log('reset: ' + e.target.name + ' = ' + e.target.value)
+        this.$myConsole.debug('reset: ' + e.target.name + ' = ' + e.target.value)
 
         // Adjust form options for invites vs beta request
         if (this.mode === 'SignUp' && e.target.value) {
@@ -578,9 +569,9 @@ export default {
       if (e && e.target) {
         const parent = e.target.parentElement
         parent.classList.remove('has-error')
-        console.log('checkinput')
+        this.$myConsole.debug('checkinput')
       } else {
-        console.log('no e-target to focus on')
+        this.$myConsole.debug('no e-target to focus on')
       }
     },
     inputValidate (e) {
@@ -588,9 +579,9 @@ export default {
       if (e && e.target) {
         const parent = e.target.parentElement
         parent.classList.add('has-success')
-        console.log('validated')
+        this.$myConsole.debug('validated')
       } else {
-        console.log('no e-target to validate')
+        this.$myConsole.debug('no e-target to validate')
       }
     },
     launchLogin: function () {
@@ -618,7 +609,7 @@ export default {
     },
     cancel: function () {
       this.$set(this, 'formErrors', {})
-      console.log('cancel this form')
+      this.$myConsole.debug('cancel this form')
       this.authError = ''
       this.mode = 'Login'
       this.$router.push('/Home')
@@ -634,7 +625,7 @@ export default {
         // No token provided: enable request for access
 
         // Note; fields (in order) are: promo/token, email, password
-        console.log('exclude password from form')
+        this.$myConsole.debug('exclude password from form')
         this.signupOptions.fields[0].value = hold
         this.signupOptions.fields[2].type = 'hidden'
         this.signupOptions.header = 'Request access to Beta version'
@@ -654,7 +645,7 @@ export default {
         this.signupOptions.fields[2].type = 'password'
         
         // Note: fields (in order) are: promo/token, email, password
-        console.log('include password in form')
+        this.$myConsole.debug('include password in form')
         this.signupOptions.fields[0].value = hold
         this.signupOptions.submitButton = 'Register'
       }
@@ -662,10 +653,10 @@ export default {
   },
   watch: {
     mode: function () {
-      console.log('reset mode to ' + this.mode)
+      this.$myConsole.debug('reset mode to ' + this.mode)
     },
     hasToken: function () {
-      console.log('token specified...')
+      this.$myConsole.debug('token specified...')
       if (this.hasToken) {
         this.changeToRegister()
       } else {
