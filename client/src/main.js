@@ -4,6 +4,10 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify';
 
+import RGV from '@ran-guin/vue-components';
+import myConsole from './services/myConsole.js';
+import myString from './services/myString.js';
+
 // import 'material-design-icons-iconfont/dist/material-design-icons.css'
 // import AsyncComputed from 'vue-async-computed'
 
@@ -27,6 +31,18 @@ import '@/assets/custom/css/custom.css'
 Vue.config.productionTip = false
 
 var timeoutMinutes = 5 // manage from config file
+
+Vue.use(RGV)
+const plugin = {
+    install () {
+        Vue.myConsole = myConsole
+        Vue.prototype.$myConsole = myConsole
+
+        Vue.myString = myString
+        Vue.prototype.$myString = myString
+    }
+}
+Vue.use(plugin)
 
 const eventsHub = new Vue()
 Vue.use(IdleVue, {
