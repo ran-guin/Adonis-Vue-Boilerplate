@@ -14,7 +14,6 @@
 </template>
 
 <script>
-import Logo from '@/components/Standard/Logo'
 import config from '@/config.js'
 
 export default {
@@ -24,7 +23,7 @@ export default {
       publicHeaders: [
         {name: 'About', public: true},
         {name: 'Login', public: true},
-        {name: 'Register', public: true}
+        {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
         {name: 'Logout', private: true},
@@ -35,7 +34,6 @@ export default {
     }
   },
   components: {
-    Logo
   },
   computed: {
     header: function () {
