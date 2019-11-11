@@ -10,11 +10,13 @@
         router-link(v-if='visible(link)' :to='link.target || link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
           span(v-else) {{link.name}}
-      v-tab(v-if='payload.username') {{payload.username}}
+      UserMenu()
+      // v-tab(v-if='payload.username') {{payload.username}}
 </template>
 
 <script>
 import config from '@/config.js'
+import UserMenu from '@/components/UserMenu.vue'
 
 export default {
   data () {
@@ -34,6 +36,7 @@ export default {
     }
   },
   components: {
+    UserMenu
   },
   computed: {
     header: function () {
