@@ -14,6 +14,7 @@ export default {
     local: 'http://127.0.0.1:3331'
   },
   header: 'My App Title',
+  headerLogo: 'logo.svg',
   defaultEmailDomain: 'gmail.com',
   footer: 'My App Footer',
   rules: {
