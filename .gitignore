@@ -7,7 +7,7 @@ tmp
 
 # Environment variables, never commit this file
 .env
-custom
+custom/*
 client/src/components/Standard
 
 # The development sqlite file
