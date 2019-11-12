@@ -9,8 +9,8 @@
 </template>
 
 <script>
-import Header from './Header.vue'
-import Footer from './Footer.vue'
+import Header from './custom/Header.vue'
+import Footer from './custom/Footer.vue'
 
 import config from '@/config'
 import auth from '@/auth'
