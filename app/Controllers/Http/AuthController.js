@@ -301,6 +301,8 @@ class AuthController {
     const {username, email, password, confirmPassword, shortForm, source, token} = request.all()
     const rules = {}
 
+    const invitation_required = Config.get('custom.invitation_required')
+
     rules.password = 'required|min:8'
     rules.email = 'required|email|unique:users,email'
 
@@ -368,6 +370,8 @@ class AuthController {
                 invite_id = invitation.id
               }
             }
+          } else if ( !invitation_required ) {
+            console.debug('no invitation / promo code required...')
           } else {
             console.log('no promo or invitation...')
             failed = 'invalid invitation token'
@@ -376,7 +380,7 @@ class AuthController {
           console.log('problem checking for invitations / promo codes')
           response.json({success: false})
         }
-      } else {
+      } else if (invitation_required) {
         var invite = new Invitation()
         invite.email = email
         invite.requested = new Date()
@@ -400,7 +404,7 @@ class AuthController {
         console.log(failed)
         response.json({success: false, error: failed })
         // return response.redirect('/signUp?error=' + failed)
-      } else if (invitation) {
+      } else if (invitation || !invitation_required) {
         console.log('registration proceeding...')
         const uuid = uuidv4()
         var user = new User()
@@ -472,11 +476,6 @@ class AuthController {
               console.log('caught registration error: ' + error)
               response.json({error: msg})
           }
-        // } catch (error) {
-        //   var msg = 'Failed to register'
-        //   console.log('caught registration error: ' + error)
-        //   response.json({error: msg})
-        // }
         } else {
           console.log('passwords did not match')
           response.json({error: 'Password Error'})
