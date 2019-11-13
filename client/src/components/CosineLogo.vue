@@ -143,12 +143,12 @@ export default {
     border: 1px solid black;
 } */
 
-path.sine {
-    /* stroke: red */
+/* path.sine {
+    stroke: red
 }
 path.cosine {
-    /* stroke: blue */
-}
+    stroke: blue
+} */
 path.wave {
   stroke-width: 1px;
   fill: none;
@@ -168,10 +168,10 @@ path.axis {
     /* font-stretch: 'ultra-expanded'; */
     /* stretch: 3; */
 }
-.text.cosine {
-    /* font-size: 16px; */
+/* .text.cosine {
+    font-size: 16px;
 }
 .text.systems {
-    /* font-size: 16px; */
-}
+    font-size: 16px;
+} */
 </style>
