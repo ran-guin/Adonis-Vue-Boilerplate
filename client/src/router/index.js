@@ -5,6 +5,7 @@ import Data from '@/pages/Data.vue'
 import Public from '@/pages/Public.vue'
 import Login from '@/pages/Login.vue'
 import Contact from '@/pages/ContactUs.vue'
+import Dashboard from '@/pages/Dashboard.vue'
 import Admin from '@/pages/Admin.vue'
 import Construction from '@/pages/Construction.vue'
 
@@ -89,6 +90,11 @@ export default new Router({
       path: '/contact',
       name: 'contact',
       component: Contact
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: Dashboard
     },
     {
       path: '/admin',
