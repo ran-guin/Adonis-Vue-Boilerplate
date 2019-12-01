@@ -1,7 +1,6 @@
 <template lang='pug'>
   div
     div.user-icon()
-      <!-- Logged In -->
       rgv-dropdown.user-dropdown(:options='myUserMenu' :title='payload.username' width='100px')
       rgv-modal.user-modal(id='profile' type='data')
 </template>
