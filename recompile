@@ -25,6 +25,9 @@ then
 	mkdir ./public
         cp -R ./client/dist/* ./public/
         cp -R ./client/src/assets/* ./public/
+        cp ./callback.html ./public/
+
+        cp ./client/node_modules/oidc-client/dist/oidc-client.min.js ./public/
 else
 	echo "Usage: recompile <version> (dev, test, or local)\n";
 fi
