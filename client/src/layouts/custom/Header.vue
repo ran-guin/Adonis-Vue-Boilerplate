@@ -10,7 +10,10 @@
         router-link(v-if='visible(link)' :to='link.target || link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
           span(v-else) {{link.name}}
-      UserMenu(v-if='payload.userid')
+      //- UserMenu(v-if='isLoggedIn' :logout='logout')
+      v-tab
+        v-btn.btn-primary(v-if='isLoggedIn' @click='call_logout()') Logout
+        v-btn.btn-primary(v-else @click='call_login()') Login
 </template>
 
 <script>
@@ -37,6 +40,18 @@ export default {
   components: {
     UserMenu
   },
+  props: {
+    isLoggedIn: {
+      type: Boolean,
+      default: false
+    },
+    login: {
+      type: Function
+    },
+    logout: {
+      type: Function
+    }
+  },
   computed: {
     header: function () {
       return config.header || ''
@@ -57,6 +72,20 @@ export default {
     }
   },
   methods: {
+    call_login: function () {
+      if (this.login) {
+        this.login()
+      } else {
+        console.debug('no login function supplied')
+      }
+    },
+    call_logout: function () {
+      if (this.logout) {
+        this.logout()
+      } else {
+        console.debug('no login function supplied')
+      }
+    },
     visible: function (link) {
       if (link.access === 'admin') {
         return (this.payload.access === 'admin')
