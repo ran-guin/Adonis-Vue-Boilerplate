@@ -5,14 +5,14 @@
 </template>
 
 <script>  
-import PageLayout from '@/layouts/PageLayout'
+import PrivateLayout from '@/layouts/PrivateLayout'
 export default {
   components: {
-    PageLayout
+    PrivateLayout
   },
   computed: {
     payload: function () {
-      return this.getters.payload || {}
+      return this.$store.getters.payload || {}
     }
   }
 }
