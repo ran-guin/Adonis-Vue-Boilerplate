@@ -1,0 +1,433 @@
+<template lang='pug'>
+  PageLayout
+</template>
+
+<script>
+import PageLayout from './PageLayout.vue'
+
+import IdvpnService from '@/services/IdvpnService'
+const idvpn = new IdvpnService()
+
+import config from '@/config'
+import auth from '@/auth'
+
+export default {
+  components: {
+    PageLayout
+  },
+  data () {
+    return {
+      IdvpnAuth: true,
+      currentUser: '',
+      accessTokenExpired: false,
+      isLoggedIn: false,
+
+      underConstruction: false,
+      darkTheme: true,
+      test: false,
+      public: [
+        '/AboutUs',
+        '/FAQs',
+        '/ContactUs',
+        '/Login',
+        '/Register',
+        '/SignUp',
+        '/Recover'
+      ],
+      /* Nav variable: */
+      actingAs: '',
+      path: ['Home'],
+      apiURL: config.apiURL[process.env.NODE_ENV],
+      user: ''
+    }
+  },
+  onIdle () {
+    // Note: idle timeout period defined in client/src/main.js
+    if (this.payload && this.payload.userid) {
+      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
+      console.log('idle user detected... logging out: ' + timestamp)
+      var loginId = this.payload.login_id
+      console.log('logout via auth...')
+      auth.logout(this, loginId)
+      console.log('dispatch logout ...')
+      this.$store.dispatch('AUTH_LOGOUT')
+      this.$router.push('/Login')
+    } else {
+      console.log('idle session detected, but already logged out...')
+    }
+  },
+  onActive () {
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    console.log('... idle-vue monitoring status as active: ' + timestamp)
+  },
+  props: {
+    mode: {
+      type: String
+    },
+    redirect: {type: Function},
+    // payload: {
+    //   type: Object,
+    //   default: null
+    // },
+    interests: {type: Array},
+    events: {type: Array},
+    invites: {type: Array},
+    noMobileHeader: {
+      type: Boolean,
+      default: false
+    },
+    noFooter: {
+      type: Boolean
+    },
+    noHeader: {
+      type: Boolean
+    },
+    noRefresh: {
+      // Refresh token automatically unless excluded specifically
+      type: Boolean
+    },
+    noLogin: {
+      type: Boolean
+    }
+  },
+  mounted: function () {
+    if (idvpn.isDefined) {
+      this.idvpn_login()
+    } else if (this.payload && this.payload.userid) {
+      this.isLoggedIn = true
+      this.currentUser = this.payload.username
+    } else {
+      this.isLoggedIn = false
+      this.currentUser = 'Guest'
+    }
+  },
+  created: function () {
+    this.$store.dispatch('clearMessages')
+    console.log('payload:' + JSON.stringify(this.payload))
+
+    if (!this.payload || !this.payload.user_id) {
+      // this.$router.push('/Home')
+    }
+
+    this.actingAs = this.actingAs || this.payload.role
+
+    this.checkPayload()
+
+    if (this.underConstruction) {
+      this.$router.push('/Construction')
+    }
+
+    if (!this.noRefresh) {
+      this.$store.dispatch('RESET_EXPIRY')
+    }
+  },
+  computed: {
+    username: function () {
+      return this.currentUser
+    },
+    pages: function () {
+      if (this.payload && this.payload) {
+        var role = this.payload.role
+        if (role === 'guarantor') {
+          return ['Verify']
+        } else if (role === 'Admin' || role === 'Tester') {
+          return ['Dashboard', 'Register', 'Verify']
+        } else {
+          return ['Dashboard', 'Register']
+        }
+      } else {
+        return ['Home']
+      }
+    },
+    remote: function () {
+      if (this.payload && (this.payload.source === 'remote' || this.payload.role === 'proxy')) {
+        return true
+      } else {
+        return false
+      }
+    },
+    loggedIn: function () {
+      return this.payload && this.payload.userid
+    },
+    payload: function () {
+      return this.$store.getters.payload || {}
+    },
+    currentRole () {
+      return this.actingAs
+    }
+  },
+  methods: {
+    login: function () {
+      console.debug('idvpn login...')
+      idvpn.login()
+      //this.user = idvpn.getUser()
+    },
+    idvpn_login: function () {
+      const _this = this
+      idvpn.getUser().then((user) => {
+        console.log('retrieved idvpn user: ' + JSON.stringify(user))
+        _this.user = user
+        if (user !== null) {
+          this.currentUser = user.profile.name
+          this.accessTokenExpired = user.expired
+        }
+        this.isLoggedIn = (user !== null && !user.expired)
+        if (user && user.id_token) {
+          const details = myString.decrypt(user.id_token)
+          console.log(JSON.stringify(details))
+          const payload = { userid: 123, username: 'TBD' }
+          this.$store.dispatch('CACHE_PAYLOAD', payload)
+        }
+      }).catch((err) => {
+        console.log('no user defined: ' + err)
+      })
+    },
+    async logout () {
+      console.debug('idvpn logout...')
+      if (this.IdvpnAuth) {
+        idvpn.logout()
+      } else {
+        console.log('Logging out: ' + JSON.stringify(this.payload))
+        var loginId = this.payload.login_id
+        console.log(loginId + ' logout via auth ')
+
+        this.$store.dispatch('AUTH_LOGOUT')
+        this.$store.dispatch('CACHE_PAYLOAD', { access: 'public' })
+        var response = await auth.logout(this, loginId)
+        console.log('Logout response:' + JSON.stringify(response))
+        this.$router.push('/Home')
+      }
+    },
+    checkPayload: function () {
+      if (this.payload && this.payload.status === 'expired') {
+        console.log('payload expired')
+        // this.$store.dispatch('logWarning', 'Session Expired - Please log in again.')
+      } else if (!this.payload.userid) {
+        if (this.public.indexOf(this.$route.path) >= 0) {
+          console.log('allow public page access to ' + this.$route.path)
+        } else if (this.mode === 'construction') {
+          console.log('redirect to construction page from layout...')
+          this.$router.push('/Construction')
+        // } else if (this.IdvpnAuth) {
+        //   console.debug('redirect to idvpn authorization')
+        //   this.login()
+        } else {
+          console.log('path: ' + this.$route.path)
+          console.log('redirect to home page from layout... ?')
+          // this.$router.push('/')
+        }
+      }
+    },
+    gotoPage (page, subpage, subpage2) {
+      console.log('goto page: ' + page + ' : ' + subpage)
+      this.$store.dispatch('clearMessages')
+      if (this.redirect && this.redirect.constructor === Function) {
+        console.log('redirect to ' + page)
+        this.redirect(page)
+      } else {
+        page = page || 'Home'
+        this.path = [page]
+        if (subpage) {
+          this.path.push(subpage)
+          this.$router.push(subpage)
+        }
+        if (subpage2) {
+          this.path.push(subpage2)
+          this.$router.push(subpage2)
+        }
+      }
+    }
+  },
+  watch: {
+    '$route' () {
+      console.log('route changed .. reload data')
+      this.checkPayload()
+      // this.reloadData()
+    },
+    payload: function () {
+      console.log('payload updated in layout')
+      this.checkPayload()
+    },
+    isLoggedIn: function () {
+      console.debug('login status changed')
+      console.debug('user: ' + JSON.stringify(this.user))
+      this.idvpn_login()
+      console.debug('user: ' + JSON.stringify(this.user))
+    },
+    updates: function () {
+      console.log('update docs for layout')
+      // this.reload()
+    }
+  }
+}
+</script>
+
+<style lang="scss">
+.mainMenuBar {
+  width: 100%;
+  height: 100%;
+  // background-color: #eee;
+}
+.mainMenu {
+  padding-right: 5rem;
+  // background-color: #eee;
+}
+
+/*** Customize Header / Footer Settings: ***/
+$header-height: 64px;
+$subheader-height: 0px;
+$min-height: 300px;
+$footer-height: 100px;
+
+$header-background-colour: white;
+$body-background-colour: white;
+$subheader-background-colour: white;
+$footer-colour: #39a;
+$footer-background: darkblue;
+$footer-hover-colour: white;
+
+$header-colour: grey;
+$subheader-colour: grey;
+$body-colour: black;
+$footer-colour: #ccc;
+
+$header-padding: 0px;
+$footer-padding: 20px;
+
+.page {
+  /*margin-top: -20px;*/
+  height: 100%;
+  width: 100%;
+}
+
+.myHeader {
+  color: $header-colour;
+  // background-color: $header-background-colour;
+  padding: $header-padding;
+  // font-size: $header-font-size; // leaks into signup modal
+}
+
+.insideFooter {
+  padding: $footer-padding;
+  width: 100%;
+}
+
+.mySubheader {
+  // background-color: $subheader-background-colour;
+  width: 100%;
+  z-index: 1;
+}
+
+img.bgimg {
+  z-index: -10;
+  /* Set rules to fill background */
+  // min-height: 100rem;
+  /*min-width: 1024px;*/
+  /*background-image: url("/static/images/teapour.jpeg");*/
+/* Center and scale the image nicely */
+
+  // background-image: url('/static/images/sparc/alone-sunset.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  /*background-color: rgba(255, 255, 0, 0.3);*/
+
+  opacity: 20%;
+
+  /* Set up proportionate scaling */
+  width: 100%;
+  height: auto;
+
+  /* Set up positioning */
+  position: absolute;
+  // top: $header-height;
+  top: calc(#{$header-height} + #{$subheader-height});
+  left: 0;
+}
+
+.full-screen {
+  width: 100%;
+  height: 100%;
+}
+.overlay {
+  position: absolute;
+}
+.tabBar {
+  text-align: center;
+}
+
+/* Responsive - mobile first */
+
+.mySubheader {
+  height: $subheader-height;
+}
+.myFooter {
+  position: fixed;
+  bottom: 0;
+  height: $footer-height;
+  // background-color: $footer-background;
+  // color: $footer-colour;
+}
+
+/*
+@media screen and (min-width: 768px) {
+  .myBody {
+    min-height: $min-height;
+    // min-height: calc(100vh - #{$header-height} - #{$subheader-height} - #{$footer-height});
+  }
+  .myHeader {
+    height: $header-height;
+  }
+  .mySubheader {
+    height: $subheader-height;
+  }
+  .myFooter {
+    height: $footer-height;
+  }
+}
+*/
+
+/*
+//Height Adjustment
+@media screen and (min-height: calc(#{$min-height} + #{$header-height} + #{$subheader-height} + #{$footer-height})) {
+  .myBody {
+    min-height: calc(100vh - #{$subheader-height} - #{$footer-height});
+  }
+}
+*/
+
+.myBody {
+  // min-height: 300px;
+  // min-height: calc(100vh - #{$header-height} - #{$footer-height});
+  min-height: calc(100vh - #{$footer-height});
+  margin: 0px;
+  width: 100%;
+  padding: 0px;
+  position: absolute;
+  top: 0;
+  padding-bottom: $footer-height; // only when footer is fixed...
+  // background-color: teal;
+  // color: lightgrey;
+}
+
+@media screen and (max-height: 590px) {
+  .imgBody {
+    min-height: 300px;
+  }
+  .myBody {
+    min-height: 300px;
+  }
+}
+
+.myHeaderContent {
+  padding: 0px;
+  display: flex;
+}
+
+.header-section {
+  flex: 1;
+  text-align: left;
+  padding: 1rem;
+}
+</style>
