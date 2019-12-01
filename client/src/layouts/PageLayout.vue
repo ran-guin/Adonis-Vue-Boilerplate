@@ -175,7 +175,7 @@ export default {
     idvpn_login: function () {
       const _this = this
       idvpn.getUser().then((user) => {
-        console.log('retrieved idvpn user: ' + JSON.stringify(user))
+        console.log('retrieved IDVPN user on public page: ' + JSON.stringify(user))
         _this.user = user
         if (user !== null) {
           this.currentUser = user.profile.name
@@ -184,6 +184,12 @@ export default {
         this.isLoggedIn = (user !== null && !user.expired)
         if (this.isLoggedIn) {
           _this.$router.push('dashboard')
+        }
+        if (user && user.id_token) {
+          const details = myString.decrypt(user.id_token)
+          console.log(JSON.stringify(details))
+          const payload = { userid: 123, username: 'TBD' }
+          this.$store.dispatch('CACHE_PAYLOAD', payload)
         }
       }).catch((err) => {
         console.log('no user defined: ' + err)
