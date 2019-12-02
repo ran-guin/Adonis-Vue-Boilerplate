@@ -1,7 +1,7 @@
 <template lang='pug'>
-  PrivateLayout()
+  PrivateLayout(title='Dashboard Title')
     h1 Dashboard
-    p {{payload}}
+    p Payload: {{payload}}
 </template>
 
 <script>  
