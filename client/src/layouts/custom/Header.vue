@@ -50,11 +50,14 @@ export default {
     },
     logout: {
       type: Function
+    },
+    title: {
+      type: String
     }
   },
   computed: {
     header: function () {
-      return config.header || ''
+      return this.title || config.header || ''
     },
     logo: function () {
       var file = config.headerLogo || 'logo.svg'
