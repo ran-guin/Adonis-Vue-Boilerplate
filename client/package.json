@@ -14,6 +14,7 @@
     "core-js": "^2.6.5",
     "dotenv-flow": "^3.1.0",
     "idle-vue": "^2.0.5",
+    "js-sha256": "^0.9.0",
     "oidc-client": "^1.9.1",
     "vue": "^2.6.10",
     "vue-async-computed": "^3.7.0",
