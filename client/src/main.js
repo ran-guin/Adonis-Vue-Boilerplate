@@ -7,6 +7,7 @@ import vuetify from './plugins/vuetify';
 import RGV from '@ran-guin/vue-components';
 import myConsole from './services/myConsole.js';
 import myString from './services/myString.js';
+import myCrypt from './services/aes_encryption.js';
 
 // import 'material-design-icons-iconfont/dist/material-design-icons.css'
 // import AsyncComputed from 'vue-async-computed'
@@ -40,6 +41,9 @@ const plugin = {
 
         Vue.myString = myString
         Vue.prototype.$myString = myString
+
+        Vue.myCrypt = myCrypt
+        Vue.prototype.$myCrypt = myCrypt
     }
 }
 Vue.use(plugin)
