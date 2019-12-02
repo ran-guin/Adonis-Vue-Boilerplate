@@ -1,6 +1,6 @@
 <template lang='pug'>
   v-app()
-    Header.myHeader(:isLoggedIn='isLoggedIn' :login='login' :logout='logout')
+    Header.myHeader(:title='title' :isLoggedIn='isLoggedIn' :login='login' :logout='logout')
     div.myBody
       hr.std-colour
       v-container(app)
@@ -71,6 +71,9 @@ export default {
     console.log('... idle-vue monitoring status as active: ' + timestamp)
   },
   props: {
+    title: {
+      type: String
+    },
     mode: {
       type: String
     },
@@ -182,11 +185,8 @@ export default {
           this.accessTokenExpired = user.expired
         }
         this.isLoggedIn = (user !== null && !user.expired)
-        if (this.isLoggedIn) {
-          _this.$router.push('dashboard')
-        }
         if (user && user.id_token) {
-          const details = myString.decrypt(user.id_token)
+          const details = this.$myCrypt.decrypt(user.id_token)
           console.log(JSON.stringify(details))
           const payload = { userid: 123, username: 'TBD' }
           this.$store.dispatch('CACHE_PAYLOAD', payload)
@@ -262,10 +262,13 @@ export default {
       this.checkPayload()
     },
     isLoggedIn: function () {
-      console.debug('login status changed')
+      console.debug('login status changed to ' + this.isLoggedIn)
       console.debug('user: ' + JSON.stringify(this.user))
       this.idvpn_login()
       console.debug('user: ' + JSON.stringify(this.user))
+      if (this.isLoggedIn) {
+        this.$router.push('dashboard')
+      }
     },
     updates: function () {
       console.log('update docs for layout')
