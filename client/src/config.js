@@ -1,17 +1,18 @@
+const myPort = 8090
 export default {
   apiURL: {
     production: 'https://idvpn.ca',
     development: 'https://dev.idvpn.ca',
     demo: 'https://demo.idvpn.ca',
     test: 'https://test.idvpn.ca',
-    local: 'http://127.0.0.1:3331'
+    local: 'http://127.0.0.1:' + myPort
   },
   lpURL: {
     production: 'https://idvpn.ca',
     development: 'https://dev.idvpn.ca',
     demo: 'https://demo.idvpn.ca',
     test: 'https://test.idvpn.ca',
-    local: 'http://127.0.0.1:3331'
+    local: 'http://127.0.0.1:' + myPort
   },
   header: 'My App Title',
   headerLogo: 'logo.svg',
@@ -28,5 +29,15 @@ export default {
     },
     email: v => /.+@.+\..+/.test(v) ? true : 'Valid Email required',
     date: v => /$\d\d\d\d-\d\d-\d\d$/.test(v) ? true : 'Valid Date should be YYYY-MM-DD'  
+  },
+  oidc: {
+    name: 'idvpn',
+    authority: 'http://localhost:5000/oidc',
+    client_id: 'test',
+    redirect_uri: `http://localhost:8090/callback.html`,
+    post_logout_redirect_uri: `http://localhost:8090/`,
+    response_type: 'id_token',
+    response_mode: 'fragment',
+    scope: 'openid global18plus'
   }
 }
