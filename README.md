@@ -1,31 +1,25 @@
-# Adonis fullstack application
+# Adonis fullstack application with Vue frontend
 
-This is the fullstack boilerplate for AdonisJs, it comes pre-configured with.
+## Requirements:
 
-1. Bodyparser
-2. Session
-3. Authentication
-4. Web security middleware
-5. CORS
-6. Edge template engine
-7. Lucid ORM
-8. Migrations and seeds
+* adonis client
+* vue client
 
-## Setup
+cp .env.example .env
+// customize .env file as required (this file is NOT stored in git)
+// ensure applicable database name, user, password are defined in the .env file
 
-Use the adonis command to install the blueprint
+npm install; // install npm modules for backend
+cd client;
+npm install; // install npm modules for front end
 
-```bash
-adonis new yardstick
-```
+adonis key:generate // generates API_KEY in .env file
 
-or manually clone the repo and then run `npm install`.
+** IF database does not yet exist you must also do the following:
 
 
-### Migrations
-
-Run the following command to run startup migrations.
-
-```js
+mysql -u name -p -e "create database yourDBname"
 adonis migration:run
+adonis seed --files ./database/seeds/TestSeeder.js
+
 ```
