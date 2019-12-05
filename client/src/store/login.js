@@ -25,7 +25,6 @@ const getters = {
       console.log('retrieved payload: ' + payload)
       if (payload.constructor === String) {
         const defaultPayload = { access: 'public' }
-        console.log('String: ' + payload)
         if (payload === '[object Object]') {
           payload = JSON.stringify(defaultPayload)
         } else if (payload === "{access: 'public'}") {
@@ -36,7 +35,6 @@ const getters = {
           payload = JSON.stringify(defaultPayload)
         }
 
-        console.log('String: ' + payload)
         var parsed = JSON.parse(payload)
         console.log('parsed: ' + JSON.stringify(parsed))
         return parsed
