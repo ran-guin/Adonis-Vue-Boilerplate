@@ -1,7 +1,7 @@
 <template lang='pug'>
   PageLayout()
     v-container(app dark)
-      h1 About
+      h1 Public Home Page
       h3 This is a boilerplate for Adonis + View which includes:
       ul
         li(v-for='comp in components') {{comp}}
@@ -31,6 +31,16 @@ export default {
       ]
     }
   },
+  created: function () {
+    if (this.payload && this.payload.userid) {
+      if (this.$router.path) {
+        console.log('path: ' + this.$router.path)
+      } else {
+        console.log('redirect to dashboard if the path is empty')
+        this.$router.push('/dashboard')
+      }
+    }
+  },
   methods: {
     dval: function (offset) {
       if (offset === 10) {
@@ -38,6 +48,11 @@ export default {
       } else {
         return "M90 80 C 120 10, 145 10, 175 80 S 230 150, 260 80"
       }
+    }
+  },
+  computed: {
+    payload: function () {
+      return this.$store.getters.payload || {}
     }
   }
 }
