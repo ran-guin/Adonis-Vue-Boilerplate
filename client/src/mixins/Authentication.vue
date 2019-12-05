@@ -77,7 +77,7 @@ export default {
       const _this = this
       if (!provider) { provider = 'default' }
 
-      if (this.oidc)
+      if (this.oidc) {
         console.log('load oidc ' + provider)
         const state = 'abc123' // random ... Fix this (temp only)   
         
@@ -95,7 +95,6 @@ export default {
         console.log('redirect to standard login')
         this.$router.push('/login')
       }
-    }
     },
     async auth_logout (context) {
       console.log('mixin logout ' + context)
