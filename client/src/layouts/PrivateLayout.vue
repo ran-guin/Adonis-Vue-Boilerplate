@@ -79,6 +79,13 @@ export default {
     var validated = this.auth_validate() || {}
     console.log('auth validation: ' + JSON.stringify(validated))
     this.$set(this, 'myAuth', validated)
+    this.auth_validate()
+
+    if (!this.$router.path) {
+      if (this.auth_status.loggedIn) {
+        this.$router.push('/dashboard')
+      }
+    }
   },
   created: function () {
     console.debug('generate private layout')
@@ -190,9 +197,6 @@ export default {
     },
     isLoggedIn: function () {
       console.debug('login status changed in private layout to ' + this.isLoggedIn)
-      // console.debug('user: ' + JSON.stringify(this.user))
-      // this.idvpn_login()
-      // console.debug('user: ' + JSON.stringify(this.user))
       if (this.isLoggedIn) {
         // this.$router.push('/dashboard')
       } else {

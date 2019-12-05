@@ -26,11 +26,11 @@ export default {
       linkType: 'text',
       publicHeaders: [
         {name: 'About', public: true},
-        {name: 'Login', public: true},
+        // {name: 'Login', public: true},
         {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
-        {name: 'Logout', private: true},
+        // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
         {name: 'Data', private: true},
         {name: 'Home', private: true}
@@ -41,10 +41,10 @@ export default {
     UserMenu
   },
   props: {
-    isLoggedIn: {
-      type: Boolean,
-      default: false
-    },
+    // isLoggedIn: {
+    //   type: Boolean,
+    //   default: false
+    // },
     login: {
       type: Function
     },
@@ -56,6 +56,9 @@ export default {
     }
   },
   computed: {
+    isLoggedIn: function () {
+      return (this.payload && this.payload.userid)
+    },
     header: function () {
       return this.title || config.header || ''
     },
@@ -77,9 +80,10 @@ export default {
   methods: {
     call_login: function () {
       if (this.login) {
+        console.log('call supplied login method...')
         this.login()
       } else {
-        console.debug('no login function supplied')
+        console.debug('no login function supplied...')
       }
     },
     call_logout: function () {

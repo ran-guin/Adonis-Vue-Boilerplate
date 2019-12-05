@@ -14,14 +14,7 @@ import Footer from './custom/Footer.vue'
 
 import Authentication from '@/mixins/Authentication.vue'
 
-// import IdvpnService from '@/services/IdvpnService'
-// const idvpn = new IdvpnService()
-// import auth from '@/auth'
-
 import config from '@/config'
-// import auth from '@/auth'
-
-// import axios from 'axios'
 
 export default {
   components: {
@@ -33,7 +26,7 @@ export default {
   ],
   data () {
     return {
-      myOIDC: {},
+      myAuth: {},
       currentUser: '',
       accessTokenExpired: false,
       underConstruction: false,
@@ -56,20 +49,7 @@ export default {
     }
   },
   onIdle () {
-    this.oidc_logout('timeout')
-    // Note: idle timeout period defined in client/src/main.js
-    // if (this.payload && this.payload.userid) {
-    //   const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
-    //   console.log('idle user detected... logging out: ' + timestamp)
-    //   var loginId = this.payload.login_id
-    //   console.log('logout via auth...')
-    //   auth.logout(this, loginId)
-    //   console.log('dispatch logout ...')
-    //   this.$store.dispatch('AUTH_LOGOUT')
-    //   this.$router.push('/Login')
-    // } else {
-    //   console.log('idle session detected, but already logged out...')
-    // }
+    this.auth_logout('timeout')
   },
   onActive () {
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -86,10 +66,6 @@ export default {
       type: String
     },
     redirect: {type: Function},
-    // payload: {
-    //   type: Object,
-    //   default: null
-    // },
     interests: {type: Array},
     events: {type: Array},
     invites: {type: Array},
@@ -111,28 +87,10 @@ export default {
       type: Boolean
     }
   },
-  // mounted: function () {
-  //   if (oidc.isDefined) {
-  //     this.idvpn_login()
-  //   } else if (this.payload && this.payload.userid) {
-  //     this.isLoggedIn = true
-  //     this.currentUser = this.payload.username
-  //   } else {
-  //     this.isLoggedIn = false
-  //     this.currentUser = 'Guest'
-  //   }
-  // },
+  mounted: function () {
+  },
   created: function () {
-    if (this.loggedIn) {
-      this.user = this.loggedIn
-    }
-
     this.$store.dispatch('clearMessages')
-    // console.log('payload:' + JSON.stringify(this.payload))
-
-    // if (!this.payload || !this.payload.user_id) {
-    //   // this.$router.push('/Home')
-    // }
 
     this.checkPayload()
 
@@ -146,13 +104,7 @@ export default {
   },
   computed: {
     isLoggedIn: function () {
-      return this.myOIDC.loggedIn || false
-      // if (this.user) {
-      //   console.log('current user: ' + JSON.stringify(this.user))
-      //   return true
-      // } else {
-      //   return false
-      // }
+      return this.myAuth.loggedIn || false
     },
     username: function () {
       return this.currentUser
@@ -182,11 +134,7 @@ export default {
     //   return this.payload && this.payload.userid
     // },
     payload: function () {
-      // if (oidc.loaded) {
-      return this.myOIDC.payload || {}
-      // } else {
-      //   return this.$store.getters.payload || {}
-      // }
+      return this.myAuth.payload || {}
     },
     currentRole () {
       return this.actingAs
@@ -194,16 +142,11 @@ export default {
   },
   methods: {
     login: function () {
-      // if (oidc.loaded) {
       console.debug('direct login from public page...')
-      // this.idvpn_login()
-      this.myOIDC = this.oidc_login() || {}
+      this.myAuth = this.auth_login() || {}
     },
     logout: function () {
-      this.myOIDC = this.oidc_logout() || {}
-      // var response = await auth.logout(this, loginId)
-      // console.log('Logout response:' + JSON.stringify(response))
-      // this.$router.push('/public')
+      this.myAuth = this.auth_logout() || {}
     },
     checkPayload: function () {
       this.actingAs = this.actingAs || this.payload.role
@@ -217,13 +160,9 @@ export default {
         } else if (this.mode === 'construction') {
           console.log('redirect to construction page from layout...')
           this.$router.push('/Construction')
-        // } else if (this.IdvpnAuth) {
-        //   console.debug('redirect to idvpn authorization')
-        //   this.login()
         } else {
           console.log('path: ' + this.$route.path)
           console.log('redirect to home page from layout... ?')
-          // this.$router.push('/')
         }
       }
     },
@@ -259,16 +198,8 @@ export default {
     },
     isLoggedIn: function () {
       console.debug('login status changed to ' + this.isLoggedIn)
-      // console.debug('reset user to: ' + JSON.stringify(this.user))
-      // this.idvpn_login()
-      // if (this.user && this.user.id_token) {
-      //   this.profile(this.user.id_token)
-      //   if (this.user.profile) {
-      //     this.profile(this.user.profile.sub)
-      //   }
-      // }
-      this.oidc_validate()
-      console.debug('user: ' + JSON.stringify(this.myOIDC.payload))
+      // this.auth_validate()
+      console.debug('user: ' + JSON.stringify(this.myAuth.payload))
       console.log('path: ' + this.$router.path)
       if (!this.$router.path) {
         if (this.isLoggedIn) {
