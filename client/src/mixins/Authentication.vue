@@ -77,25 +77,31 @@ export default {
       const _this = this
       if (!provider) { provider = 'default' }
 
-      console.log('load oidc ' + provider)
-      const state = 'abc123' // random ... Fix this (temp only)   
-      
-      oidcService.login(state)
-        .then((info) => {
-            console.log('auth_status login: ' + JSON.stringify(info))
-            _this.auth_validate(provider)
-            _this.$router.push('/dashboard')
-        })
-        .catch((err) => {
-          console.log('oidc login error: ' + err)
-          return {}
-        })
+      if (this.oidc)
+        console.log('load oidc ' + provider)
+        const state = 'abc123' // random ... Fix this (temp only)   
+        
+        oidcService.login(state)
+          .then((info) => {
+              console.log('auth_status login: ' + JSON.stringify(info))
+              _this.auth_validate(provider)
+              _this.$router.push('/dashboard')
+          })
+          .catch((err) => {
+            console.log('oidc login error: ' + err)
+            return {}
+          })
+      } else {
+        console.log('redirect to standard login')
+        this.$router.push('/login')
+      }
+    }
     },
     async auth_logout (context) {
       console.log('mixin logout ' + context)
       this.auth_status.payload = {}
       this.auth_status.loggedIn = false
-      if (oidcService.loaded) {
+      if (this.oidc) {
         console.log('oidc logout...')
         oidcService.logout()
       }
