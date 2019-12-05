@@ -1,6 +1,6 @@
 <template lang='pug'>
   v-app()
-    Header.myHeader(:title='title' :isLoggedIn='isLoggedIn' :login='login' :logout='logout')
+    Header.myHeader(:title='title' :login='login' :logout='logout')
     div.myBody
       hr.std-colour
       v-container(app)
@@ -12,11 +12,14 @@
 import Header from './custom/Header.vue'
 import Footer from './custom/Footer.vue'
 
-import IdvpnService from '@/services/IdvpnService'
-const idvpn = new IdvpnService()
+import Authentication from '@/mixins/Authentication.vue'
+
+// import IdvpnService from '@/services/IdvpnService'
+// const idvpn = new IdvpnService()
+// import auth from '@/auth'
 
 import config from '@/config'
-import auth from '@/auth'
+// import auth from '@/auth'
 
 // import axios from 'axios'
 
@@ -25,13 +28,14 @@ export default {
     Header,
     Footer
   },
+  mixins: [
+    Authentication
+  ],
   data () {
     return {
-      IdvpnAuth: true,
+      myOIDC: {},
       currentUser: '',
       accessTokenExpired: false,
-      isLoggedIn: false,
-
       underConstruction: false,
       darkTheme: true,
       test: false,
@@ -52,19 +56,20 @@ export default {
     }
   },
   onIdle () {
+    this.oidc_logout('timeout')
     // Note: idle timeout period defined in client/src/main.js
-    if (this.payload && this.payload.userid) {
-      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
-      console.log('idle user detected... logging out: ' + timestamp)
-      var loginId = this.payload.login_id
-      console.log('logout via auth...')
-      auth.logout(this, loginId)
-      console.log('dispatch logout ...')
-      this.$store.dispatch('AUTH_LOGOUT')
-      this.$router.push('/Login')
-    } else {
-      console.log('idle session detected, but already logged out...')
-    }
+    // if (this.payload && this.payload.userid) {
+    //   const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    //   console.log('idle user detected... logging out: ' + timestamp)
+    //   var loginId = this.payload.login_id
+    //   console.log('logout via auth...')
+    //   auth.logout(this, loginId)
+    //   console.log('dispatch logout ...')
+    //   this.$store.dispatch('AUTH_LOGOUT')
+    //   this.$router.push('/Login')
+    // } else {
+    //   console.log('idle session detected, but already logged out...')
+    // }
   },
   onActive () {
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ')
@@ -73,6 +78,9 @@ export default {
   props: {
     title: {
       type: String
+    },
+    loggedIn: {
+      type: Object
     },
     mode: {
       type: String
@@ -103,26 +111,28 @@ export default {
       type: Boolean
     }
   },
-  mounted: function () {
-    if (idvpn.isDefined) {
-      this.idvpn_login()
-    } else if (this.payload && this.payload.userid) {
-      this.isLoggedIn = true
-      this.currentUser = this.payload.username
-    } else {
-      this.isLoggedIn = false
-      this.currentUser = 'Guest'
-    }
-  },
+  // mounted: function () {
+  //   if (oidc.isDefined) {
+  //     this.idvpn_login()
+  //   } else if (this.payload && this.payload.userid) {
+  //     this.isLoggedIn = true
+  //     this.currentUser = this.payload.username
+  //   } else {
+  //     this.isLoggedIn = false
+  //     this.currentUser = 'Guest'
+  //   }
+  // },
   created: function () {
-    this.$store.dispatch('clearMessages')
-    console.log('payload:' + JSON.stringify(this.payload))
-
-    if (!this.payload || !this.payload.user_id) {
-      // this.$router.push('/Home')
+    if (this.loggedIn) {
+      this.user = this.loggedIn
     }
 
-    this.actingAs = this.actingAs || this.payload.role
+    this.$store.dispatch('clearMessages')
+    // console.log('payload:' + JSON.stringify(this.payload))
+
+    // if (!this.payload || !this.payload.user_id) {
+    //   // this.$router.push('/Home')
+    // }
 
     this.checkPayload()
 
@@ -135,6 +145,15 @@ export default {
     }
   },
   computed: {
+    isLoggedIn: function () {
+      return this.myOIDC.loggedIn || false
+      // if (this.user) {
+      //   console.log('current user: ' + JSON.stringify(this.user))
+      //   return true
+      // } else {
+      //   return false
+      // }
+    },
     username: function () {
       return this.currentUser
     },
@@ -159,11 +178,15 @@ export default {
         return false
       }
     },
-    loggedIn: function () {
-      return this.payload && this.payload.userid
-    },
+    // loggedIn: function () {
+    //   return this.payload && this.payload.userid
+    // },
     payload: function () {
-      return this.$store.getters.payload || {}
+      // if (oidc.loaded) {
+      return this.myOIDC.payload || {}
+      // } else {
+      //   return this.$store.getters.payload || {}
+      // }
     },
     currentRole () {
       return this.actingAs
@@ -171,47 +194,20 @@ export default {
   },
   methods: {
     login: function () {
-      console.debug('idvpn login...')
-      idvpn.login()
-      //this.user = idvpn.getUser()
+      // if (oidc.loaded) {
+      console.debug('direct login from public page...')
+      // this.idvpn_login()
+      this.myOIDC = this.oidc_login() || {}
     },
-    idvpn_login: function () {
-      const _this = this
-      idvpn.getUser().then((user) => {
-        console.log('retrieved IDVPN user on public page: ' + JSON.stringify(user))
-        _this.user = user
-        if (user !== null) {
-          this.currentUser = user.profile.name
-          this.accessTokenExpired = user.expired
-        }
-        this.isLoggedIn = (user !== null && !user.expired)
-        if (user && user.id_token) {
-          const details = this.$myCrypt.decrypt(user.id_token)
-          console.log(JSON.stringify(details))
-          const payload = { userid: 123, username: 'TBD' }
-          this.$store.dispatch('CACHE_PAYLOAD', payload)
-        }
-      }).catch((err) => {
-        console.log('no user defined: ' + err)
-      })
-    },
-    async logout () {
-      console.debug('idvpn logout...')
-      if (this.IdvpnAuth) {
-        idvpn.logout()
-      } else {
-        console.log('Logging out: ' + JSON.stringify(this.payload))
-        var loginId = this.payload.login_id
-        console.log(loginId + ' logout via auth ')
-
-        this.$store.dispatch('AUTH_LOGOUT')
-        this.$store.dispatch('CACHE_PAYLOAD', { access: 'public' })
-        var response = await auth.logout(this, loginId)
-        console.log('Logout response:' + JSON.stringify(response))
-        this.$router.push('/Home')
-      }
+    logout: function () {
+      this.myOIDC = this.oidc_logout() || {}
+      // var response = await auth.logout(this, loginId)
+      // console.log('Logout response:' + JSON.stringify(response))
+      // this.$router.push('/public')
     },
     checkPayload: function () {
+      this.actingAs = this.actingAs || this.payload.role
+
       if (this.payload && this.payload.status === 'expired') {
         console.log('payload expired')
         // this.$store.dispatch('logWarning', 'Session Expired - Please log in again.')
@@ -263,11 +259,25 @@ export default {
     },
     isLoggedIn: function () {
       console.debug('login status changed to ' + this.isLoggedIn)
-      console.debug('user: ' + JSON.stringify(this.user))
-      this.idvpn_login()
-      console.debug('user: ' + JSON.stringify(this.user))
-      if (this.isLoggedIn) {
-        this.$router.push('dashboard')
+      // console.debug('reset user to: ' + JSON.stringify(this.user))
+      // this.idvpn_login()
+      // if (this.user && this.user.id_token) {
+      //   this.profile(this.user.id_token)
+      //   if (this.user.profile) {
+      //     this.profile(this.user.profile.sub)
+      //   }
+      // }
+      this.oidc_validate()
+      console.debug('user: ' + JSON.stringify(this.myOIDC.payload))
+      console.log('path: ' + this.$router.path)
+      if (!this.$router.path) {
+        if (this.isLoggedIn) {
+          console.log('redirect to dashboard ?')
+          // this.$router.push('/dashboard')
+        } else {
+          console.log('redirect to public ?')
+          // this.$router.push('/public')
+        }
       }
     },
     updates: function () {
