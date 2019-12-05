@@ -16,12 +16,16 @@ export default {
   data () {
     return {
       auth_status: {},
-      claims: {}
+      claims: {},
+      oidc: false
     }
   },
   mounted: function () {
     console.debug('** initiate authentication...')
-    this.auth_validate()
+    if (oidcService && oidcService.loaded) {
+      this.oidc = true
+    }
+    // this.auth_validate()
   },
   computed: {
     payload: function () {
@@ -33,23 +37,28 @@ export default {
       console.log('validate via mixin...')
       if (oidcService && oidcService.loaded) {
         console.log('idvpn loaded...')
+
+        const _this = this
         oidcService.getUser()
           .then((user) => {
             console.log('user: ' + JSON.stringify(user))
-            this.auth_status = {
+            _this.auth_status = {
               type: 'oidc',
               source: provider, 
               loggedIn: true,
               payload: user
             }
+
+            console.log('get claims ...')
+            // oidcService.getClaims(window.location.href)
           })
           .catch((err) => {
-            console.log('getUser error: ' + err)
+            console.log('no user: ' + err)
           })
         console.log('login status: ' + JSON.stringify(this.auth_status))
-        // if (!this.auth_status.loggedIn) {
-        //   this.auth_login()
-        // }
+        if (!this.auth_status.loggedIn) {
+          this.auth_login()
+        }
       } else if (this.payload && this.payload.userid) {
         console.log('payload loaded...' + JSON.stringify(this.payload))
         this.auth_status = {
@@ -70,11 +79,12 @@ export default {
 
       console.log('load oidc ' + provider)
       const state = 'abc123' // random ... Fix this (temp only)   
+      
       oidcService.login(state)
         .then((info) => {
             console.log('auth_status login: ' + JSON.stringify(info))
             _this.auth_validate(provider)
-            // _this.$router.push('/dashboard')
+            _this.$router.push('/dashboard')
         })
         .catch((err) => {
           console.log('oidc login error: ' + err)
