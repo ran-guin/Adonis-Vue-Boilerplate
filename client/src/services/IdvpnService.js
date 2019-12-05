@@ -1,15 +1,30 @@
 import { UserManager, WebStorageStateStore} from 'oidc-client'
 import Config from '@/config.js'
 
+// import {Issuer} from 'openid-client'
+
 class Idvpn {
   constructor () {
     this.options = []
     this.configs = {}
     if (Config.oidc && Config.oidc.constructor === Object) {
       console.debug('load idvpn service')
+
+
       Config.oidc.userStore = new WebStorageStateStore({ store: window.localStorage }),
+
+      console.debug('Config: ' + JSON.stringify(Config.oidc))
+
       this.idvpn = new UserManager(Config.oidc)
+
+      this.idvpn.clearStaleState().then(() => {
+        console.log('clearState success');
+      }).catch((e) => {
+        console.log('clearStateState error', e.message);
+      });
+
       this.loaded = true
+      this.configs.default = Config.oidc
       // }
       // .catch (err) {
       //   console.debug('error loading oidc: ' + err)
@@ -28,6 +43,14 @@ class Idvpn {
     }
   }
 
+  // getIssuer (provider) {
+  //   return Issuer.discover(provider)
+  //     // .then(function (googleIssuer) {
+  //     //   console.log('Discovered issuer %s %O', googleIssuer.issuer, googleIssuer.metadata);
+  //     //   return googleIssuer
+  //     // })
+  // }
+
   setup (provider) {
     console.debug('load idvpn service for ' + provider)
     var config = this.configs[provider]
@@ -38,24 +61,26 @@ class Idvpn {
   }
 
   getUser () {
-    console.debug('get User...')
-    return this.idvpn ? this.idvpn.getUser() : null
+    console.debug('get idvpn User...' + this.loaded)
+    console.log(JSON.stringify(this.configs))
+    return this.idvpn.getUser()
   }
 
-  getClaims () {
-    return this.idvpn ? this.idvpn.signinRedirectCallback() : null
+  getClaims (ref) {
+    return this.idvpn.signinRedirectCallback(ref)
   }
 
   // idvpn.prototype.login = function login () {
-  login () {
+  login (state) {
     console.debug('login...')
-    return this.idvpn ? this.idvpn.signinRedirect() : null
+    console.log('login with state: ' + JSON.stringify(state))
+    return this.idvpn.signinRedirect()
   }
 
   // idvpn.prototype.logout = function logout () {
   logout () {
     console.debug('logout...')
-    return this.idvpn ? this.idvpn.signoutRedirect() : null
+    return this.idvpn.signoutRedirect()
   }
 
   loaded () {
