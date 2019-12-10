@@ -170,7 +170,7 @@ export default {
       console.log(loginId + ' logout via auth ')
 
       this.$store.dispatch('AUTH_LOGOUT')
-      this.$store.dispatch('CACHE_PAYLOAD', { access: 'public' })
+      this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: { access: 'public' }, key: Config.CLIENT_ID})
       var response = await auth.logout(this, loginId)
       console.log('Logout response:' + JSON.stringify(response))
       this.$router.push('/Home')
