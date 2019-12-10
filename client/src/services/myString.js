@@ -54,5 +54,10 @@ export default {
      } else {
        return array
      }
+  },
+  nonce(length) {
+    if (!length) { length = 63 }
+    const myNonce = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+    return myNonce
   }
 }
