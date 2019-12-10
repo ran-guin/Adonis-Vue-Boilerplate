@@ -53,11 +53,15 @@ export default {
     },
     title: {
       type: String
+    },
+    authStatus: {
+      type: Object,
+      default () { return {} }
     }
   },
   computed: {
     isLoggedIn: function () {
-      return (this.payload && this.payload.userid)
+      return (this.authStatus && this.authStatus.loggedIn)
     },
     header: function () {
       return this.title || config.header || ''
@@ -67,15 +71,15 @@ export default {
       return 'images/' + file
     },
     headerLinks: function () {
-      if (this.payload && this.payload.userid) {
+      if (this.authStatus && this.authStatus.loggedIn) {
         return this.privateHeaders
       } else {
         return this.publicHeaders
       }
     },
-    payload: function () {
-      return this.$store.getters.payload || {}
-    }
+    // authStatus: function () {
+    //   return this.$store.getters.authStatus || {}
+    // }
   },
   methods: {
     call_login: function () {
@@ -95,15 +99,15 @@ export default {
     },
     visible: function (link) {
       if (link.access === 'admin') {
-        return (this.payload.access === 'admin')
+        return (this.authStatus.access === 'admin')
       } else {
         return true
       }
     }
   },
   watch: {
-    payload: function () {
-      console.log('New payload: ' + JSON.stringify(this.payload))
+    authStatus: function () {
+      console.log('New authStatus: ' + JSON.stringify(this.authStatus))
     }
   }
 }
