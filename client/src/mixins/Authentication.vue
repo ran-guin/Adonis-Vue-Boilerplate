@@ -8,6 +8,7 @@ Usage example.
 <script>
 import IdvpnService from '@/services/IdvpnService'
 import auth from '@/auth'
+import Config from '@/config.js'
 const oidcService = new IdvpnService()
 
 // import Issuer from 'openid-client'
@@ -24,43 +25,72 @@ export default {
     console.debug('** initiate authentication...')
     if (oidcService && oidcService.loaded) {
       this.oidc = true
+      // this.auth_validate()
     }
+    console.log('existing auth ?')
+    const old = window.localStorage.getItem('auth')
+    console.log('old: ' + old)
+    // const auth = JSON.parse(old || 'null')
+    // console.log(JSON.stringify(auth))
     // this.auth_validate()
   },
   computed: {
     payload: function () {
       return this.$store.getters.payload
+    },
+    authorization_status: function () {
+      return this.auth_status
     }
   },
   methods: {
+    auth_user: function () {
+      oidcService.getUser()
+        .then((user) => {
+          console.log('call auth_user: ' + JSON.stringify(user))
+        })
+    },
     auth_validate: function (provider) {
-      console.log('validate via mixin...')
+      console.log('validate auth via mixin...')
       if (oidcService && oidcService.loaded) {
         console.log('idvpn loaded...')
 
         const _this = this
         oidcService.getUser()
           .then((user) => {
-            console.log('user: ' + JSON.stringify(user))
+            var error = null
+            var loggedIn = true
+
+            if (!user) {
+              error = 'no defined user'
+              loggedIn = false
+            } else if (user.error) {
+              console.debug('access user error: ' + user.error)
+              error = user.error
+              loggedIn = false
+            }
+
+            console.log('auth user: ' + JSON.stringify(user))
+            const payload = { userid: 1234567, username: 'TBD' }
             _this.auth_status = {
               type: 'oidc',
               source: provider, 
-              loggedIn: true,
-              payload: user
+              loggedIn: loggedIn,
+              payload: payload,
+              profile: user.profile,
+              error: error
             }
 
-            console.log('get claims ...')
-            // oidcService.getClaims(window.location.href)
+            console.log('AUTH_STATUS: ' + JSON.stringify(_this.auth_status))
           })
           .catch((err) => {
             console.log('no user: ' + err)
           })
-        console.log('login status: ' + JSON.stringify(this.auth_status))
-        if (!this.auth_status.loggedIn) {
-          this.auth_login()
-        }
+        // console.log('login status: ' + JSON.stringify(this.auth_status))
+        // if (!this.auth_status.loggedIn) {
+        //   this.auth_login()
+        // }
       } else if (this.payload && this.payload.userid) {
-        console.log('payload loaded...' + JSON.stringify(this.payload))
+        console.log('standard payload loaded...' + JSON.stringify(this.payload))
         this.auth_status = {
           type: 'payload',
           source: 'payload',
@@ -74,26 +104,24 @@ export default {
       return this.auth_status
     },
     auth_login: function (provider) {
-      const _this = this
+      // const _this = this
       if (!provider) { provider = 'default' }
 
       if (this.oidc) {
         console.log('load oidc ' + provider)
-        const state = 'abc123' // random ... Fix this (temp only)   
-        
-        oidcService.login(state)
-          .then((info) => {
-              console.log('auth_status login: ' + JSON.stringify(info))
-              _this.auth_validate(provider)
-              _this.$router.push('/dashboard')
-          })
-          .catch((err) => {
-            console.log('oidc login error: ' + err)
-            return {}
-          })
+            
+        oidcService.login({state: state})
+          // .then((info) => {
+          //     console.log('login: ' + JSON.stringify(info))
+          // })
+          // .catch((err) => {
+          //   console.log('oidc login error: ' + err)
+          //   this.$store.dipatch('logError', 'Sorry - we cannot log into the OIDC service provider at this time: ' + provider)
+          //   return {}
+          // })
       } else {
         console.log('redirect to standard login')
-        this.$router.push('/login')
+        // this.$router.push('/login')
       }
     },
     async auth_logout (context) {
@@ -110,7 +138,7 @@ export default {
       console.log(loginId + ' logout via auth ')
 
       this.$store.dispatch('AUTH_LOGOUT')
-      this.$store.dispatch('CACHE_PAYLOAD', { access: 'public' })
+      this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: { access: 'public' }, key: Config.CLIENT_ID})
       var response = await auth.logout(this, loginId)
       console.log('Logout response:' + JSON.stringify(response))
       // this.$router.push('/public')
