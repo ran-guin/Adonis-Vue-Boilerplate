@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout(:title='title' :user='user')
+  PageLayout(:title='title' :user='user' :private='true')
     slot
 </template>
 
@@ -81,9 +81,10 @@ export default {
     this.$set(this, 'myAuth', validated)
     this.auth_validate()
 
-    if (!this.$router.path) {
+    if (! (this.$router.path && this.$router.path.match(/[a-zA-Z]/)) ) {
       if (this.auth_status.loggedIn) {
-        this.$router.push('/dashboard')
+        console.log('empty path .. redirect to dashboard')
+        // this.$router.push('/dashboard')
       }
     }
   },
@@ -98,6 +99,7 @@ export default {
     this.checkPayload()
 
     if (this.underConstruction) {
+      console.log('redirect to construction page')
       this.$router.push('/Construction')
     }
 
