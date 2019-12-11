@@ -68,7 +68,7 @@ export default {
     },
     logo: function () {
       var file = config.headerLogo || 'logo.svg'
-      return 'images/' + file
+      return 'custom/images/' + file
     },
     headerLinks: function () {
       if (this.authStatus && this.authStatus.loggedIn) {
