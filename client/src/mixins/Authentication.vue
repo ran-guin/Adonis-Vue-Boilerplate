@@ -109,7 +109,7 @@ export default {
 
       if (this.oidc) {
         console.log('load oidc ' + provider)
-            
+        const state = null
         oidcService.login({state: state})
           // .then((info) => {
           //     console.log('login: ' + JSON.stringify(info))
