@@ -1,23 +1,22 @@
 import { UserManager, WebStorageStateStore} from 'oidc-client'
 import Config from '@/config.js'
 
-// import {Issuer} from 'openid-client'
-
-class Idvpn {
+class userMgr {
   constructor () {
     this.options = []
     this.configs = {}
+    this.loaded = false
+
     if (Config.oidc && Config.oidc.constructor === Object) {
-      console.debug('load idvpn service')
+      console.debug('load userMgr service')
 
+      var config = JSON.parse(JSON.stringify(Config.oidc))
+      console.log('initialize mgr with ' + JSON.stringify(config))
 
-      Config.oidc.userStore = new WebStorageStateStore({ store: window.localStorage }),
+      config.userStore = new WebStorageStateStore({ store: window.localStorage }),
+      this.userMgr = new UserManager(config)
 
-      console.debug('Config: ' + JSON.stringify(Config.oidc))
-
-      this.idvpn = new UserManager(Config.oidc)
-
-      this.idvpn.clearStaleState().then(() => {
+      this.userMgr.clearStaleState().then(() => {
         console.log('clearState success');
       }).catch((e) => {
         console.log('clearStateState error', e.message);
@@ -25,11 +24,6 @@ class Idvpn {
 
       this.loaded = true
       this.configs.default = Config.oidc
-      // }
-      // .catch (err) {
-      //   console.debug('error loading oidc: ' + err)
-      //   this.loaded = false
-      // }
     } else if (Config.oidc && Config.oidc.constructor === Array) {
       console.debug('multiple oidc connection options...')
       for (var i = 0; i < Config.oidc.length; i++) {
@@ -41,50 +35,55 @@ class Idvpn {
       console.debug('no oidc specifications')
       this.loaded = false
     }
+
+    if (this.loaded) {
+      this.userMgr.getUser()
+      .then((user) => {
+        console.debug('SERVICE USER: ' + JSON.stringify(user))
+      })
+      .catch((err) => {
+        console.debug("SERVICE ERROR: " + err.message)
+      })
+    }
   }
-
-  // getIssuer (provider) {
-  //   return Issuer.discover(provider)
-  //     // .then(function (googleIssuer) {
-  //     //   console.log('Discovered issuer %s %O', googleIssuer.issuer, googleIssuer.metadata);
-  //     //   return googleIssuer
-  //     // })
-  // }
-
-  setup (provider) {
-    console.debug('load idvpn service for ' + provider)
-    var config = this.configs[provider]
-    console.debug('Config: ' + JSON.stringify(config))
-    config.userStore = new WebStorageStateStore({ store: window.localStorage }),
-    this.idvpn = new UserManager(config)
-    this.loaded = true
-  }
-
   getUser () {
-    console.debug('get idvpn User...' + this.loaded)
-    console.log(JSON.stringify(this.configs))
-    return this.idvpn.getUser()
+    console.debug('get userMgr User...' + this.loaded)
+    return this.userMgr.getUser()
   }
 
-  getClaims (ref) {
-    return this.idvpn.signinRedirectCallback(ref)
+  async getClaims (ref) {
+    if (!ref) { ref = window.location.href }
+    try {
+      const auth = await this.userMgr.signinRedirectCallback();
+      const authString = JSON.stringify(auth)
+      console.debug('store auth string: ' + authString)
+      // window.localStorage.setItem('auth', authString);
+    } catch (err) {
+      // window.localStorage.setItem('auth', JSON.stringify({ error: err.message }));
+    }
   }
 
-  // idvpn.prototype.login = function login () {
+  // userMgr.prototype.login = function login () {
   login (state) {
     console.debug('login...')
     console.log('login with state: ' + JSON.stringify(state))
-    return this.idvpn.signinRedirect()
+    return this.userMgr.signinRedirect(state)
   }
 
-  // idvpn.prototype.logout = function logout () {
+  // userMgr.prototype.logout = function logout () {
   logout () {
     console.debug('logout...')
-    return this.idvpn.signoutRedirect()
+    return this.userMgr.signoutRedirect()
   }
 
   loaded () {
     return this.loaded || false
   }
+
+  saveState (state) {
+    // const state = 'abc123' // random ... Fix this (temp only)   
+    console.debug('stash state: ' + JSON.stringify(state))
+    // window.localStorage.setItem('auth', JSON.stringify(state))
+  }
 }
-export default Idvpn
+export default userMgr

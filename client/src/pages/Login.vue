@@ -508,7 +508,7 @@ export default {
           }
           if (response.data.payload) {
             this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
-            this.$store.dispatch('CACHE_PAYLOAD', response.data.payload)
+            this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: response.data.payload, key: Config.CLIENT_ID})
             this.$router.push('/Home')
             // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
           }

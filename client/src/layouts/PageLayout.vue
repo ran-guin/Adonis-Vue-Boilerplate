@@ -1,6 +1,6 @@
 <template lang='pug'>
   v-app()
-    Header.myHeader(:title='title' :login='login' :logout='logout')
+    Header.myHeader(:title='title' :authStatus='myAuth' :login='login' :logout='logout')
     div.myBody
       hr.std-colour
       v-container(app)
@@ -26,7 +26,7 @@ export default {
   ],
   data () {
     return {
-      myAuth: {},
+      // myAuth: {},
       currentUser: '',
       accessTokenExpired: false,
       underConstruction: false,
@@ -85,9 +85,17 @@ export default {
     },
     noLogin: {
       type: Boolean
+    },
+    private: {
+      type: Boolean,
+      default: false
     }
   },
   mounted: function () {
+    const idvpn = window.localStorage.getItem('idvpn')
+    console.debug('checked for idvpn cache: ' + JSON.stringify(idvpn))
+
+    this.auth_validate()
   },
   created: function () {
     this.$store.dispatch('clearMessages')
@@ -103,8 +111,11 @@ export default {
     }
   },
   computed: {
+    myAuth: function () {
+      return this.authorization_status
+    },
     isLoggedIn: function () {
-      return this.myAuth.loggedIn || false
+      return this.auth_status.loggedIn || this.myAuth.loggedIn || false
     },
     username: function () {
       return this.currentUser
@@ -143,10 +154,11 @@ export default {
   methods: {
     login: function () {
       console.debug('direct login from public page...')
-      this.myAuth = this.auth_login() || {}
+      this.auth_login()
     },
     logout: function () {
-      this.myAuth = this.auth_logout() || {}
+      this.auth_logout()
+      // this.myAuth = this.auth_logout() || {}
     },
     checkPayload: function () {
       this.actingAs = this.actingAs || this.payload.role
@@ -192,6 +204,10 @@ export default {
       this.checkPayload()
       // this.reloadData()
     },
+    myAuth: function () {
+      console.log('myAuth updated in layout')
+      // this.checkPayload()
+    },
     payload: function () {
       console.log('payload updated in layout')
       this.checkPayload()
@@ -199,17 +215,18 @@ export default {
     isLoggedIn: function () {
       console.debug('login status changed to ' + this.isLoggedIn)
       // this.auth_validate()
-      console.debug('user: ' + JSON.stringify(this.myAuth.payload))
-      console.log('path: ' + this.$router.path)
-      if (!this.$router.path) {
-        if (this.isLoggedIn) {
-          console.log('redirect to dashboard ?')
-          // this.$router.push('/dashboard')
-        } else {
-          console.log('redirect to public ?')
-          // this.$router.push('/public')
-        }
-      }
+      console.debug('myAuth: ' + JSON.stringify(this.myAuth))
+      console.debug('status: ' + JSON.stringify(this.authorization_status))
+      // console.log('path: ' + this.$router.path)
+      // if (!this.$router.path.match(/[a-zA-Z]/)) {
+      //   if (this.isLoggedIn) {
+      //     console.log('redirect to dashboard for undefined path when logged in?')
+      //     // this.$router.push('/dashboard')
+      //   } else {
+      //     console.log('redirect to public for undefined path when NOT logged in?')
+      //     // this.$router.push('/public')
+      //   }
+      // }
     },
     updates: function () {
       console.log('update docs for layout')
