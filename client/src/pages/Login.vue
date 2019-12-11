@@ -496,21 +496,21 @@ export default {
             this.$myConsole.debug('updated token...')
           }
           if (onSuccess) { alert(onSuccess) }
+
           if (this.redirect_uri) {
             this.$myConsole.debug('** reroute to ' + this.redirect_uri)
             window.location = this.redirect_uri
           } else {
-            this.$router.push('/Home?message=' + onSuccess)
-          }
-          if (onSuccess) {
-            this.$myConsole.debug('dispatch log message: ' + onSuccess)
-            this.$store.dispatch('logMessage', onSuccess)
-          }
-          if (response.data.payload) {
-            this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
-            this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: response.data.payload, key: Config.CLIENT_ID})
-            this.$router.push('/Home')
-            // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
+            if (onSuccess) {
+              this.$myConsole.debug('dispatch log message: ' + onSuccess)
+              this.$store.dispatch('logMessage', onSuccess)
+            }
+            if (response.data.payload) {
+              this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
+              this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: response.data.payload, key: Config.CLIENT_ID})
+              this.$router.push('/Dashboard?message=' + onSuccess)
+              // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
+            }
           }
           return { success: true }
         } else if (response.data.message) {
@@ -612,7 +612,7 @@ export default {
       this.$myConsole.debug('cancel this form')
       this.authError = ''
       this.mode = 'Login'
-      this.$router.push('/Home')
+      this.$router.push('/Dashboard')
       // this.$router.go(-1)
       this.$store.dispatch('toggleModal', this.myId)
     },
