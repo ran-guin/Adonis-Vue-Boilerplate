@@ -27,9 +27,9 @@ export default {
       this.oidc = true
       // this.auth_validate()
     }
-    console.log('existing auth ?')
-    const old = window.localStorage.getItem('auth')
-    console.log('old: ' + old)
+    // console.log('existing auth ?')
+    // const old = window.localStorage.getItem('auth')
+    // console.log('old: ' + old)
     // const auth = JSON.parse(old || 'null')
     // console.log(JSON.stringify(auth))
     // this.auth_validate()
@@ -70,12 +70,12 @@ export default {
             }
 
             console.log('auth user: ' + JSON.stringify(user))
-            const payload = { userid: 1234567, username: 'TBD' }
+            // const payload = { userid: 1234567, username: 'TBD' }
             _this.auth_status = {
               type: 'oidc',
               source: provider, 
               loggedIn: loggedIn,
-              payload: payload,
+              // payload: payload,
               profile: user.profile,
               error: error
             }
@@ -109,8 +109,8 @@ export default {
 
       if (this.oidc) {
         console.log('load oidc ' + provider)
-        const state = null
-        oidcService.login({state: state})
+        // const state = 'bce23967420544de897b0f09f46283d7'
+        oidcService.login() // {state: state}
           // .then((info) => {
           //     console.log('login: ' + JSON.stringify(info))
           // })
