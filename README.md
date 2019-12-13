@@ -22,4 +22,12 @@ mysql -u name -p -e "create database yourDBname"
 adonis migration:run
 adonis seed --files ./database/seeds/TestSeeder.js
 
+## Customization summary:
+
+.env (DB_DATABASE, DB_USER, DB_PASSWORD)
+
+> cd client/src
+> git clone <plugin> custom
+> bash .install.sh (copies server scripts to server side + assets & router on client side)
+
 ```
