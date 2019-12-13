@@ -1,5 +1,6 @@
 const myPort = 8090
 export default {
+  CLIENT_ID: 'boilerplate',
   apiURL: {
     production: 'https://idvpn.ca',
     development: 'https://dev.idvpn.ca',
@@ -32,12 +33,12 @@ export default {
   },
   oidc: {
     name: 'idvpn',
-    authority: 'http://localhost:5000/oidc',
+    authority: 'http://127.0.0.1:5000/oidc',
     client_id: 'test',
-    redirect_uri: `http://localhost:8090/callback.html`,
-    post_logout_redirect_uri: `http://localhost:8090/`,
+    redirect_uri: `http://127.0.0.1:8090/callback.html`,
+    post_logout_redirect_uri: `http://127.0.0.1:8090`,
     response_type: 'id_token',
     response_mode: 'fragment',
-    scope: 'openid global18plus'
+    scope: 'openid email'
   }
 }
