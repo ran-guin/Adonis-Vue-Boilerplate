@@ -7,13 +7,41 @@
 <body>
   <script src="oidc-client.min.js"></script>
   <script>
-    var mgr = new Oidc.UserManager({userStore: new Oidc.WebStorageStateStore()});
+    console.log('HTML Callback...');
+    const urlParams = new URLSearchParams(window.location.href);
+    const state = urlParams.get('state');
+    console.log(window.location.href + '; STATE: ' + state);
+    // window.localStorage.setItem('idvpn', state)
 
-    mgr.signinRedirectCallback().then(function (user) {
-      window.location.href = '../';
-    }).catch(function (err) {
-      console.log(err);
-    });
+    var mgr = new Oidc.UserManager({userStore: new Oidc.WebStorageStateStore()});
+    mgr.getUser().then(function (user) {
+      console.log('HTML USER: ' + JSON.stringify(user));
+      // mgr.signinRedirectCallback({state: state}).then(function (callback) {
+      mgr.signinRedirectCallback().then(function (callback) {
+        console.log('CALLBACK: ' + JSON.stringify(callback));
+        if (callback && callback.profile) {
+          const profile = JSON.stringify(callback.profile);
+          console.log('Profile: ' + profile);
+          window.localStorage.setItem('idvpn', profile)
+          window.location.href = '../';
+        } else {
+          console.log('no user profile')
+          // window.localStorage.setItem('idvpn', JSON.stringify({error: 'no profile'}));
+          window.location.href = '../';
+        }
+      }).catch(function (err1) {
+        console.log('RedirectCallback Error: ' + err1.message);
+        window.location.href = '../'
+        // window.open('../', '_blank');
+        // window.localStorage.setItem('idvpn', JSON.stringify({error: err1.message}));
+        // window.location.href = '/callback'
+      });
+    }).catch(function (err2) {
+      console.log('Error getting user...' + err2);
+      window.location.href = '../'
+      // window.localStorage.setItem('idvpn', JSON.stringify({error: err2.message}));
+    })
+
   </script>
 </body>
 </html>
