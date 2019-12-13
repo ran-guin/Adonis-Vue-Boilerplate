@@ -7,7 +7,6 @@ import Login from '@/pages/Login.vue'
 import Contact from '@/pages/ContactUs.vue'
 import Dashboard from '@/pages/Dashboard.vue'
 import Admin from '@/pages/Admin.vue'
-import Callback from '@/pages/IdvpnCallback.vue'
 import Construction from '@/pages/Construction.vue'
 
 Vue.use(Router)
@@ -101,11 +100,6 @@ export default new Router({
       path: '/admin',
       name: 'admin',
       component: Admin
-    },
-    {
-      path: '/callback',
-      name: 'callback',
-      component: Callback
     },
     {
       path: '/construction',
