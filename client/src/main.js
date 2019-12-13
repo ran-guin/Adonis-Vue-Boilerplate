@@ -14,6 +14,7 @@ import myCrypt from './services/aes_encryption.js';
 
 import axios from 'axios'
 import IdleVue from 'idle-vue'
+import Config from '@/config.js'
 
 import cookies from 'browser-cookies'
 
@@ -29,6 +30,7 @@ import '@/assets/custom/css/colours.css'
 import '@/assets/custom/css/page.css'
 import '@/assets/custom/css/custom.css'
 
+const key = Config.CLIENT_ID
 Vue.config.productionTip = false
 
 var timeoutMinutes = 5 // manage from config file
@@ -57,7 +59,8 @@ Vue.use(IdleVue, {
 const authStorage = 'local'
 console.log('Auth: ' + authStorage)
 if (authStorage === 'local') {
-  const token = localStorage.getItem('user-token')
+  const tokens = JSON.parse(localStorage.getItem('user-tokens') || '{}')
+  const token = tokens[key]
   console.log('token: ' + token)
   if (token) {
     var pass = 'Bearer ' + token
