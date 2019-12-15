@@ -79,7 +79,6 @@ export default {
     var validated = this.auth_validate() || {}
     console.log('auth validation: ' + JSON.stringify(validated))
     this.$set(this, 'myAuth', validated)
-    this.auth_validate()
 
     if (! (this.$router.path && this.$router.path.match(/[a-zA-Z]/)) ) {
       if (this.auth_status.loggedIn) {
@@ -90,9 +89,14 @@ export default {
   },
   created: function () {
     console.debug('generate private layout')
+    const rHash = this.$store.getters.payload
+    console.log('payload gotten hash: ' + JSON.stringify(rHash))
+    const sHash = localStorage.getItem('payloadHash')
+    console.log('HASH: ' + sHash);
+
     this.$store.dispatch('clearMessages')
 
-    console.log('payload:' + JSON.stringify(this.payload))
+    console.log('private payload:' + JSON.stringify(this.payload))
 
     this.actingAs = this.actingAs || this.payload.role
 
@@ -108,8 +112,12 @@ export default {
     }
   },
   computed: {
+    payload: function () {
+      // return this.myAuth.payload || {}
+      return this.$store.getters.payload || {}
+    },
     isLoggedIn: function () {
-      return this.myAuth.loggedIn || false
+      return this.payload && this.payload.loggedIn || false
     },
     username: function () {
       return this.currentUser
@@ -138,9 +146,6 @@ export default {
     // loggedIn: function () {
     //   return this.payload && this.payload.userid
     // },
-    payload: function () {
-      return this.myAuth.payload || {}
-    },
     currentRole () {
       return this.actingAs
     }

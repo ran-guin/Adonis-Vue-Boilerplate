@@ -1,6 +1,6 @@
 <template lang='pug'>
   v-app()
-    Header.myHeader(:title='title' :authStatus='myAuth' :login='login' :logout='logout')
+    Header.myHeader(:title='title' :login='login' :logout='logout')
     div.myBody
       hr.std-colour
       v-container(app)
@@ -9,8 +9,8 @@
 </template>
 
 <script>
-import Header from './custom/Header.vue'
-import Footer from './custom/Footer.vue'
+import Header from './Header.vue'
+import Footer from './Footer.vue'
 
 import Authentication from '@/mixins/Authentication.vue'
 
@@ -26,7 +26,7 @@ export default {
   ],
   data () {
     return {
-      // myAuth: {},
+      myAuth: {},
       currentUser: '',
       accessTokenExpired: false,
       underConstruction: false,
@@ -99,7 +99,8 @@ export default {
   },
   created: function () {
     this.$store.dispatch('clearMessages')
-
+    console.log('created with auth status: ' + JSON.stringify(this.authorization_status))
+    console.log('page layout payload: ' + JSON.stringify(this.payload))
     this.checkPayload()
 
     if (this.underConstruction) {
@@ -111,11 +112,8 @@ export default {
     }
   },
   computed: {
-    myAuth: function () {
-      return this.authorization_status
-    },
     isLoggedIn: function () {
-      return this.auth_status.loggedIn || this.myAuth.loggedIn || false
+      return this.payload && this.payload.userid
     },
     username: function () {
       return this.currentUser
@@ -145,7 +143,7 @@ export default {
     //   return this.payload && this.payload.userid
     // },
     payload: function () {
-      return this.myAuth.payload || {}
+      return this.$store.getters.payload
     },
     currentRole () {
       return this.actingAs
@@ -158,7 +156,6 @@ export default {
     },
     logout: function () {
       this.auth_logout()
-      // this.myAuth = this.auth_logout() || {}
     },
     checkPayload: function () {
       this.actingAs = this.actingAs || this.payload.role
@@ -204,19 +201,13 @@ export default {
       this.checkPayload()
       // this.reloadData()
     },
-    myAuth: function () {
-      console.log('myAuth updated in layout')
-      // this.checkPayload()
-    },
     payload: function () {
-      console.log('payload updated in layout')
+      console.log('check payload in layout')
       this.checkPayload()
     },
     isLoggedIn: function () {
       console.debug('login status changed to ' + this.isLoggedIn)
       // this.auth_validate()
-      console.debug('myAuth: ' + JSON.stringify(this.myAuth))
-      console.debug('status: ' + JSON.stringify(this.authorization_status))
       // console.log('path: ' + this.$router.path)
       // if (!this.$router.path.match(/[a-zA-Z]/)) {
       //   if (this.isLoggedIn) {

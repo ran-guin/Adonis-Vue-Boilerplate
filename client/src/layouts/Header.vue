@@ -3,7 +3,7 @@
     div.header-logo(style='flex: 1')
       a(v-on:click="$router.push('/Home')")
         img.logo(:src='logo' height='50px')
-    span(style='flex:3') {{header}} 
+    span(style='flex:3') {{header}}
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
       v-tab(v-for='link in headerLinks' :key='link.name')
@@ -53,15 +53,18 @@ export default {
     },
     title: {
       type: String
-    },
-    authStatus: {
-      type: Object,
-      default () { return {} }
     }
   },
   computed: {
+    payload: function () {
+      return this.$store.getters.payload
+    },
     isLoggedIn: function () {
-      return (this.authStatus && this.authStatus.loggedIn)
+      if (this.payload && this.payload.userid) {
+        return true
+      } else {
+        return false
+      }
     },
     header: function () {
       return this.title || config.header || ''
@@ -71,15 +74,12 @@ export default {
       return 'custom/images/' + file
     },
     headerLinks: function () {
-      if (this.authStatus && this.authStatus.loggedIn) {
+      if (this.isLoggedIn) {
         return this.privateHeaders
       } else {
         return this.publicHeaders
       }
-    },
-    // authStatus: function () {
-    //   return this.$store.getters.authStatus || {}
-    // }
+    }
   },
   methods: {
     call_login: function () {
@@ -99,15 +99,15 @@ export default {
     },
     visible: function (link) {
       if (link.access === 'admin') {
-        return (this.authStatus.access === 'admin')
+        return (this.payload.access === 'admin')
       } else {
         return true
       }
     }
   },
   watch: {
-    authStatus: function () {
-      console.log('New authStatus: ' + JSON.stringify(this.authStatus))
+    payload: function () {
+      console.log('Payload changed in header: ' + JSON.stringify(this.payload))
     }
   }
 }
