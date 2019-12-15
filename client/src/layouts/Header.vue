@@ -57,7 +57,7 @@ export default {
   },
   computed: {
     payload: function () {
-      return this.$store.getters.payload
+      return this.$store.getters.payload || {}
     },
     isLoggedIn: function () {
       if (this.payload && this.payload.userid) {
@@ -99,7 +99,7 @@ export default {
     },
     visible: function (link) {
       if (link.access === 'admin') {
-        return (this.payload.access === 'admin')
+        return (this.payload.access === 'admin' || this.payload.role === 'Admin')
       } else {
         return true
       }

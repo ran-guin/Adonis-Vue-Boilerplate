@@ -143,7 +143,7 @@ export default {
     //   return this.payload && this.payload.userid
     // },
     payload: function () {
-      return this.$store.getters.payload
+      return this.$store.getters.payload || {}
     },
     currentRole () {
       return this.actingAs
