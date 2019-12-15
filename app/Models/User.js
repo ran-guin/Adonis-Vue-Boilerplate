@@ -160,7 +160,9 @@ class User extends Model {
           payload: payload
         }
         console.log('generated login: ' +JSON.stringify(hash))
-        return hash
+        return new Promise(function (resolve) {
+          resolve(hash)
+        })
       } else {
         return {success: false, error: 'User not found'}
       }
