@@ -31,7 +31,7 @@ export default {
     email: v => /.+@.+\..+/.test(v) ? true : 'Valid Email required',
     date: v => /$\d\d\d\d-\d\d-\d\d$/.test(v) ? true : 'Valid Date should be YYYY-MM-DD'  
   },
-  oidc: {
+  oidc_off: {
     name: 'idvpn',
     authority: 'http://127.0.0.1:5000/oidc',
     client_id: 'test',
