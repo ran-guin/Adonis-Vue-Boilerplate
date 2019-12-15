@@ -39,6 +39,7 @@ export default {
       return this.$store.getters.payload
     },
     authorization_status: function () {
+      console.log('auth status: ' + JSON.stringify(this.auth_status))
       return this.auth_status
     }
   },
