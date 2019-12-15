@@ -140,7 +140,7 @@ export default {
       this.page = 'Login'
     }
 
-    this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri || this.redirect_default
+    this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri
     this.inviteToken = this.invitationToken || this.$route.params.token || this.$route.query.token
     this.$myConsole.debug('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
 
@@ -259,8 +259,8 @@ export default {
       axios.get(this.apiURL + '/env')
         .then(function (response) {
           if (response.data && response.data.codeVersion) {
-            this.$myConsole.debug('*** env: ')
-            this.$myConsole.debug(JSON.stringify(response.data))
+            _this.$myConsole.debug('*** env: ')
+            _this.$myConsole.debug(JSON.stringify(response.data))
             _this.env = response.data
             _this.initializeOptions()
           } else {
@@ -332,7 +332,7 @@ export default {
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
           } else if (this.mode === 'SignUp') {
             this.signupOptions.fields[1].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
-            this.signupOptions.header = this.signupOptions.header
+            // this.signupOptions.header = this.signupOptions.header
             this.signupOptions.preForm = '(valid for today only)'
           }
         }
@@ -345,16 +345,18 @@ export default {
         email: form.email,
         password: form.password
       }
-      // this.$myConsole.debug('login ' + form.email)
+      this.$myConsole.debug('login ' + form.email)
       try {
         delete axios.defaults.headers.common['Authorization']
+        console.debug('login via axios...')
         var response = await auth.login(this, credentials)
+        console.log('got response...' + JSON.stringify(response))
         if (response && response.expired) {
           this.$store.dispatch('logWarning', 'Session Expired.  Please log in again.')
         }
-        // this.$myConsole.debug('Login response:' + JSON.stringify(response))
+        this.$myConsole.debug('Login response:' + JSON.stringify(response))
       } catch (err) {
-        // this.$myConsole.debug('caught login error: ' + err)
+        this.$myConsole.debug('caught login error: ' + err)
         if (err === 'Network Error') {
           this.$store.dispatch('logError', 'Connection temporarily unavailable...')
         }
@@ -474,6 +476,7 @@ export default {
       }, 2000); //will call the function after 2 secs.
     },
     initializeSession (response, onSuccess) {
+      console.debug('initialize session...')
       if (response && response.data && response.data.validation_errors) {
         this.$myConsole.debug('get service response')
         var val = this.validateResponse(response)
@@ -494,7 +497,10 @@ export default {
             axios.defaults.headers.common['Authorization'] = pass
             // auth.updateToken()
             this.$myConsole.debug('updated token...')
+          } else {
+            this.$myConsole.debug('no token in response' + JSON.stringify(response.data))            
           }
+
           if (onSuccess) { alert(onSuccess) }
 
           if (this.redirect_uri) {
