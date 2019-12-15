@@ -13,7 +13,7 @@ const state = {
   status: '',
   payloadData: null,
 
-  payloadHash: {},
+  payloadHash: null,
   userTokens: {},
   refreshTokens: {},
   resetPayload: { access: 'public' }
@@ -27,15 +27,25 @@ const getters = {
     if (state.id && !id) { 
       id = state.id || Config.CLIENT_ID
     }
-    const hash = JSON.parse(localStorage.getItem('payloadHash') || '{}') || state.payloadHash
+    // const hash = JSON.parse(localStorage.getItem('payloadHash') || '{}') || state.payloadHash
+    const hash = JSON.parse(state.payloadHash || localStorage.getItem('payloadHash'))
     const payload = hash[id] || {}
     return payload
   },
+  // payload: state => (id) => {
+  //   if (state.id && !id) {
+  //     id = state.id || Config.CLIENT_ID
+  //   }
+  //   // const hash = JSON.parse(localStorage.getItem('payloadHash') || '{}') || state.payloadHash
+  //   const hash = JSON.parse(state.payloadHash)
+  //   const payload = hash[id] || {}
+  //   return payload
+  // },
   payload: state => {
     var pString = localStorage.getItem('payloadHash') || '{}'
-    var pHash = JSON.parse(pString) || state.payloadHash
+    var pHash = JSON.parse(state.payloadHash || pString)
     console.debug(Config.CLIENT_ID + ' keyed payload returned: ')
-    console.log(pString)
+    console.log(JSON.stringify(pHash))
     return pHash[Config.CLIENT_ID]
   },
   payload_old: state => {
@@ -165,7 +175,7 @@ const mutations = {
           localStorage.setItem('user-tokens', JSON.stringify(state.userTokens)) // clear your user's token from localstorage
           localStorage.setItem('user-token', token) // clear your user's token from localstorage
           console.log('reset token & auth header...')
-          console.log(key + ' payload w/token: ' + JSON.stringify(state.payloadHash[key]))
+          console.log(key + ' payload w/token: ' + state.payloadHash)
         } else if (response.data && response.data.expired) {
           state.status = 'logged out'
           state.token = null
@@ -177,9 +187,12 @@ const mutations = {
           localStorage.removeItem('user-token')
           localStorage.removeItem('refresh-token')
 
-          delete state.payloadHash[key]
-          localStorage.setItem('payloadHash', JSON.stringify(state.payloadHash))
-          localStorage.setItem('payload', JSON.stringify(state.resetPayload))
+          var payload = JSON.parse(state.payloadHash)
+          delete payload[key]
+          state.payloadHash = JSON.stringify(payload)
+
+          localStorage.setItem('payloadHash', state.payloadHash || localStorage.getItem('payloadHash'))
+          // localStorage.setItem('payload', JSON.stringify(state.resetPayload))
         } else {
           console.log('no token refresh found...')
         }
@@ -195,11 +208,14 @@ const mutations = {
       })
   },
   CACHE_KEYED_PAYLOAD: (state, options) => {
-    const payload = options.payload
     const key = options.key || Config.CLIENT_ID
-    state.payloadHash[key] = payload || { access: 'public' }
-    console.log(key + ' key -> cache payload:' + JSON.stringify(state.payloadHash))
-    localStorage.setItem('payloadHash', JSON.stringify(state.payloadHash))
+
+    var payload = JSON.parse(state.payloadHash)
+    payload[key] = options.payload
+    state.payloadHash = JSON.stringify(payload)
+
+    console.log(key + ' key -> cache payload:' + state.payloadHash)
+    localStorage.setItem('payloadHash', state.payloadHash)
   },
   CACHE_PAYLOAD: (state, payload) => {
     state.payloadData = payload || {access: 'public'}
@@ -245,9 +261,12 @@ const mutations = {
     delete state.userTokens[key]
     localStorage.setItem('user-tokens', JSON.stringify(state.userTokens))
     // localStorage.setItem('payload', JSON.stringify(reset)
-    delete state.payloadHash[key]
-    localStorage.setItem('payloadHash', JSON.stringify(state.payloadHash))
-    state.payloadHash[key] = {}
+
+    var payload = JSON.parse(state.payloadHash)
+    delete payload[key]
+    state.payloadHash = JSON.stringify(payload)
+
+    localStorage.setItem('payloadHash', state.payloadHash)
     console.log(key + ' payload cleared')
   }
 }
