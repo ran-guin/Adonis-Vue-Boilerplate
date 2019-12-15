@@ -24,16 +24,19 @@ const getters = {
   isAuthenticated: state => !!state.token,
   authStatus: state => state.status,
   payloadHash: state => (id) => {
-    if (state.id && !id) { id = state.id }
-    const hash = state.payloadHash || JSON.parse(localStorage.getItem('payloadHash') || '{}')
+    if (state.id && !id) { 
+      id = state.id || Config.CLIENT_ID
+    }
+    const hash = JSON.parse(localStorage.getItem('payloadHash') || '{}') || state.payloadHash
     const payload = hash[id] || {}
     return payload
   },
   payload: state => {
-    var pHash = JSON.parse(localStorage.getItem('payloadHash') || '{}')
-    console.debug(Config.CLIENT_ID + ' keyed payload hash: ' + pHash[Config.CLIENT_ID])
-    console.log('= ...' + state.payloadHash[Config.CLIENT_ID])
-    return state.payloadHash[Config.CLIENT_ID]
+    var pString = localStorage.getItem('payloadHash') || '{}'
+    var pHash = JSON.parse(pString) || state.payloadHash
+    console.debug(Config.CLIENT_ID + ' keyed payload returned: ')
+    console.log(pString)
+    return pHash[Config.CLIENT_ID]
   },
   payload_old: state => {
     var payload = state.payloadData || JSON.parse(localStorage.getItem('payload') || '{}')
@@ -86,7 +89,7 @@ const actions = {
     commit('CACHE_KEYED_PAYLOAD', options)
   },
   CACHE_PAYLOAD: ({commit}, payload) => {
-    commit('CACHE_PAYLOAD', payload)
+    commit('CACHE_KEYED_PAYLOAD', payload)
   },
   AUTH_TOKEN: ({commit}, token) => {
     if (token.constructor === String) {
@@ -162,7 +165,7 @@ const mutations = {
           localStorage.setItem('user-tokens', JSON.stringify(state.userTokens)) // clear your user's token from localstorage
           localStorage.setItem('user-token', token) // clear your user's token from localstorage
           console.log('reset token & auth header...')
-          console.log(key + ' payload: ' + JSON.stringify(state.payloadHash[key]))
+          console.log(key + ' payload w/token: ' + JSON.stringify(state.payloadHash[key]))
         } else if (response.data && response.data.expired) {
           state.status = 'logged out'
           state.token = null
@@ -195,7 +198,7 @@ const mutations = {
     const payload = options.payload
     const key = options.key || Config.CLIENT_ID
     state.payloadHash[key] = payload || { access: 'public' }
-    console.log('cache payload string from:' + JSON.stringify(payload))
+    console.log(key + ' key -> cache payload:' + JSON.stringify(state.payloadHash))
     localStorage.setItem('payloadHash', JSON.stringify(state.payloadHash))
   },
   CACHE_PAYLOAD: (state, payload) => {
