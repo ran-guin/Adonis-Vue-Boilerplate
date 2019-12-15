@@ -537,25 +537,29 @@ class AuthController {
           token = access.token
           console.log('Access: ' + JSON.stringify(access))
           refresh_token = access.refreshToken
+        } else {
+          console.log('authenticator: ' + authenticator)
         }
 
         var user = new User()
         var ip = user.IP(request.request)
         const login = await user.login(email, { ip: ip, login: new Date() })
-        login.token = token
+        login.token = token || 'no token. Using ' + authenticator
         login.refresh_token = refresh_token
 
+        console.log('Server side login response: ' + JSON.stringify(login))
+
         if (login) {
-          // response.route('/faqs', {payload: 'xyz'})
           response.json(login)
+          // return login
         } else {
           console.log('user not found')
-          return {error: 'Authorization Failed'}
+          response.json({error: 'Authorization Failed'})
         }          
       } catch (err) {
         var msg = 'Attempting Login: ' + err
         console.log(msg)
-        return {error: 'Login Error', message: msg}        
+        response.json({error: 'Login Error', message: msg})        
       }
     }
   }
@@ -575,10 +579,10 @@ class AuthController {
     try {
        const ok = await update
        console.log(ok + ' logged out successfully: ' + timestamp)
-       return {success: 'Logged Out'}
+       response.json({success: 'Logged Out'})
      } catch (err) {
        console.log('error tracking logout: ' + err)
-       return {error: 'Logout Error'}
+       response.json({error: 'Logout Error'})
      }
   }
 
