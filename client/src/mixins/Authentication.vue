@@ -121,7 +121,7 @@ export default {
           // })
       } else {
         console.log('redirect to standard login')
-        // this.$router.push('/login')
+        this.$router.push('/login')
       }
     },
     async auth_logout (context) {
