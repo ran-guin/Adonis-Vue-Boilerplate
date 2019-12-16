@@ -1,0 +1,19 @@
+#!/bin/env bash
+#
+
+cp ./.env.example ./.env
+adonis key:generate
+DBSET=`grep DB_DATABASE .env`
+
+echo "Using Database $DBSET"
+
+
+  read -p "Enter Database name: " db
+    read -p "Enter DB user name: " dbuser
+    read -p "Enter DB user password: " dbpwd
+
+    echo "DB_DATABASE=$db" >> .env
+    echo "DB_USER=$dbuser" >> .env
+    echo "DB_PASSWORD=$dbpwd" >> .env
+
+    echo "Using Database $db .. user = $user"
