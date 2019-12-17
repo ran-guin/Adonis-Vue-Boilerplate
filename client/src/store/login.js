@@ -210,7 +210,7 @@ const mutations = {
   CACHE_KEYED_PAYLOAD: (state, options) => {
     const key = options.key || Config.CLIENT_ID
 
-    var payload = JSON.parse(state.payloadHash)
+    var payload = JSON.parse(state.payloadHash || localStorage.getItem('payloadHash') || '{}')
     payload[key] = options.payload
     state.payloadHash = JSON.stringify(payload)
 
