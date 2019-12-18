@@ -26,13 +26,13 @@ export default {
       linkType: 'text',
       publicHeaders: [
         {name: 'About', public: true},
-        // {name: 'Login', public: true},
+        {name: 'Supplies', public: true},
         {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
         // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
-        // {name: 'Data', private: true},
+        {name: 'Supplies', private: true},
         {name: 'Dashboard', private: true}
       ]
     }
