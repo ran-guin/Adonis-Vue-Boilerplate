@@ -328,7 +328,7 @@ export default {
       if (this.env) {
         if (process.env.NODE_ENV !== 'production') {
           if (this.mode === 'Login') {
-            this.loginOptions.fields[0].prompt += ' - try  guest@' + this.defaultDomain
+            this.loginOptions.fields[0].prompt += ' - try  guest@' + Config.defaultEmailDomain
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
           } else if (this.mode === 'SignUp') {
             this.signupOptions.fields[1].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
