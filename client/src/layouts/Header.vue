@@ -25,14 +25,14 @@ export default {
     return {
       linkType: 'text',
       publicHeaders: [
-        {name: 'About', public: true},
-        {name: 'Supplies', public: true},
+        {name: 'About', public: true, target: '/Public'},
+        // {name: 'Data', public: true},
         {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
         // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
-        {name: 'Supplies', private: true},
+        // {name: 'Data', private: true},
         {name: 'Dashboard', private: true}
       ]
     }
