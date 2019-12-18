@@ -32,8 +32,8 @@ export default {
       privateHeaders: [
         // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
-        {name: 'Data', private: true},
-        {name: 'Home', private: true}
+        // {name: 'Data', private: true},
+        {name: 'Dashboard', private: true}
       ]
     }
   },
