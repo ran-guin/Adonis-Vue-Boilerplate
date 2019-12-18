@@ -108,6 +108,9 @@ export default {
   watch: {
     payload: function () {
       console.log('Payload changed in header: ' + JSON.stringify(this.payload))
+      if (!this.payload.userid) {
+        this.$router.push('/Public')
+      }
     }
   }
 }
