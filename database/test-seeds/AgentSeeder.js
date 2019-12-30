@@ -25,7 +25,8 @@ class AgentSeeder {
 			{user_id: 3, organization_id: 1, role: 'Tester', status: 'active'},
 			{user_id: 4, organization_id: 1, role: 'Admin', status: 'active'}
   		])
-  		console.log('added: ' + agents)
+		console.log('added: ' + agents)
+		return agents
   	}
 }
 
