@@ -23,7 +23,8 @@ class sparcUserSeeder {
       {id: 4, uuid: uuidv4(), username: 'Admin', email: 'admin@gmail.com', password: '$2a$10$zUaEVd0d.6ReSBW7aBdeTOx6XEG.K2MfjxAzXIQIfx/ddt9yFcdyK'},
 	])
 
-  	console.log('seeded users: ' + users)
+      console.log('seeded users: ' + users)
+      return users
   }
 }
 
