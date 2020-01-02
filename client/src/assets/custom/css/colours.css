@@ -58,28 +58,11 @@
 
 .myHeader {
   color: #3c457d;
-  background-color: teal;
-}
-
-.myHeader a {
-  color: lightgrey;
-}
-.myHeader a:hover {
-  color: white;
-}
-
-.myFooter.light {
   background-color: transparent;
 }
-.myFooter.dark {
-  background-color: #333;
-  color:  #aaa;
-}
-.myFooter.dark a {
-  color:  #ccc;
-}
-.myFooter.dark a:hover {
-  color: white
+.myFooter {
+  background-color: #0c0e19;
+  color: #b1bbec;
 }
 h1, h2, h3, h4 {
   color: #3c457d;
