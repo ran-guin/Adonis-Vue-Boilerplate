@@ -51,8 +51,11 @@ const actions = {
   toggleModal (state, key) {
     state.commit('toggleModal', key)
     var el = document.getElementById(key)
-    console.log(key + ' toggled: ' + JSON.stringify(el.classList))
-  }
+    if (el) {
+      console.log(key + ' toggled: ' + JSON.stringify(el.classList))
+    } else {
+      console.log('ignored:  (no element: ' + key + ')')  
+    }
 }
 
 const mutations = {
