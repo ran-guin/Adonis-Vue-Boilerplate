@@ -18,6 +18,7 @@ class OrganizationSeeder {
           {id: 1, name: 'Company Inc'}
   	])
   	console.log('added orgs: ' + orgs)
+        return orgs
   }
 }
 
