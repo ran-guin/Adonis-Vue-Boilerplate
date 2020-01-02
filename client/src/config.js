@@ -15,10 +15,12 @@ export default {
     test: 'https://test.idvpn.ca',
     local: 'http://127.0.0.1:' + myPort
   },
-  header: 'My App Title',
+  header: 'My Widescreen Title',
+  app_header: 'My App Title',
   headerLogo: 'logo.svg',
   defaultEmailDomain: 'gmail.com',
-  footer: 'My App Footer',
+  footer: 'My Widescreen Footer',
+  app_footer: 'My App Footer',
   rules: {
     required: v => !!v || 'Name is required',
     min: function (m) {
