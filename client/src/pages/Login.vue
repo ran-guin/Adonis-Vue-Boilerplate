@@ -327,6 +327,10 @@ export default {
     adjustForEnv: function () {
       if (this.env) {
         if (process.env.NODE_ENV !== 'production') {
+          
+          this.signupOptions.header += ' (' + process.env.NODE_ENV + ' only)'
+          this.loginOptions.header += ' (' + process.env.NODE_ENV + ' only)'
+
           if (this.mode === 'Login') {
             this.loginOptions.fields[0].prompt += ' - try  guest@' + Config.defaultEmailDomain
             this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
