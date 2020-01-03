@@ -56,6 +56,7 @@ const actions = {
     } else {
       console.log('ignored:  (no element: ' + key + ')')  
     }
+  }
 }
 
 const mutations = {
