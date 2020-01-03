@@ -1,6 +1,6 @@
 <template lang='pug'>
   v-app()
-    Header.myHeader(:title='title' :login='login' :logout='logout')
+    Header.myHeader(:title='title' :login='login' :page='page' :logout='logout')
     div.myBody
       hr.std-colour
       v-container(app)
@@ -89,6 +89,9 @@ export default {
     private: {
       type: Boolean,
       default: false
+    },
+    page: {
+      type: String
     }
   },
   mounted: function () {
