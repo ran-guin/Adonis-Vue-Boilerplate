@@ -5,8 +5,10 @@ import store from './store'
 import vuetify from './plugins/vuetify';
 
 import RGV from '@ran-guin/vue-components';
-import myConsole from './services/myConsole.js';
-import myString from './services/myString.js';
+
+import myConsole from '@ran-guin/vue-components/src/services/myConsole.js';
+import myString from '@ran-guin/vue-components/src/services/myString.js';
+
 import myCrypt from './services/aes_encryption.js';
 
 // import 'material-design-icons-iconfont/dist/material-design-icons.css'
