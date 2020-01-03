@@ -8,7 +8,8 @@ tmp
 # Environment variables, never commit this file
 .env
 custom/*
-client/src/components/Standard
+client/src/assets/custom/
+database/custom/
 
 # The development sqlite file
 database/development.sqlite
