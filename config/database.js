@@ -14,7 +14,6 @@ module.exports = {
   |
   */
   connection: Env.get('DB_CONNECTION', 'sqlite'),
-
   /*
   |--------------------------------------------------------------------------
   | Sqlite
@@ -53,7 +52,7 @@ module.exports = {
       password: Env.get('DB_PASSWORD', ''),
       database: Env.get('DB_DATABASE', 'adonis')
     },
-    debug: true
+    debug: Env.get('DB_DEBUG', false),
   },
 
   /*
