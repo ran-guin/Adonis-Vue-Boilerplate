@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout(:title='title' :user='user' :private='true')
+  PageLayout(:title='title' :user='user' :private='true' :page='page')
     slot
 </template>
 
@@ -73,6 +73,9 @@ export default {
     },
     noLogin: {
       type: Boolean
+    },
+    page: {
+      type: String
     }
   },
   mounted: function () {
