@@ -11,6 +11,8 @@ custom/*
 client/src/assets/custom/
 database/custom/
 
+public
+
 # The development sqlite file
 database/development.sqlite
 
