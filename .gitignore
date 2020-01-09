@@ -7,9 +7,10 @@ tmp
 
 # Environment variables, never commit this file
 .env
+
+client/src/custom
+client/src/assets/custom
 custom/*
-client/src/assets/custom/
-database/custom/
 
 public
 
