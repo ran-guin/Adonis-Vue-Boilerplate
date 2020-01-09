@@ -1,0 +1,55 @@
+.btn-transparent {
+  background-color: transparent;
+}
+
+.btn-close {
+  background-color: lightgrey;
+  border: 1px solid darkgrey;
+  margin: 5px;
+}
+
+.smallLogo {
+  height: 60px;
+}
+
+.modalTitle {
+  color: blue;
+}
+.modalPrompt {
+  color: darkblue;
+}
+
+.narrowScreen {
+  display: none;
+}
+.smallScreen {
+  display: none;
+}
+.wideScreen {
+  display: block;
+}
+.vwideScreen {
+  display: block;
+}
+
+.table {
+  width: 100%;
+}
+
+@media screen and (max-width: 767px) {
+  .narrowScreen {
+    display: block;
+  }
+  .smallScreen {
+    display: block;
+  }
+  .wideScreen {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 1028px) {
+  .vwideScreen {
+    display: none !important;
+  }
+}

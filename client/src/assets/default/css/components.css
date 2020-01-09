@@ -1,0 +1,67 @@
+.btn {
+  padding: 0.5rem;
+  margin: 0.5rem;
+  border-radius: 6px;
+}
+
+.stdBlock {
+  background-color: lightgray;
+  padding: 1rem;
+}
+
+.stickyItem {
+  position: sticky;
+  top: 250px;
+}
+
+hr.thick {
+  border-top: 5px solid darkgrey;
+  width: 100%;
+  margin: 0px;
+}
+
+hr.full {
+  border-top: 5px solid darkgrey;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.centred {
+  text-align: center;
+}
+
+/* Height Adjustment */
+/*@media screen and (min-height: calc(#{$min-height} + #{$header-height} + #{$subheader-height} + #{$footer-height})) {*/
+
+p {
+  padding: 1rem;
+}
+
+p.contained {
+  padding-left: 10%;
+  padding-right: 10%;
+}
+
+p.dspaced {
+  padding: 2rem;
+}
+
+td.padded {
+  padding: 1rem;
+}
+
+.icon {
+  height: 50px;
+}
+
+.centred {
+  text-align: center;
+}
+
+.bio-image {
+  height: 200px;
+}
+
+li.double-spaced {
+  padding: 1rem;
+}
