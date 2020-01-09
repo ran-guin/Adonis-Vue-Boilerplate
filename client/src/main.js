@@ -20,17 +20,17 @@ import Config from '@/config.js'
 
 import cookies from 'browser-cookies'
 
-import '@/assets/Standard/css/text_sizing.css'
-import '@/assets/Standard/css/colour_theme.scss'
-import '@/assets/Standard/css/Tab_settings.scss'
-import '@/assets/Standard/css/transition.css'
-import '@/assets/Standard/css/colours.css'
-import '@/assets/Standard/css/page.css'
+import '@/assets/default/css/text_sizing.css'
+import '@/assets/default/css/colour_theme.scss'
+import '@/assets/default/css/Tab_settings.scss'
+import '@/assets/default/css/transition.css'
+import '@/assets/default/css/colours.css'
+import '@/assets/default/css/page.css'
 
-import '@/assets/custom/css/components.css'
-import '@/assets/custom/css/colours.css'
-import '@/assets/custom/css/page.css'
-import '@/assets/custom/css/custom.css'
+// Usually customized:
+import '@/assets/default/css/components.css'
+import '@/assets/default/css/custom_colours.css'
+import '@/assets/default/css/custom.css'
 
 const key = Config.CLIENT_ID
 Vue.config.productionTip = false
