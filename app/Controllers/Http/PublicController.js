@@ -131,6 +131,19 @@ class PublicController {
 
     response.redirect('/#/Recover?' + suffix)
   }
+  
+  public ({request, response, view, params}) {
+    // return view.render('pages/public') // server side page
+      response.redirect('/#/Public')
+  }
+  about ({request, response, view, params}) {
+    // return view.render('pages/about') // server side page
+      response.redirect('/#/About')
+  }
+  contact ({request, response, view, params}) {
+    // return view.render('pages/about') // server side page
+      response.redirect('/#/Contact')
+  }
 
   login ({request, response, view, params}) {
     const {message, warning, error} = request.all()
