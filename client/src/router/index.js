@@ -6,11 +6,11 @@ import Data from '@/pages/Data.vue'
 import Construction from '@/pages/Construction.vue'
 
 // Customized pages:
-import Home from '@/custom/pages/Home.vue'
-import Public from '@/custom/pages/Public.vue'
-import Contact from '@/custom/pages/ContactUs.vue'
-import Dashboard from '@/custom/pages/Dashboard.vue'
-import Admin from '@/custom/pages/Admin.vue'
+import Home from '@/default/pages/Home.vue'
+import Public from '@/default/pages/Public.vue'
+import Contact from '@/default/pages/ContactUs.vue'
+import Dashboard from '@/default/pages/Dashboard.vue'
+import Admin from '@/default/pages/Admin.vue'
 
 Vue.use(Router)
 
@@ -82,7 +82,7 @@ export default new Router({
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('@/custom/pages/About.vue')
+      component: () => import('@/default/pages/About.vue')
     },
     {
       path: '/data',
