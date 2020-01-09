@@ -1,6 +1,6 @@
 <template lang='pug'>
   div.fullscreen
-    PageLayout
+    PageLayout(page='Profile')
       div.myContainer
         div.wideMobileContainer
           div

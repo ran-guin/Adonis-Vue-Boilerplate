@@ -1,6 +1,6 @@
 <template lang='pug'>
  div.fullscreen
-    PageLayout(:noMobileHeader='noMobileHeader')
+    PageLayout(page='Contact' :noMobileHeader='noMobileHeader')
       div.myContainer
         h2
           router-link(to='/Home')

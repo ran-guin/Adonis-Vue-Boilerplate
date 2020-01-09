@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout()
+  PageLayout(page='Home')
     h1 Home Page
 </template>
 

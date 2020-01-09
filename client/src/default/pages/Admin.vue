@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout
+  PageLayout(page='Admin')
     h2 Admin Page
     v-tabs(fixed-tabs)
       v-tab.tabBar(v-for='item in pages' :key='item')

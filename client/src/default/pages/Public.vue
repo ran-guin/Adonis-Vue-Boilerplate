@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout()
+  PageLayout(page='Public')
     v-container(app dark)
       h1 Public Home Page
       h3 This is a boilerplate for Adonis + View which includes:
