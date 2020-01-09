@@ -25,14 +25,15 @@ export default {
     return {
       linkType: 'text',
       publicHeaders: [
-        {name: 'About', public: true, target: '/Public'},
-        // {name: 'Data', public: true},
+        {name: 'Home', public: true, target: 'Public'},
+        {name: 'About', public: true},
+        {name: 'Contact', public: true},
         {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
-        // {name: 'Logout', private: true},
-        {name: 'Admin', private: true, access: 'admin', target: 'admin'},
-        // {name: 'Data', private: true},
+        {name: 'Profile', private: true},
+        {name: 'Admin', private: true, access: 'admin'},
+        {name: 'Data', private: true},
         {name: 'Dashboard', private: true}
       ]
     }
@@ -41,10 +42,6 @@ export default {
     UserMenu
   },
   props: {
-    // isLoggedIn: {
-    //   type: Boolean,
-    //   default: false
-    // },
     login: {
       type: Function
     },
@@ -52,6 +49,9 @@ export default {
       type: Function
     },
     title: {
+      type: String
+    },
+    page: {
       type: String
     }
   },
@@ -70,8 +70,12 @@ export default {
       return this.title || config.header || ''
     },
     logo: function () {
-      var file = config.headerLogo || 'logo.svg'
-      return 'custom/images/' + file
+      var file = config.headerLogo
+      if (file) {
+        return 'custom/images/' + file
+      } else {
+        return 'default/images/logo.svg'
+      }
     },
     headerLinks: function () {
       if (this.isLoggedIn) {
@@ -98,7 +102,9 @@ export default {
       }
     },
     visible: function (link) {
-      if (link.access === 'admin') {
+      if (link.name === this.page || link.target === this.page) {
+        return false
+      } else if (link.access === 'admin') {
         return (this.payload.access === 'admin' || this.payload.role === 'Admin')
       } else {
         return true
