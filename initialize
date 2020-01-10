@@ -5,15 +5,28 @@ cp ./.env.example ./.env
 adonis key:generate
 DBSET=`grep DB_DATABASE .env`
 
+read -p "Initialize default files ?" defaults
+if [ $defaults == "Y" ] || [ $defaults == "y" ] 
+then
+  cp client/src/config.default.js client/src/config.js
+  cp client/src/router/index.default.js client/src/router.index.js
+  cp start/custom/routes.default.js start/custom/routes.js
+  echo "regnerated default files..."
+else
+ echo "skipping default file regeneration...$defaults"
+fi
+
 echo "Using Database $DBSET"
 
-
   read -p "Enter Database name: " db
-    read -p "Enter DB user name: " dbuser
-    read -p "Enter DB user password: " dbpwd
+  read -p "Enter user name for database: " dbuser
+  read -p "Enter user password for database: " dbpwd
+  echo "" >> .env
+  echo "" >> .env
+  echo "# customized: " >>.env
+  echo "" >> .env
+  echo "DB_DATABASE=$db" >> .env
+  echo "DB_USER=$dbuser" >> .env
+  echo "DB_PASSWORD=$dbpwd" >> .env
 
-    echo "DB_DATABASE=$db" >> .env
-    echo "DB_USER=$dbuser" >> .env
-    echo "DB_PASSWORD=$dbpwd" >> .env
-
-    echo "Using Database $db .. user = $user"
+  echo "Accessing Database $db AS $dbuser"
