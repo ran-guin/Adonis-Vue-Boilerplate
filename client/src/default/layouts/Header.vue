@@ -3,12 +3,12 @@
     div.header-logo(style='flex: 1')
       a(v-on:click="$router.push('/Home')")
         img.logo(:src='logo' height='50px')
-    span.wideScreen(style='flex:3') {{header}}
-    span.narrowScreen(style='flex:3') {{app_header}}
+    span.wideScreen(style='flex:3') {{header}} 
+    span.narrowScreen(style='flex:3') {{app_header}} 
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
-      v-tab(v-for='link in headerLinks' :key='link.name')
-        router-link(v-if='visible(link)' :to='link.target || link.name')
+      v-tab(v-for='link in headerLinks' v-if='visible(link)' :key='link.name')
+        router-link(:to='link.target || link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
           span(v-else) {{link.name}}
       //- UserMenu(v-if='isLoggedIn' :logout='logout')
@@ -26,13 +26,15 @@ export default {
     return {
       linkType: 'text',
       publicHeaders: [
-        {name: 'About', public: true, target: '/Public'},
-        // {name: 'Data', public: true},
+        {name: 'About', public: true, target: '/About'},
+        {name: 'Home', public: true, target: '/Public'},
         {name: 'Register', public: true, target: 'SignUp'}
       ],
       privateHeaders: [
         // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
+        {name: 'Profile', private: true, target: '/Profile'},
+        {name: 'Interests', private: true, target: '/Interests'},
         // {name: 'Data', private: true},
         {name: 'Dashboard', private: true}
       ]
@@ -52,10 +54,10 @@ export default {
     logout: {
       type: Function
     },
-    page: {
+    title: {
       type: String
     },
-    title: {
+    page: {
       type: String
     }
   },
@@ -70,11 +72,11 @@ export default {
         return false
       }
     },
-    app_header: function () {
-      return this.title || config.app_header || ''
-    },
     header: function () {
       return this.title || config.header || ''
+    },
+    app_header: function () {
+      return this.title || config.app_header || ''
     },
     logo: function () {
       var file = config.headerLogo || 'logo.svg'
@@ -105,7 +107,7 @@ export default {
       }
     },
     visible: function (link) {
-      if (this.link === this.page) {
+      if (this.page === link.name) {
         return false
       } else if (link.access === 'admin') {
         return (this.payload.access === 'admin' || this.payload.role === 'Admin')
