@@ -34,7 +34,6 @@ export default {
         // {name: 'Logout', private: true},
         {name: 'Admin', private: true, access: 'admin', target: 'admin'},
         {name: 'Profile', private: true, target: '/Profile'},
-        {name: 'Interests', private: true, target: '/Interests'},
         // {name: 'Data', private: true},
         {name: 'Dashboard', private: true}
       ]
