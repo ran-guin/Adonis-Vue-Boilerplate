@@ -9,7 +9,7 @@ read -p "Initialize default files ?" defaults
 if [ $defaults == "Y" ] || [ $defaults == "y" ] 
 then
   cp client/src/config.default.js client/src/config.js
-  cp client/src/router/index.default.js client/src/router.index.js
+  cp client/src/router/index.default.js client/src/router/index.js
   cp start/custom/routes.default.js start/custom/routes.js
   echo "regnerated default files..."
 else

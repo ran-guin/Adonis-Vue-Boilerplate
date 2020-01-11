@@ -13,6 +13,10 @@ client/src/assets/custom
 test/custom
 custom/*
 
+start/custom/routes.js
+client/src/router/index.js
+client/src/config.js
+
 public
 
 # The development sqlite file
