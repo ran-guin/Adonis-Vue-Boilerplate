@@ -32,13 +32,11 @@
 </template>
 
 <script>
-import PageLayout from '@/layouts/kyc/PageLayout'
-import Modal from '@/components/Standard/Modal'
+import PageLayout from '@/default/layouts/PageLayout'
 
 export default {
   components: {
-    PageLayout,
-    Modal
+    PageLayout
   },
   data () {
     return {

@@ -31,17 +31,13 @@
 </template>
 
 <script>
-import PageLayout from '@/layouts/PageLayout'
+import PageLayout from '@/default/layouts/PageLayout'
 import config from '@/config.js'
 import axios from 'axios'
-
-// import Modal from '@/components/Standard/Modal'
-// import Messaging from './../Standard/Messaging'
 
 export default {
   components: {
     PageLayout
-    // Modal
   },
   data () {
     return {

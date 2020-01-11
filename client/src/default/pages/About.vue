@@ -9,7 +9,7 @@
 </template>
 
 <script>  
-import PageLayout from '@/layouts/PageLayout'
+import PageLayout from '@/default/layouts/PageLayout'
 import Logo from '@/components/CosineLogo'
 
 export default {

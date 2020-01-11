@@ -87,7 +87,7 @@
 </template>
 
 <script>
-import PageLayout from '@/layouts/PageLayout'
+import PageLayout from '@/default/layouts/PageLayout'
 import config from '@/config'
 import axios from 'axios'
 
