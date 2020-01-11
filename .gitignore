@@ -10,6 +10,7 @@ tmp
 
 client/src/custom
 client/src/assets/custom
+test/custom
 custom/*
 
 public
@@ -20,3 +21,4 @@ database/development.sqlite
 # VSCode & Webstorm history directories
 .history
 .idea
+
