@@ -5,7 +5,7 @@
 </template>
 
 <script>  
-import PrivateLayout from '@/layouts/PrivateLayout'
+import PrivateLayout from '@/default/layouts/PrivateLayout'
 export default {
   components: {
     PrivateLayout
