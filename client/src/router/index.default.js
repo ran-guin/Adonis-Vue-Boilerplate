@@ -1,9 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import Login from '@/pages/Login.vue'
-import Data from '@/pages/Data.vue'
-import Construction from '@/pages/Construction.vue'
+import Login from '@/default/pages/Login.vue'
+import Data from '@/default/pages/Data.vue'
+import Construction from '@/default/pages/Construction.vue'
 
 // Customized pages:
 import Home from '@/default/pages/Home.vue'
@@ -11,6 +11,7 @@ import Public from '@/default/pages/Public.vue'
 import Contact from '@/default/pages/ContactUs.vue'
 import Dashboard from '@/default/pages/Dashboard.vue'
 import Admin from '@/default/pages/Admin.vue'
+import Profile from '@/default/pages/Profile.vue'
 
 Vue.use(Router)
 
@@ -103,6 +104,11 @@ export default new Router({
       path: '/admin',
       name: 'admin',
       component: Admin
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: Profile
     },
     {
       path: '/construction',
