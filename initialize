@@ -4,6 +4,7 @@
 cp ./.env.example ./.env
 adonis key:generate
 DBSET=`grep DB_DATABASE .env`
+DBUSR=`grep DB_USER .env`
 
 read -p "Initialize default files ?" defaults
 if [ $defaults == "Y" ] || [ $defaults == "y" ] 
@@ -16,8 +17,11 @@ else
  echo "skipping default file regeneration...$defaults"
 fi
 
-echo "Using Database $DBSET"
+echo "Using Database: $DBSET (as $DBUSR)"
 
+read -p "(Re)-define database settings ?" resetDB
+if [ $resetDB == "Y" ] || [ $resetDB == "y" ] 
+then
   read -p "Enter Database name: " db
   read -p "Enter user name for database: " dbuser
   read -p "Enter user password for database: " dbpwd
@@ -30,3 +34,15 @@ echo "Using Database $DBSET"
   echo "DB_PASSWORD=$dbpwd" >> .env
 
   echo "Accessing Database $db AS $dbuser"
+fi
+
+
+read -p "(Re)-install npm modules ?" install
+if [ $install == "Y" ] || [ $install == "y" ] 
+then
+  ncu -u
+  npm install
+  cd client
+  ncu -u
+  npm install
+fi
