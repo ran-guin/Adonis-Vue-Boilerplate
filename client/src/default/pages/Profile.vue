@@ -15,10 +15,6 @@
               td.profile-value
                 b {{payload[info.name]}}
 
-            tr
-              td.profile-prompt Documents Submitted:
-              td.profile-value {{doc_count}}
-
             tr(v-if="payload && adminAccess")
               td &nbsp;
               td
@@ -44,7 +40,6 @@ export default {
         {name: 'codeVersion', prompt: 'Code Version'},
         {name: 'username', prompt: 'Username'},
         {name: 'codeVersion', prompt: 'Code Version'},
-        {name: 'kyc_level', prompt: 'KYC Level'},
         {name: 'email', prompt: 'Email'},
         {name: 'role', prompt: 'Role'}
       ],

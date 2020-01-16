@@ -10,8 +10,7 @@
     "dev": "NODE_ENV=development node server.js",
     "demo": "NODE_ENV=demo node server.js",
     "prod": "NODE_ENV=production node server.js",
-    "test": "node ace test",
-    "build-bundle": "vue-cli-service build --target lib --name av-boiler ./server.js"
+    "test": "node ace test"
   },
   "keywords": [
     "adonisjs",

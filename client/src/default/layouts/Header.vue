@@ -4,11 +4,11 @@
       a(v-on:click="$router.push('/Home')")
         img.logo(:src='logo' height='50px')
     span.wideScreen(style='flex:3') {{header}} 
-    span.narrowScreen(style='flex:3') {{app_header}} 
+    span.narrowScreen(style='flex:3') {{app_header}} de
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
       v-tab(v-for='link in headerLinks' v-if='visible(link)' :key='link.name')
-        router-link(:to='link.target || link.name')
+        router-link(:to='link.target || " '/' + link.name")
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
           span(v-else) {{link.name}}
       //- UserMenu(v-if='isLoggedIn' :logout='logout')
@@ -28,11 +28,11 @@ export default {
       publicHeaders: [
         {name: 'About', public: true, target: '/About'},
         {name: 'Home', public: true, target: '/Public'},
-        {name: 'Register', public: true, target: 'SignUp'}
+        {name: 'Register', public: true, target: '/SignUp'}
       ],
       privateHeaders: [
         // {name: 'Logout', private: true},
-        {name: 'Admin', private: true, access: 'admin', target: 'admin'},
+        {name: 'Admin', private: true, access: 'admin', target: '/Admin'},
         {name: 'Profile', private: true, target: '/Profile'},
         // {name: 'Data', private: true},
         {name: 'Dashboard', private: true}
