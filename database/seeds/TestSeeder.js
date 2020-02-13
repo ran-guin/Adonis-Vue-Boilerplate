@@ -1,6 +1,12 @@
 'use strict';
 
 const UserSeeder = require('./../test-seeds/UserSeeder')
+const LocationSeeder = require('./../test-seeds/LocationSeeder')
+const EventSeeder = require('./../test-seeds/EventSeeder')
+const InterestSeeder = require('./../test-seeds/InterestSeeder')
+const EventInterestSeeder = require('./../test-seeds/EventInterestSeeder')
+const SkillSeeder = require('./../test-seeds/SkillSeeder')
+const UserInterestSeeder = require('./../test-seeds/UserInterestSeeder')
 const OrganizationSeeder = require('./../test-seeds/OrganizationSeeder')
 const AgentSeeder = require('./../test-seeds/AgentSeeder')
 
@@ -9,7 +15,14 @@ var Install = {}
 const Seeds = [
   UserSeeder,
   OrganizationSeeder,
-  AgentSeeder
+  AgentSeeder,
+  LocationSeeder,
+  EventSeeder,
+  InterestSeeder,
+  EventInterestSeeder,
+  SkillSeeder,
+  UserInterestSeeder
+
   // Add more Seed files here to customize ... (also need to define above)
 ]
 
@@ -44,7 +57,7 @@ class DatabaseSeeder {
           console.log(JSON.stringify(added))
           message = 'Seeded using ' + Seeds[i].name + ': ' + added
         } catch (err) {
-          message = 'Error installing ' + Seeds[i].name + ' (...skipped...)'
+          message = 'Error installing ' + Seeds[i].name + ' (' + err.message + ')'
           console.log('error encountered: ' + err);
         }
       } else {
