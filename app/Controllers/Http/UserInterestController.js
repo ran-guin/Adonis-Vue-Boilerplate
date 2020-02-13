@@ -99,7 +99,8 @@ class InterestController {
 				'interests.name as interest',
 				'skills.id as skill_id',
 				'skills.name as skill',
-				'skills.level as skill_level'
+				'skills.level as skill_level',
+				'user_interests.skill_id as user_skill_id'
 			)
             .from('user_interests')
             .innerJoin('users', 'users.id', 'user_interests.user_id')
@@ -189,7 +190,7 @@ class InterestController {
 	}
 
     async update ( {request, response, params} ) {
-    	const { user_id, interest_id, level } = request.all()
+    	const { user_id, interest_id, level, skill_id } = request.all()
 		Logger.debug('update user interest')
 		const myInterest = interest_id || params.interest
 		const myUser = user_id || params.user_id
@@ -223,7 +224,7 @@ class InterestController {
 			updated = await UserInterest
 				.query()
 				.where('id', id)
-				.update({level: level})
+				.update({level: level, skill_id: skill_id})
 			action = 'update'
 		} else {
 			console.log('add new record')
@@ -231,6 +232,7 @@ class InterestController {
 			newInterest.interest_id = myInterest
 			newInterest.user_id = myUser
 			newInterest.level = level
+			newInterest.skill_id = skill_id
 
 			appended = await newInterest.save()
 			action = 'append'
@@ -238,7 +240,6 @@ class InterestController {
 		console.log('respond..')
 		response.json({success: true, action: action, updated: updated, appended: appended})
 	}
-
 }
 
 module.exports = InterestController
