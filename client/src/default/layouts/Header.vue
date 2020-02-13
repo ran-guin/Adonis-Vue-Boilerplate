@@ -8,7 +8,7 @@
     v-spacer
     v-tabs(style='flex:2' right hide-slider)
       v-tab(v-for='link in headerLinks' v-if='visible(link)' :key='link.name')
-        router-link(:to='link.target || " '/' + link.name")
+        router-link(:to='link.target || "/" + link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
           span(v-else) {{link.name}}
       //- UserMenu(v-if='isLoggedIn' :logout='logout')
