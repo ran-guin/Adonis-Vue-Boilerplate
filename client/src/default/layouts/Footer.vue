@@ -25,10 +25,10 @@ export default {
   },
   computed: {
     footer: function () {
-      return config.footer || ''
+      return config.footer.desktop || ''
     },
     app_footer: function () {
-      return config.app_footer || ''
+      return config.footer.mobile || ''
     }
   }
 }
