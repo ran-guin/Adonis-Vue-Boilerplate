@@ -1,3 +1,4 @@
 module.exports = {
-  invitation_required: false
+  invitation_required: false,
+  loginRequired: false
 }
