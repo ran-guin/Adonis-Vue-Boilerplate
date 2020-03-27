@@ -1,5 +1,5 @@
 <template lang='pug'>
-  PageLayout(:title='title' :user='user' :private='true')
+  PageLayout(:title='title' :user='user' :private='true' :page='page')
     slot
 </template>
 
@@ -43,6 +43,9 @@ export default {
     }
   },
   props: {
+    page: {
+      type: String
+    },
     title: {
       type: String
     },
@@ -50,10 +53,6 @@ export default {
       type: String
     },
     redirect: {type: Function},
-    // payload: {
-    //   type: Object,
-    //   default: null
-    // },
     interests: {type: Array},
     events: {type: Array},
     invites: {type: Array},

@@ -10,6 +10,7 @@
       v-tab(v-for='link in headerLinks' v-if='visible(link)' :key='link.name')
         router-link(:to='link.target || "/" + link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
+          b(v-else-if='visible(link)==="active"') {{link.name}}
           span(v-else) {{link.name}}
       //- UserMenu(v-if='isLoggedIn' :logout='logout')
       v-tab(v-if='loginEnabled && isLoggedIn')
@@ -24,7 +25,7 @@
 
 <script>
 import config from '@/config.js'
-import UserMenu from '@/components/UserMenu.vue'
+import UserMenu from '@/default/components/UserMenu.vue'
 import Login from '@/default/components/Login.vue'
 import Register from '@/default/components/Register.vue'
 
@@ -83,14 +84,15 @@ export default {
 
     pages = Object.keys(privateLinks)
     for (var j = 0; j < pages.length; j++) {
-      link = privateLinks[pages[i]] || false
+      link = privateLinks[pages[j]] || false
       if (link.constructor === String) {
         console.log(pages[j] + ' linked to ' + link)
         this.privateHeaders.push({name: pages[j], target: link})
       } else if (link) {
+        console.log(pages[j] + ' link')
         this.privateHeaders.push({name: pages[j]})
       } else {
-        console.log(pages[j] + ' turned off')
+        console.log(pages[j] + ' link turned off: ' + link)
       }
     }
   },
@@ -114,7 +116,7 @@ export default {
     logo: function () {
       var file = config.header.logo
       if (file) {
-        return 'custom/images/' + file
+        return 'default/images/' + file
       } else {
         return null
       }
@@ -169,9 +171,9 @@ export default {
       }
 
       if (this.page === link.name) {
-        return false
-      } else if (this.page === link.page) {
-        return false
+        return 'active' 
+      } else if (this.page && this.page === link.page) {
+        return 'active'
       } else if (link.access === 'admin') {
         return (this.payload.access === 'admin' || this.payload.role === 'Admin')
       } else {

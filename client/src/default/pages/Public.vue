@@ -10,21 +10,19 @@
 
 <script>  
 import PageLayout from '@/default/layouts/PageLayout'
-import Logo from '@/components/CosineLogo'
+import Config from '@/config.js'
 
 export default {
   components: {
-    PageLayout,
-    Logo
+    PageLayout
   },
   data () {
     return {
-      animateLogo: true,
       components: [
-        'Login Functionality (with default users for guest, admin)',
-        'Data Search',
-        'Public Page Default (when not logged in)',
-        'Private Page Default (when logged in)',
+        'Login Functionality (with default users for guest, admin) [status: ' + Config.loginRequired,
+        'Data Search [see config.js for default links] ',
+        'Public Page Default (Home) (when not logged in)',
+        'Private Page Default (Dashboard) (when logged in)',
         'Options for Tab navigation (for both public & private pages)',
         'CRUD Data control for Admins',
         'Admin page (when logged in as admin)'

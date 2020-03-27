@@ -10,16 +10,13 @@
 
 <script>  
 import PageLayout from '@/default/layouts/PageLayout'
-import Logo from '@/components/CosineLogo'
 
 export default {
   components: {
-    PageLayout,
-    Logo
+    PageLayout
   },
   data () {
     return {
-      animateLogo: true,
       components: [
         'Login Functionality (with default users for guest, admin)',
         'Data Search',

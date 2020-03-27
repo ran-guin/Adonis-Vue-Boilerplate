@@ -4,14 +4,14 @@
       b.midline.narrowScreen {{footer}} 
       b.midline.wideScreen {{app_footer}} 
     div(style='float: right; display: flex; flex-direction: row; height: 100%')
-      i.midline.minitext() powered by: &nbsp; &nbsp;
+      i.midline.minitext() powered by &nbsp; &nbsp;
       a.midline.footer-logo(v-on:click="$router.push('/Home')")
         Logo(theme='dark' height='50' :animate='animateLogo' speed=0.4)
 
 </template>
 
 <script>
-import Logo from '@/components/CosineLogo'
+import Logo from '@/default/components/CosineLogo'
 import config from '@/config'
 
 export default {

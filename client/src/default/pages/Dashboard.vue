@@ -1,6 +1,6 @@
 <template lang='pug'>
   PrivateLayout(title='Dashboard Title' page='Dashboard')
-    h1 Custom Dashboard
+    h1 Default Dashboard
     p Payload: {{payload}}
 </template>
 
