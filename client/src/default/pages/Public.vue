@@ -1,7 +1,7 @@
 <template lang='pug'>
   PageLayout(page='Public')
     v-container(app dark)
-      h1 Public Home Page
+      h1 Default Public Home Page
       h3 This is a boilerplate for Adonis + View which includes:
       ul
         li(v-for='comp in components') {{comp}}

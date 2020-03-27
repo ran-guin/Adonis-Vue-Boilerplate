@@ -144,8 +144,11 @@ export default {
     // },
   },
   created: function () {
-    if (this.payload && (this.payload.role !== 'Admin' && this.payload.role !== 'Tester')) {
-      this.$router.push('/Home')
+    if (! (config.public && config.public.Admin)) {
+      if (this.payload && (this.payload.role !== 'Admin' && this.payload.role !== 'Tester')) {
+        console.log('redirect home..')
+        this.$router.push('/Home')
+      }
     }
     console.log('add userid: ' + this.payload.userid)
     const host = {name: 'host', type: 'hidden', value: this.payload.userid}

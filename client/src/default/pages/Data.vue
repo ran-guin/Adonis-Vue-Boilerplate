@@ -1,5 +1,5 @@
 <template lang='pug'>
-    PageLayout()
+    PageLayout(page='Data')
         v-container(light)
             v-text-field(light v-model='table' style='background-color: white; padding: 0.5rem;' label='Database Table')
             v-text-field(light v-model='condition' style='background-color: white; padding: 0.5rem;' label='Condition')
