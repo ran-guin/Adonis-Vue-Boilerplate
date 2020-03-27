@@ -6,9 +6,44 @@ const Logger = use('Logger')
 const Model = use('Model')
 // const { validate } = use('Validator')
 	
-const customConfig = Config.get('custom.database')
+const customConfig = Config.get('custom')
 
 class GenericController {
+	async config ({request, response}) {
+		console.log('config: ' + JSON.stringify(customConfig))
+		return response.json(customConfig)
+	}
+
+	async lookup ({request, response, params}) {
+		const {condition} = request.all()
+
+		const table = params.table
+		const DBlookups = customConfig.lookup || []
+
+		var access = 'denied'
+		if (!table || DBlookups) {
+			if (DBlookups.public && DBlookups.public.indexOf(table) >= 0) {
+				console.log('permission granted')
+				access = 'granted'
+			}
+		}
+		
+		if (access !== 'granted') {
+			return response.json({success: false, message: table + ' not listed as accessible lookup table'})
+		}
+
+		var query = Database
+		.from(table)
+	
+		if (condition) {
+			query = query
+				.whereRaw(condition)
+		}
+
+		var results = await query
+		return response.json(results)
+	}
+
 	async tables ({ request, response, session }) {
 		var {table, fields, condition} = request.all()
 		console.log('get tables..')
@@ -61,7 +96,7 @@ class GenericController {
 		response.status(200)
 		return response.json(updated)
 	}
-
+	
 	async append ({ request, response, session, params }) {
 		Logger.info('custom: ' + JSON.stringify(customConfig))
 		if (params.table) { table = params.table }
