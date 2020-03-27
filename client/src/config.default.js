@@ -1,26 +1,50 @@
 const myPort = 8090
+const url = 'myProj.com'
+
 export default {
   CLIENT_ID: 'boilerplate',
+  defaultEmailDomain: 'gmail.com',
+
+  login: true,
+  invitation_required_for: 'Member',
+  guestAccessToken: 'publicAccessToken',
+  invitationRequired: true,
+
+  public: {
+    Home: true,
+    About: true,
+    Data: true,
+    Admin: true
+  }, 
+  private: {
+    Dashboard: true,
+    Data: true,
+    Admin: true
+  },
+  header: {
+    desktop: 'Desktop Title',
+    mobile: 'Mobile Title',
+    logo: 'logo.svg'
+  },
+  footer: {
+    desktop: 'Desktop Footer',
+    mobile: 'Mobile Footer'
+  },
+ 
   apiURL: {
-    production: 'https://idvpn.ca',
-    development: 'https://dev.idvpn.ca',
-    demo: 'https://demo.idvpn.ca',
-    test: 'https://test.idvpn.ca',
+    production: 'https://' + url,
+    development: 'https://dev.' + url,
+    demo: 'https://demo' + url,
+    test: 'https://test.' + url,
     local: 'http://127.0.0.1:' + myPort
   },
   lpURL: {
-    production: 'https://idvpn.ca',
-    development: 'https://dev.idvpn.ca',
-    demo: 'https://demo.idvpn.ca',
-    test: 'https://test.idvpn.ca',
+    production: 'https://' + url,
+    development: 'https://dev.' + url,
+    demo: 'https://demo' + url,
+    test: 'https://test.' + url,
     local: 'http://127.0.0.1:' + myPort
   },
-  header: 'My Widescreen Title',
-  app_header: 'My App Title',
-  headerLogo: 'logo.svg',
-  defaultEmailDomain: 'gmail.com',
-  footer: 'My Widescreen Footer',
-  app_footer: 'My App Footer',
   rules: {
     required: v => !!v || 'Name is required',
     min: function (m) {
