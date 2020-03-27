@@ -35,7 +35,7 @@ import '@/assets/default/css/custom.css'
 const key = Config.CLIENT_ID
 Vue.config.productionTip = false
 
-var timeoutMinutes = 5 // manage from config file
+var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
 
 Vue.use(RGV)
 const plugin = {
