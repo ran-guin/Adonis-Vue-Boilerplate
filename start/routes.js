@@ -68,3 +68,6 @@ Route.get('/dataset/:table', 'GenericController.search')
 Route.post('/dataset/:table', 'GenericController.append')
 Route.put('/dataset/:table/:id', 'GenericController.update')
 Route.delete('/dataset/:table/:id', 'GenericController.delete')
+
+Route.get('/config', 'GenericController.config')
+Route.get('/lookup/:table', 'GenericController.lookup')
