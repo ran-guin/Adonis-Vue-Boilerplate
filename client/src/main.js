@@ -8,7 +8,6 @@ import RGV from '@ran-guin/vue-components';
 
 import myConsole from '@ran-guin/vue-components/src/services/myConsole.js';
 import myString from '@ran-guin/vue-components/src/services/myString.js';
-
 import myCrypt from './services/aes_encryption.js';
 
 // import 'material-design-icons-iconfont/dist/material-design-icons.css'
@@ -36,6 +35,17 @@ const key = Config.CLIENT_ID
 Vue.config.productionTip = false
 
 var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
+
+// if (Config.plugins.indexOf('maps') >= 0) {
+  import { LMap, LTileLayer, LMarker, LCircle } from 'vue2-leaflet'
+  import "leaflet/dist/leaflet.css"
+  import "leaflet/dist/leaflet.js"
+
+  Vue.component('v-map', LMap);
+  Vue.component('v-tilelayer', LTileLayer);
+  Vue.component('v-marker', LMarker);
+  Vue.component('v-circle', LCircle);
+// }
 
 Vue.use(RGV)
 const plugin = {

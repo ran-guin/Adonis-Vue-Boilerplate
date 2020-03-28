@@ -4,7 +4,7 @@
 </template>
 
 <script>
-import PageLayout from './PageLayout.vue'
+import PageLayout from '@/default/layouts/PageLayout.vue'
 import Authentication from '@/mixins/Authentication.vue'
 
 import config from '@/config'
