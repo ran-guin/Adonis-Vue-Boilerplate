@@ -25,8 +25,8 @@ export default {
       location: 'TBD',
       config: Config,
       myPosition: {},
-      myZoom: '',
-      myRadius: '',
+      myZoom: null,
+      myRadius: null,
       myCentre: [],
       myOptions: {
         color: 'blue',
@@ -60,7 +60,6 @@ export default {
     }
   },
   created: function () {
-    this.geoLocate()
     this.myPosition = this.position
     this.myZoom = this.zoom
     this.myRadius = this.radius
@@ -77,6 +76,9 @@ export default {
       }
     }
     console.log('Home: ' + JSON.stringify(this.myPosition))
+  },
+  mounted: function () {
+    this.geoLocate()
   },
   methods: {
     geoLocate: function (scale) {
