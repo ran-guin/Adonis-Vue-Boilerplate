@@ -36,16 +36,8 @@ Vue.config.productionTip = false
 
 var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
 
-// if (Config.plugins.indexOf('maps') >= 0) {
-  import { LMap, LTileLayer, LMarker, LCircle } from 'vue2-leaflet'
-  import "leaflet/dist/leaflet.css"
-  import "leaflet/dist/leaflet.js"
-
-  Vue.component('v-map', LMap);
-  Vue.component('v-tilelayer', LTileLayer);
-  Vue.component('v-marker', LMarker);
-  Vue.component('v-circle', LCircle);
-// }
+import "leaflet/dist/leaflet.css"
+import "leaflet/dist/leaflet.js"
 
 Vue.use(RGV)
 const plugin = {
