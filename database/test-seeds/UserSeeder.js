@@ -22,7 +22,8 @@ class sparcUserSeeder {
       {id: 2, uuid: uuidv4(), username: 'Proxy', email: 'proxy@myDomain.com', password: '$2a$10$zUaEVd0d.6ReSBW7aBdeTOx6XEG.K2MfjxAzXIQIfx/ddt9yFcdyK'},
       {id: 3, uuid: uuidv4(), username: 'Tester', email: 'tester@myDomain.com', password: '$2a$10$zUaEVd0d.6ReSBW7aBdeTOx6XEG.K2MfjxAzXIQIfx/ddt9yFcdyK'},
       {id: 4, uuid: uuidv4(), username: 'Admin', email: 'admin@myDomain.com', password: '$2a$10$zUaEVd0d.6ReSBW7aBdeTOx6XEG.K2MfjxAzXIQIfx/ddt9yFcdyK'},
-	])
+      {id: 5, uuid: uuidv4(), username: 'Anonymous', email: 'anon@myDomain.com', password: '$2a$10$zUaEVd0d.6ReSBW7aBdeTOx6XEG.K2MfjxAzXIQIfx/ddt9yFcdyK'},      
+])
 
   	console.log('seeded users: ' + users)
   }
