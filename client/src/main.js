@@ -9,6 +9,7 @@ import RGV from '@ran-guin/vue-components';
 import myConsole from '@ran-guin/vue-components/src/services/myConsole.js';
 import myString from '@ran-guin/vue-components/src/services/myString.js';
 import myCrypt from './services/aes_encryption.js';
+import dbGet from './services/dbGet.js';
 
 // import 'material-design-icons-iconfont/dist/material-design-icons.css'
 // import AsyncComputed from 'vue-async-computed'
@@ -53,6 +54,9 @@ const plugin = {
 
         Vue.myCrypt = myCrypt
         Vue.prototype.$myCrypt = myCrypt
+
+        Vue.dbGet = dbGet
+        Vue.prototype.$dbGet = dbGet
     }
 }
 Vue.use(plugin)
