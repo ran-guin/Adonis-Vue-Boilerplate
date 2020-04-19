@@ -2,22 +2,25 @@
 
 const Model = use('Model')
 const Hash = use('Hash')
-const Env = use('Env')
+const ENV = use('Env')
 
 const Database = use('Database')
 const Login = use('App/Models/Login')
 const Config = use('Config')
 
-const env = process.env.NODE_ENV || Env.get('NODE_ENV', 'undef')
-const db = Env.get('DB_DATABASE', 'undef')
-const db_user = Env.get('DB_USER', 'undef')
-const url = Env.get('API_URL', 'https://pgkyc.com')
-var codeVersion = Env.get('CODE_VERSION', 'undef')
+const Env = process.env.NODE_ENV || ENV.get('NODE_Env', 'undef')
+const db = ENV.get('DB_DATABASE', 'undef')
+const db_user = ENV.get('DB_USER', 'undef')
+const app_name = ENV.get('APP_NAME', 'appname')
+const app_ext  = ENV.get('APP_EXT', '.ca')
+const url = ENV.get('API_URL', 'https://' + app_name + app_ext)
+var codeVersion = ENV.get('CODE_VERSION', 'undef')
 
 var context
-if (db === 'idvpn') {
+var testMatch = /app_name\_(\w+)/
+if (db === app_name) {
   codeVersion += ' (production)'
-} else if (context = db.match(/^idvpn\_(\w+)/)) {
+} else if (context = db.match(testMatch)) {
   codeVersion += ' (' + context[1] + ')'
 } else {
   codeVersion += ' (custom)'
@@ -35,7 +38,6 @@ const payloadContent = {
     access: 'access',
     role: 'role',
     status: 'status',
-    kyc_level: 'kyc_level',
     uuid: 'UUID'
   },
   // include attributes from login in payload ?
@@ -50,7 +52,7 @@ const payloadContent = {
 }
 
 const defaultPayload = {
-  env: env,
+  Env: Env,
   db: db,
   db_user: db_user,
   codeVersion: codeVersion
@@ -88,9 +90,9 @@ class User extends Model {
     return this.hasMany('App/Models/Token')
   }
 
-  env () {
+  Env () {
     return {
-      env: env,
+      Env: Env,
       db: db,
       db_user: db_user,
       codeVersion: codeVersion
@@ -206,8 +208,7 @@ class User extends Model {
     // role: 'User',
     // access: reloaded.access,
     // login_id: login.id,
-    // kyc_level: 0,
-    // env: env,
+    // Env: Env,
     // db: db,
     // db_user: db_user,
     // codeVersion: codeVersion
