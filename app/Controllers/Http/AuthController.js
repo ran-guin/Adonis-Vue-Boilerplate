@@ -19,15 +19,16 @@ var Config = use('Config')
 // Customizations:
 
 const url = Env.get('API_URL')
+const app_name = Env.get('APP_NAME')
 
 const welcomeMessage = `
-  <P><B>Welcome to IdVPN<B></P>
+  <P><B>Welcome to ` + app_name + `<B></P>
 
   <P>Thank you for registering with us.</P>
   <P>Please click on the following link to activate your registration and confirm your email address:</P>
 `
 const pendingMessage = `
-  <P><B>Thanks for pre-registering with IdVPN<B></P>
+  <P><B>Thanks for pre-registering with ` + app_name + `<B></P>
 
   <P>We will keep you posted and send you an invitation when we are ready to launch the beta version.</P>
 `
@@ -155,7 +156,7 @@ class AuthController {
         const Message = {
           from: 'no-reply@pgkyc.com',
           to: user.email,
-          subject: 'IdVPN Password Recovery',
+          subject: app_name + 'Password Recovery',
           html: passwordRecoveryMessage + link
         }
         console.log('launch password recovery message')
@@ -391,7 +392,7 @@ class AuthController {
         const Message = {
           from: 'no-reply@pgkyc.com',
           to: invite.email,
-          subject: 'Thanks for pre-registering for IdVPN',
+          subject: 'Thanks for pre-registering for ' + app_name,
           html: pendingMessage
         }
         await Email.sendMessage(Message)
@@ -455,7 +456,7 @@ class AuthController {
             const Message = {
               from: 'no-reply@pgkyc.com',
               to: user.email,
-              subject: 'Welcome to IdVPN',
+              subject: 'Welcome to ' + app_name,
               html: welcomeMessage + welcomeLink
             }
             await Email.sendMessage(Message)
@@ -494,7 +495,7 @@ class AuthController {
       const Message = {
         from: 'no-reply@pgkyc.com',
         to: user.email,
-        subject: 'Welcome to IdVPN',
+        subject: 'Welcome to ' + app_name,
         html: welcomeMessage + welcomeLink
       }
       await Email.sendMessage(Message)
