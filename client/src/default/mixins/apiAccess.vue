@@ -39,9 +39,11 @@ export default {
                 .then(function (response) {
                     lookup[reference] = response.data
                     _this.formLookup = lookup
+                    return Promise.resolve(lookup)
                 })
                 .catch(function (err) {
                     console.log("Error retrieving lookup: " + err.message)
+                    return Promise.reject(err.message)
                 })
         },
         apiCall (path, attribute) {
@@ -54,21 +56,29 @@ export default {
             return axios.get(url)
                 .then(function (response) {
                     console.log('got response: ' + JSON.stringify(response))
-                    if (response && response.data)
+                    var returnval = null
+                    if (response && response.data) {
                         if (attribute) {
                             if (response.data[attribute]) {
-                                _this.apiResponse = response.data[attribute]
+                                returnval = response.data[attribute]
                             } else {
                                 _this.apiResponseError = 'no ' + attribute + ' attribute in response'
                             }
                         } else {
-                            _this.apiResponse = response.data
+                            returnval = response.data
                         }
+                        _this.apiResponse = returnval
+                        return Promise.resolve(returnval)
+                    } else {
+                        console.log('invalid response ?')
+                        return Promise.reject('invalid response')
+                    }
                 })
                 .catch(function (err) {
                     console.log('Error with api call: ' + url)
                     console.log(err.message)
                     _this.apiResponseError = 'apiCall error: ' + err.message
+                    return Promise.reject(err.message)
                 })           
         }
     }
