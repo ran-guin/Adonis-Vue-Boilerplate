@@ -39,7 +39,7 @@ export default {
                 console.log('got response to login attempt: ' + JSON.stringify(response))
                 var userError = /UserNotFound/
                 
-                if ( form.registerNewEmail && response.data && response.data.message.match(userError) ) {
+                if ( form.registerNewEmail && response.data && response.data.message && response.data.message.match(userError) ) {
                     console.log('auto-register first...')
                     await this.signup(form)
                     response = await auth.login(this, credentials)
