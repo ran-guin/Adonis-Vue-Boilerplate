@@ -16,6 +16,7 @@ custom/*
 start/custom/routes.js
 client/src/router/index.js
 client/src/config.js
+client/src/config.private.js
 
 public
 
@@ -25,4 +26,3 @@ database/development.sqlite
 # VSCode & Webstorm history directories
 .history
 .idea
-
