@@ -8,6 +8,8 @@ const Database = use('Database')
 const Login = use('App/Models/Login')
 const Config = use('Config')
 
+const Custom = Config.get('custom')
+
 const Env = process.env.NODE_ENV || ENV.get('NODE_Env', 'undef')
 const db = ENV.get('DB_DATABASE', 'undef')
 const db_user = ENV.get('DB_USER', 'undef')
@@ -29,27 +31,8 @@ console.log("*** Version: " + codeVersion)
 
 const authenticator = Config.get('auth.authenticator')
 
-const payloadContent = {
-  // include attributes from user model in payload ?
-  user: {
-    userid: 'id',
-    username: 'username',
-    email: 'email',
-    access: 'access',
-    role: 'role',
-    status: 'status',
-    uuid: 'UUID'
-  },
-  // include attributes from login in payload ?
-  login: {
-    login_id: 'id',
-    remoteAddress: 'ip'
-  },
-  default: {
-    role: 'User',
-    uuid: 'tbd'
-  }
-}
+const payloadContent = Custom.payloadContent
+
 
 const defaultPayload = {
   Env: Env,
@@ -144,10 +127,27 @@ class User extends Model {
 
         await login.save()
 
+        var settings = []
+        console.log('Add settings to payload: ' + JSON.stringify(payloadContent.settings)) 
+        if (payloadContent.settings) {
+          const payloadSettings = Object.values(payloadContent.settings)
+          console.log('retrieve settings: ' + payloadSettings.join(', '))
+          const getSettings = await Database
+            .select(payloadSettings)
+            .from('user_settings')
+            .where('user_id', 'like', user[0].id)
+
+          if (getSettings) {
+            settings = getSettings[0]
+          }
+          console.log('include: ' + JSON.stringify(settings))
+        } 
+        
         console.log(login.id + ': Login: ' + JSON.stringify(login))
         var payload = this.buildPayload({
           user: user[0],
           login: login,
+          settings: settings,
           default: defaultPayload
         })
 
@@ -182,7 +182,7 @@ class User extends Model {
     var payload = input.default || {}
     var loginAtts = payloadContent.login || {}
 
-    var scopes = ['user', 'login']
+    var scopes = ['user', 'login', 'settings']
     for (var si = 0; si < scopes.length; si++) {
       var s = scopes[si]
       console.log(s + ' data: ' + JSON.stringify(input[s]))
