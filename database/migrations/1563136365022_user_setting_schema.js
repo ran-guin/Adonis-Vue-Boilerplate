@@ -11,6 +11,10 @@ class UserSettingSchema extends Schema {
       table.foreign('user_id').references('users.id').onDelete('cascade')
       table.integer('invites_available').defaultTo(0)
       table.integer('invites_used').defaultTo(0)
+      table.string('latitude', 255)
+      table.string('longitude', 255)
+      table.decimal('range_in_km')
+      table.enu('access', ['Guest', 'Member', 'Collaborator', 'Driver', 'Host', 'Manager', 'Admin']).default('Guest')
       table.timestamps()
     })
   }
