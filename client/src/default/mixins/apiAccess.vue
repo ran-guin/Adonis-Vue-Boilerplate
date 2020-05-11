@@ -27,6 +27,13 @@ export default {
     computed: {
         payload: function () {
             return this.$store.getters.payload || {}
+        },
+        access: function () {
+            if (this.payload && this.payload.access) {
+                return this.payload.access
+            } else {
+                return 'Public'
+            }
         }
     },
     methods: {
