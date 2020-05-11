@@ -47,7 +47,7 @@ const passwordRecoveryMessage = `
 class AuthController {
   env ({response}) {
     var user = new User()
-    var env = user.env()
+    var env = user.Env()
     console.log('env: ' + JSON.stringify(env))
     return response.json(env)
   }
