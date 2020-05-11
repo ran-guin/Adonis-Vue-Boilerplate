@@ -7,6 +7,8 @@ import messaging from './messaging'
 import modal from './modal'
 import custom from './custom'
 
+import location from './location'
+
 Vue.use(Vuex)
 
 const debug = process.env.NODE_ENV !== 'production'
@@ -22,7 +24,8 @@ const store = new Vuex.Store({
     caching,
     messaging,
     modal,
-    custom
+    custom,
+    location
   },
 
   strict: debug
