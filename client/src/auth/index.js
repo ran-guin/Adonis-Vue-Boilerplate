@@ -72,24 +72,32 @@ export default {
   },
 
   // To log out, we just need to remove the token
-  logout (root, context) {
+  async logout (root, context) {
     try {
       var loginId
       if (root.payload && root.payload.login_id) {
         loginId = root.payload.login_id
       }
-  
+      console.debug('logging out from auth module...')
       if (loginId) {
         var data = {
           login_id: loginId,
           note: context
         }
         // location.href = apiURL
-        axios.post(apiURL + '/logout', data)
-        root.$store.dispatch('AUTH_LOGOUT')
+        console.log('dispatch logout request...')
+        await root.$store.dispatch('AUTH_LOGOUT')
+        console.log('dispatched logout request...')
+        await axios.post(apiURL + '/logout', data)
+        console.log('posted logout request')
+        return Promise.resolve()
+      } else {
+        console.log('Not tracking login/logouts...')
+        return await root.$store.dispatch('AUTH_LOGOUT')
       }
     } catch (err) {
       console.log('logout error:' + err)
+      return Promise.reject(new Error(err))
     }
     // this.$store.dispatch('AUTH_LOGOUT')
   },
