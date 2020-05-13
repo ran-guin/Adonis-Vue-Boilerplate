@@ -115,12 +115,11 @@ const actions = {
       }
     }
   },
-  AUTH_CLEAR: ({commit}, reset) => {
+  async AUTH_CLEAR ({commit}, reset) {
     commit('AUTH_CLEAR', reset)
   },
-  AUTH_LOGOUT: ({commit}, reset) => {
-    console.log('auth logout...')
-    commit('AUTH_CLEAR', reset)
+  async AUTH_LOGOUT ({commit, dispatch}, reset) {
+    await dispatch('AUTH_CLEAR', reset)
     commit('AUTH_LOGOUT')
   },
   LOAD_DEMO: ({commit}) => {
@@ -251,9 +250,13 @@ const mutations = {
 
     localStorage.setItem('user-token', '')
     localStorage.setItem('payload', JSON.stringify(reset))
+    localStorage.setItem('payloadHash', '{}')
+    Vue.set(state, 'payloadHash', '{}')
+
     state.payloadData = reset
     console.log('cleared local payload & token states')
-    console.log(state.payloadData)
+    console.log(localStorage.getItem('payloadHash'))
+    console.log(state.payloadHash)
   },
   AUTH_CLEAR_KEY: (state, key) => {
     // if (!reset) { reset = { access: 'public' } }
@@ -265,9 +268,12 @@ const mutations = {
     var payload = JSON.parse(state.payloadHash)
     delete payload[key]
     state.payloadHash = JSON.stringify(payload)
+    Vue.set(state, 'payloadHash', '{}')
 
     localStorage.setItem('payloadHash', state.payloadHash)
     console.log(key + ' payload cleared')
+    console.log(localStorage.getItem('payloadHash'))
+    console.log(state.payloadHash)
   }
 }
 // })
