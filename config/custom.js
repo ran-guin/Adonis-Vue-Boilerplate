@@ -28,7 +28,7 @@ module.exports = {
    settings: {
     latitude: 'latitude',
     longitude: 'longitude',
-    mobility: 'access_radius',
+    mobility: 'range_in_km',
     access: 'access'
    },
    default: {
