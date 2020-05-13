@@ -565,7 +565,7 @@ class AuthController {
     }
   }
 
-  async logout({request, auth}) {  
+  async logout({request, response, auth}) {  
     const {login_id} = request.all()
     // var logged_in = await auth.check()
     // console.log('logged in ?' + JSON.stringify(logged_in))
