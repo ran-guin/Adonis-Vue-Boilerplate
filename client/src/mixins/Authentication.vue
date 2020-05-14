@@ -136,7 +136,7 @@ export default {
 
       console.log('standard logout from: ' + JSON.stringify(this.payload))
       var loginId = this.payload.login_id
-      console.log(loginId + ' logout via auth ')
+      console.log(loginId + ' logout via auth from Auth mixin ')
 
       this.$store.dispatch('AUTH_LOGOUT')
       this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: { access: 'public' }, key: Config.CLIENT_ID})
