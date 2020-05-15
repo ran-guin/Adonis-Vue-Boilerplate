@@ -55,7 +55,6 @@ Route.get('/docs', 'HelpController.viewDoc')
 
 // Public Routes:
 
-
 // Generic routes
 Route.get('/loadTable', 'DBFormController.loadTable')
 Route.get('/loadTable/:table', 'DBFormController.loadTable')
@@ -71,3 +70,6 @@ Route.delete('/dataset/:table/:id', 'GenericController.delete')
 
 Route.get('/config', 'GenericController.config')
 Route.get('/lookup/:table', 'GenericController.lookup')
+
+Route.get('/users/:user_id/contacts', 'ContactController.find')
+Route.get('/users/:user_id/settings', 'ContactController.settings')
