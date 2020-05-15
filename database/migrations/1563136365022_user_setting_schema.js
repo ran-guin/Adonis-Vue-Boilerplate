@@ -14,7 +14,7 @@ class UserSettingSchema extends Schema {
       table.string('latitude', 255)
       table.string('longitude', 255)
       table.decimal('range_in_km')
-      table.enu('access', ['Guest', 'Member', 'Collaborator', 'Driver', 'Host', 'Manager', 'Admin']).default('Guest')
+      table.enu('access', ['Guest', 'Member', 'Collaborator', 'Driver', 'Host', 'Manager', 'Vendor', 'Admin']).default('Guest')
       table.timestamps()
     })
   }

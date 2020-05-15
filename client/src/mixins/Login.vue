@@ -88,8 +88,8 @@ export default {
         },
         async logout () {
             var loginId = this.payload.login_id
-            this.$myConsole.debug('logout via mixin...')
-            auth.logout(this, loginId)
+            this.$myConsole.debug('logout via login mixin...')
+            return await auth.logout(this, loginId)
         },
         async signup (form) {
             var credentials = { 
