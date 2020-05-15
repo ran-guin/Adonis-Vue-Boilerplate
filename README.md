@@ -5,6 +5,12 @@
 * adonis client
 * vue client
 
+./customize
+
+cd server;
+make
+
+
 cp .env.example .env
 // customize .env file as required (this file is NOT stored in git)
 // ensure applicable database name, user, password are defined in the .env file
