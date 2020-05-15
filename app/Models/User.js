@@ -6,6 +6,7 @@ const ENV = use('Env')
 
 const Database = use('Database')
 const Login = use('App/Models/Login')
+
 const Config = use('Config')
 
 const Custom = Config.get('custom')
@@ -214,6 +215,21 @@ class User extends Model {
     // codeVersion: codeVersion
     // }
     return payload
+  }
+
+  async settings (user_id) {
+
+    const publicSettings = ['latitude', 'longitude', 'range_in_km', 'access', 'birthdate', 'gender']
+    if (user_id) {
+      var settings = Database
+        .select(publicSettings)
+        .from('user_settings')
+        .where('user_id', 'like', user_id)
+
+      return await settings
+    } else {
+      return Promise.reject(new Error('no user_id supplied'))
+    }
   }
 }
 

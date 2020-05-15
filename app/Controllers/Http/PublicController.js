@@ -9,7 +9,7 @@ const api_url = Env.get('API_URL', 'http://localhost')
 
 class PublicController {
 	async message ({request, response}) {
-    const {message, email, role, redirect} = request.all()
+    const {message, email, phone, role, redirect} = request.all()
     const rules = {
       email: 'required|email',
       message: 'required'
@@ -37,6 +37,7 @@ class PublicController {
         Msg.message = message
         Msg.role = role
         Msg.email = email
+        Msg.phone = phone
         Msg.sent = timestamp
 
         await Msg.save()
