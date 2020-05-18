@@ -4,53 +4,135 @@ const Validator = use('Validator')
 const Database = use('Database')
 const Env = use('Env')
 const Message = use('App/Models/Message')
+const Notification = use('App/Models/Notification')
+const Contact = use('App/Models/Contact')
+const Email = use('App/Models/Email')
+const User = use('App/Models/User')
 
 const api_url = Env.get('API_URL', 'http://localhost')
 
 class PublicController {
-	async message ({request, response}) {
-    const {message, email, phone, role, redirect} = request.all()
-    const rules = {
-      email: 'required|email',
-      message: 'required'
+
+  async sendMessage ({request, response}) {
+    const input = request.all()
+    const {message, user_id, from, to, cc, forward, subject, cache} = input
+
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    if (from && !to) {
+      forward = 'ran.guin+cosine@gmail.com'
     }
 
-    const validation = await Validator.validateAll(request.all(), rules)
-    if (validation.fails()) {
-      var errors = validation.messages()
-      var errMsg
-      if (errors && errors.length) {
-        errMsg = errors[0].message
-      }
-      console.log('Failed registration validation' + JSON.stringify(validation.messages()))
-      if (redirect) {
-        response.redirect('contactUs?error=' + errMsg)
-      } else {
-        response.json( { error: 'Failed Validation', validation_errors: errors, rules: rules} )
-      }
-    } else {
-      const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    var emailResponse
+    var status
+    await Email.sendMessage(input)
+    .then (resp => {
+      console.log('email sent: ' + JSON.stringify(resp))
+      emailResponse = resp
+      status = 'sent'
+    })
+    .catch (err => {
+      console.log("err: " + err.message)
+      emailResponse = err.message
+      response.json({success: false, message: err.message})
+      status = 'failed'
+    })
 
-  		console.log('submit message')
+    if (cache) {
+      console.log('cache message')
+      var warning
       try {
+        var Notice = new Notification()
+        Notice.message = message
+        Notice.sent = timestamp
+        Notice.user_id = user_id
+        Notice.status = status
+
+        await Notice.save()
+        message = 'sent notification and cached messaged'
+      } catch (error) {
+        console.log('Err: ' + JSON.stringify(error))
+        warning = 'Failed to cache message: ' + error.message
+      }
+    }    
+    response.json({success: true, message: message, warning: warning})
+	}
+
+	async receiveMessage ({request, response}) {
+    const input = request.all()
+    const {message, email, to, forward, subject, phone, role, redirect, cache} = input
+  
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    if (!to && !forward) {
+      input.forward = 'ran.guin+forward@gmail.com'
+    }
+    delete input.from
+
+    var emailResponse
+    await Email.sendMessage(input)
+    .then (resp => {
+      console.log('email sent: ' + JSON.stringify(resp))
+      emailResponse = resp
+    })
+    .catch (err => {
+      console.log("err: " + err.message)
+      emailResponse = err.message
+    })
+
+    if (cache  && email) {
+      console.log('cache received message')
+
+      var warning
+      var msg
+      try {
+        var oldContact = await Contact.findBy('email', email)
+        var oldUser = await User.findBy('email', email)
+
+        var contact_id
+        if (oldContact) {
+          contact_id = oldContact.id
+          console.log('found existing contact: ' + contact_id)
+        } else {
+          var contact = new Contact()
+          contact.email = email
+          contact.phone = phone
+
+          if (oldUser) {
+            contact.user_id = existing.id
+            console.log('using existing user ' + existing.id)
+          } else {
+            var anon = await User.findBy('username', 'Anonymous')
+            contact.user_id = anon.id
+            console.log('using anonymous user ' + anon.id)
+          }
+          console.log('saving contact: ' + JSON.stringify(contact))
+          await contact.save()
+          contact_id = contact.id
+        }
+
         var Msg = new Message()
         Msg.message = message
         Msg.role = role
-        Msg.email = email
-        Msg.phone = phone
         Msg.sent = timestamp
+        Msg.contact_id = contact_id
 
         await Msg.save()
-        if (redirect) {
-          response.redirect(redirect + '?message=Thanks for the message')
-        } else {
-          response.json({success: true, message: 'Thanks for the message'})
-        }
+        msg = 'sent email and cached messaged'
       } catch (error) {
         console.log('Err: ' + JSON.stringify(error))
-        var msg = 'Failed to save message: ' + error
-        response.json({error: msg})
+        warning = 'Failed to save message: ' + error.message
       }
+
+      if (!msg) { msg = 'Thanks for the message'}
+
+      if (redirect) {
+        response.redirect(redirect + '?message=' + msg)
+      } else {
+        response.json({success: true, message: msg, warning: warning})
+      }
+    } else {
+      console.log('message not cached...')
+      response.json({success: true, message: 'Thank you for your message', response: emailResponse})
     }
 	}
 
