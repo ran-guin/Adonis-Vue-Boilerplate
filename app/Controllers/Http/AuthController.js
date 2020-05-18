@@ -126,6 +126,7 @@ class AuthController {
     } else {
       var user = await User.findBy('email', email)
 
+      var warning = ''
       if (user && user.id) {
         console.log('found user: ' + user.id)
 
@@ -161,10 +162,13 @@ class AuthController {
         }
         console.log('launch password recovery message')
         await Email.sendMessage(Message)
+        .catch (err => {
+          warning = err.message
+        })
       } else {
         console.log('no user found with email: ' + email)
       }
-      return response.json({success: true, message: 'Password recovery request acknowledged'})
+      return response.json({success: true, message: 'Password recovery request acknowledged', warning: warning})
     }
   }
 
