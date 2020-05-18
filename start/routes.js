@@ -49,7 +49,8 @@ Route.post('/recoverPassword', 'AuthController.recoverPassword')
 Route.post('/resetPassword', 'AuthController.resetPassword')
 Route.post('/confirmRegistration', 'AuthController.confirmRegistration')
 
-Route.post('/message', 'PublicController.message')
+Route.post('/message/outgoing', 'PublicController.sendMessage')
+Route.post('/message/incoming', 'PublicController.receiveMessage')
 
 Route.get('/docs', 'HelpController.viewDoc')
 
