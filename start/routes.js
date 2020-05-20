@@ -47,7 +47,9 @@ Route.get('/resendWelcome', 'AuthController.resendWelcome')
 
 Route.post('/recoverPassword', 'AuthController.recoverPassword')
 Route.post('/resetPassword', 'AuthController.resetPassword')
-Route.post('/confirmRegistration', 'AuthController.confirmRegistration')
+
+Route.post('/confirmRegistration/:token', 'AuthController.confirmRegistration')
+Route.get('/confirmRegistration/:token', 'AuthController.confirmRegistration')
 
 Route.post('/message/outgoing', 'PublicController.sendMessage')
 Route.post('/message/incoming', 'PublicController.receiveMessage')
