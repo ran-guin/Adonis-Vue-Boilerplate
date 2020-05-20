@@ -20,6 +20,7 @@ var Config = use('Config')
 
 const url = Env.get('API_URL')
 const app_name = Env.get('APP_NAME')
+const email_domain = Env.get('EMAIL_DOMAIN')
 
 const welcomeMessage = `
   <P><B>Welcome to ` + app_name + `<B></P>
@@ -149,13 +150,13 @@ class AuthController {
         await recovery.save()
 
         console.log('saved recovery...')
-        const fakelink = "<a href='https://pgkyc.com/accessResetPasswordFlag/" + email + "'> I did not request a reset password </a>"
+        const fakelink = "<a href='" + url + "/accessResetPasswordFlag/" + email + "'> I did not request a reset password </a>"
 
         console.log('send Password recovery message to ' + user.email)
         const link = "<BR><BR><a href='" + url + "/accessResetPassword/" + reset_token + "'> Reset Password"
 
         const Message = {
-          from: 'no-reply@pgkyc.com',
+          from: 'no-reply@' + email_domain,
           to: user.email,
           subject: app_name + 'Password Recovery',
           html: passwordRecoveryMessage + link
@@ -394,7 +395,7 @@ class AuthController {
         console.log('registered request')
 
         const Message = {
-          from: 'no-reply@pgkyc.com',
+          from: 'no-reply@' + email_domain,
           to: invite.email,
           subject: 'Thanks for pre-registering for ' + app_name,
           html: pendingMessage
@@ -458,7 +459,7 @@ class AuthController {
 
             const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Registration"
             const Message = {
-              from: 'no-reply@pgkyc.com',
+              from: 'no-reply' + email_domain,
               to: user.email,
               subject: 'Welcome to ' + app_name,
               html: welcomeMessage + welcomeLink
@@ -497,7 +498,7 @@ class AuthController {
       const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Email Address"
 
       const Message = {
-        from: 'no-reply@pgkyc.com',
+        from: 'no-reply' + email_domain,
         to: user.email,
         subject: 'Welcome to ' + app_name,
         html: welcomeMessage + welcomeLink
