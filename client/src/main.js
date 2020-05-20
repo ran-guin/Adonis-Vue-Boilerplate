@@ -40,9 +40,6 @@ Vue.config.productionTip = false
 
 var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
 
-import "leaflet/dist/leaflet.css"
-import "leaflet/dist/leaflet.js"
-
 Vue.use(RGV)
 const plugin = {
     install () {
