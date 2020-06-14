@@ -34,18 +34,28 @@ export default {
             } else {
                 return 'Public'
             }
+        },
+        isAdmin: function () {
+            return (this.access === 'Admin')
+        },
+        isLoggedIn: function () {
+            return (this.payload && this.payload.userid)
         }
     },
     methods: {
-        loadLookup (table, reference) {
+        loadLookup (table, reference, condition) {
             var url = this.apiURL + '/lookup/' + table
-            var lookup = this.formLookup || {}
+            var lookup = {}
+
+            if (condition) { url = url + '?condition=' + condition }
             console.log('url: ' + url)
             var _this = this
             return axios.get(url)
                 .then(function (response) {
                     lookup[reference] = response.data
                     _this.formLookup = lookup
+                    console.debug("generate lookup for " + table)
+                    console.debug(JSON.stringify(lookup))
                     return Promise.resolve(lookup)
                 })
                 .catch(function (err) {
