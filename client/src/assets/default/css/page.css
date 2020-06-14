@@ -19,6 +19,12 @@
   color: darkblue;
 }
 
+.fullwidth: {
+  width: 100%
+}
+.padded: {
+  padding: 2rem;
+}
 .narrowScreen {
   display: none;
 }
