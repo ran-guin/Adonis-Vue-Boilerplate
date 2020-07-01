@@ -8,7 +8,6 @@ const Database = use('Database')
 const Login = use('App/Models/Login')
 
 const Config = use('Config')
-
 const Custom = Config.get('custom')
 
 const Env = process.env.NODE_ENV || ENV.get('NODE_Env', 'undef')

@@ -331,7 +331,11 @@ class AuthController {
         console.log(errors)
         response.redirect('/register')
       } else {
-        response.json( { error: 'Failed Validation', validation_errors: errors, rules: rules} )
+        var errmsg = 'Failed Validation'
+        if (errors.length && errors[0].message && errors[0].message.match(/unique validation/)) {
+          errmsg = 'Already Registered'
+        }
+        response.json( { error: errmsg, validation_errors: errors, rules: rules} )
       }
     } else {
       const authenticator = Config.get('auth.authenticator')
@@ -465,6 +469,14 @@ class AuthController {
               html: welcomeMessage + welcomeLink
             }
             await Email.sendMessage(Message)
+              .then( response => {
+                console.log('Welcome message response: ' + JSON.stringify(response))
+                returnval.message = returnval.message + ' ' + response.message
+              })
+              .catch ( err => {
+                console.debug('Warning sending welcome message: ' + err.message)
+                returnval.message = returnval.message + ' (' + err.message + ')'
+              })
 
             if (authenticator === 'jwt') {
               // add token to response if jwt authentication is being used
