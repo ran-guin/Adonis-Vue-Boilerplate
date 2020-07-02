@@ -5,9 +5,30 @@ import store from './store'
 import vuetify from './plugins/vuetify';
 // import rgv from './plugins/rgv';
 
-// import RGV from '@ran-guin/vue-components';
+// import {rgvForm, rgvRecursiveList, rgvRecursiveListGroup, rgvMenu} from '@ran-guin/vuetify';
+// const rgv_components = ['rgvForm', 'rgvRecursiveList', 'rgvRecursiveListGroup', 'rgvMenu']
+// for (var i = 0; i < rgv_components.length; i++) {
+//  Vue.rgvForm = rgvForm
+//  Vue.prototype.rgvForm = rgvForm
+
+//  Vue.rgvRecursiveList = rgvRecursiveList
+//  Vue.prototype.rgvRecursiveList = rgvRecursiveList
+//  Vue.rgvRecursiveListGroup = rgvRecursiveListGroup
+//  Vue.prototype.rgvRecursiveListGroup = rgvRecursiveListGroup
+// }
 
 import {rgvConsole, rgvString, rgvEncrypt} from '@ran-guin/services'
+import {rgvForm} from '@ran-guin/forms'
+import {rgvMenu} from '@ran-guin/menu'
+import {rgvMap} from '@ran-guin/map'
+import {rgvRecursiveList, rgvRecursiveListGroup} from '@ran-guin/forms'
+// const rgvComponents = {rgvForm}
+Vue.component('rgvForm', rgvForm)
+Vue.component('rgvMenu', rgvMenu)
+Vue.component('rgvMap', rgvMap)
+Vue.component('rgvRecursiveList', rgvRecursiveList)
+Vue.component('rgvRecursiveListGroup', rgvRecursiveListGroup)
+
 import dbGet from '@/services/dbGet.js';
 
 // import AsyncComputed from 'vue-async-computed'
@@ -38,10 +59,15 @@ Vue.config.productionTip = false
 
 var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
 
+
+// import {rgvRecursiveListGroup} from '@ran-guin/recursive-list'
 // Vue.use(rgv)
 const plugin = {
     install () {
-        Vue.myConsole = rgvConsole
+//        Vue.rgvRecursiveListGroup = rgvRecursiveListGroup
+//        Vue.prototype.rgvRecursiveListGroup = rgvRecursiveListGroup 
+        
+	Vue.myConsole = rgvConsole
         Vue.prototype.$myConsole = rgvConsole
 
         Vue.myString = rgvString
@@ -92,3 +118,5 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
+
+console.log('compiled main...')
