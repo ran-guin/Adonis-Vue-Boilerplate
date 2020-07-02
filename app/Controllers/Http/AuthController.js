@@ -2,13 +2,18 @@
 const Hash = use('Hash')
 const Database = use('Database')
 const User = use('App/Models/User')
-const Invitation = use('App/Models/Invitation')
-const Promo = use('App/Models/Promo')
+const RegistrationInvitation = use('App/Models/RegistrationInvitation')
+const PromoCode = use('App/Models/PromoCode')
 const Recovery = use('App/Models/PasswordRecovery')
 const Login = use('App/Models/Login')
+
+const customModel = use('App/Custom')
+
 const { validate } = use('Validator')
 const Validator = use('Validator')
 const Env = use('Env')
+
+const Custom = use('App/Custom')
 
 // const uuidv4 = require('uuid/v4');
 const Email = use('App/Models/Email')
@@ -308,6 +313,7 @@ class AuthController {
     const rules = {}
 
     const invitation_required = Config.get('custom.invitation_required')
+    const guest_registration = Config.get('custom.guest_registration')
 
     rules.password = 'required|min:8'
     rules.email = 'required|email|unique:users,email'
@@ -338,12 +344,14 @@ class AuthController {
       console.log(authenticator + ' signup attempt for ' + email)
 
       var invitation
+      var initialStatus
+      var validationStatus
       if (token) {
         // invitation token
         console.log('checking registration token: ' + token)
         try {
-          invitation = await Invitation.findBy('token', token)
-          var promo = await Promo.findBy('code', token)
+          invitation = await RegistrationInvitation.findBy('token', token)
+          var promo = await PromoCode.findBy('code', token)
           var invite_id
 
           if (promo) {
@@ -352,17 +360,18 @@ class AuthController {
               console.log('promo code status is ' + promo.status)
               failed = 'promo code ' + promo.status
             } else {
-              invitation = new Invitation()
+              invitation = new RegistrationInvitation()
               invitation.token = token
               invitation.email = email
               invitation.requested = new Date()
-
+              initialStatus = 'Member'
+              validationStatus = 'PromoCode'
               console.log('generated invitation record for promo usage')
             }
           } else if (invitation) {
             console.log('invite: ' + JSON.stringify(invitation))
             if (invitation.status !== 'sent') {
-              failed = 'Invitation status ' + invitation.status
+              failed = 'RegistrationInvitation status ' + invitation.status
             } else {
               const now = new Date()
               const timediff = now.getTime() - then.getTime()
@@ -371,12 +380,15 @@ class AuthController {
                 console.log('expired invitation')
                 invitation.status = 'expired'
 
-                failed = 'Invitation link has expired.  You must request another invite'
+                failed = 'RegistrationInvitation link has expired.  You must request another invite'
               } else {
                 invite_id = invitation.id
               }
+              initialStatus = 'Member'
+              validationStatus = 'Invitation'
             }
           } else if ( !invitation_required ) {
+	    initialStatus = 'Member'
             console.debug('no invitation / promo code required...')
           } else {
             console.log('no promo or invitation...')
@@ -386,8 +398,10 @@ class AuthController {
           console.log('problem checking for invitations / promo codes')
           response.json({success: false})
         }
+      } else if (guest_registration) {
+        initialStatus = 'Guest'
       } else if (invitation_required) {
-        var invite = new Invitation()
+        var invite = new RegistrationInvitation()
         invite.email = email
         invite.requested = new Date()
 
@@ -410,14 +424,15 @@ class AuthController {
         console.log(failed)
         response.json({success: false, error: failed })
         // return response.redirect('/signUp?error=' + failed)
-      } else if (invitation || !invitation_required) {
-        console.log('registration proceeding...')
+      } else if (initialStatus) {
+        console.log(validationStatus + ' registration proceeding...')
         const uuid = uuidv4()
         var user = new User()
         user.username = username
         user.email = email
         user.password = password
         user.UUID = uuid
+
         if (password && password.length && (shortForm || (password === confirmPassword))) {
           try {
             await user.save()
@@ -456,6 +471,11 @@ class AuthController {
               payload: payload
             }
             console.log('response: ' + JSON.stringify(returnval))
+            
+            if (customModel && customModel.onLogin) {
+              // customModel.onLogin(user, {status: initialStatus, token: token})
+	      console.debug('call custom onLogin method')
+	    }
 
             const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Registration"
             const Message = {
@@ -487,6 +507,17 @@ class AuthController {
           response.json({error: 'Password Error'})
         }
       }
+    }
+  }
+  async invite ({request, response}) {
+    const {to, from} = request.all()
+    
+    var payload = this.header(request, 'payload') || {}
+    if (payload.userid && to) {
+      const sent = await Email.sendMessage('invitation', {to: to, from: from})
+      response.json({sent: sent})
+    } else {
+      response.json({error: 'Missing userid or target address'})
     }
   }
 
