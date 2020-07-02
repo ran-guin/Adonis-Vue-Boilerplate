@@ -38,7 +38,7 @@ const MailHosts = {
 
 class Email extends Model {
 
-  static sendMessage (message) {
+  static sendMessage (message, options) {
     // Generate test SMTP service account from ethereal.email
     // Only needed if you don't have a real mail account for testing
     // let testAccount = await nodemailer.createTestAccount();
@@ -54,8 +54,15 @@ class Email extends Model {
       if (message.to) {
         thisMessage.to = message.to
       }
-    } else {
-      thisMessage = message
+    } else if (message.type === String) {
+      if (Messages[message]) {
+        thisMessage = Messages[message]
+        if (options) {
+	  console.debug('add options: ' + JSON.stringify(options))
+	}
+      } else {
+        console.debug(message + ' Message type not defined.  (define in custom config file or pass full message object)')
+      }
     }
 
     var subject = thisMessage.subject || 'Automated Message'

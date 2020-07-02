@@ -134,7 +134,7 @@ module.exports = {
   csrf: {
     enable: false,
     methods: ['POST', 'PUT', 'DELETE'],
-    filterUris: ['/login', '/register', '/public'],
+    filterUris: ['/env', '/login', '/register', '/public'],
     cookieOptions: {
       httpOnly: false,
       sameSite: true,
