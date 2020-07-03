@@ -1,25 +1,75 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
-    rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors')
+    rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
+    hr
+    a.text-sm(v-if='onLogin' @click='onLogin') I already have an account
+    br
+    a.text-sm(v-if='onRecover' @click='onRecover') Forgot password ?
+
     p.error(v-if='authError')
       span {{authError}}
   </template>
 
 <script>
 import Config from '@/config.js'
-import axios from 'axios'
-import auth from '@/auth'
 
-import FormValidator from '@/mixins/FormValidator'
+import FormValidator from '@/default/mixins/FormValidator'
+import Login from '@/default/mixins/Login'
+
+const loginType = {
+  request: {
+    // invitation required + no token
+    prompt: 'Request access for Beta',
+    button: 'Register for Beta Access',
+    token: 'text',
+    name: 'hidden',
+    password: 'hidden',
+    header: 'Request access for Beta Version'
+  },
+  guest: {
+    // invitation required + no token
+    prompt: 'Register as Guest',
+    button: 'Register as Guest',
+    token: 'text',
+    name: 'text',
+    password: 'password',
+    header: 'Register as Guest'
+  },
+  token: {
+    // token supplied
+    prompt: 'Register by Invitation',
+    button: 'Register',
+    token: 'text',
+    name: 'text',
+    password: 'password',
+    header: 'Register by Invitation'
+  },
+  default: {
+    // no invitation required
+    prompt: 'Register',
+    button: 'Register',
+    token: 'hidden',
+    name: 'text',
+    password: 'password',
+    header: 'Register'
+  }
+}
 
 export default {
   components: {
   },
   mixins: [
+    Login,
     FormValidator
   ],
   data () {
     return {
+      registration: {
+        requiresInvite: true,
+        forGuest: true,
+        withName: true
+      },
+
       form: {
         email: ''
       },
@@ -28,12 +78,12 @@ export default {
         access: 'append',
         fields: [
           { name: 'token', type: 'text', prompt: 'Promo Code', placeholder: 'leave blank to request beta access', icon: 'redeem'},
-          { name: 'email', type: 'email', prompt: 'Email', rules: [Config.rules.email], icon: 'email' },
+          { name: 'username', type: 'text', prompt: 'Preferred Username (optional)', rules: [Config.rules.email], icon: 'person' },
+          { name: 'email', type: 'email', prompt: 'Email Address', rules: [Config.rules.email], icon: 'email' },
           { name: 'password', type: 'hidden', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock'}
         ],
         submitButtonClass: 'btn-primary btn-lg',
         submitButton: 'Request Beta Access',
-        // buttonType: 'submit',
         header: 'Request access to Beta version',
         title: ''
       },
@@ -43,17 +93,42 @@ export default {
       warning: '',
       error: '',
       rules: Config.rules,
-      invitationRequired: Config.invitationRequired || false,
       authError: '',
-      formErrors: {}
+      formErrors: {},
+      redirect_uri: ''
     }
   },
   props: {
+    onLogin: {
+        type: Function
+    },
+    onRecover: {
+        type: Function
+    },
+    onCancel: {
+      type: Function
+    },
+
     invitationToken: {
+      type: String
+    },
+    redirect: {
       type: String
     }
   },
-  created: function () {
+  async created () {
+
+    if (this.onRecover) {
+        this.$myConsole.debug('onRecover supplied')
+    }
+    if (this.onLogin) {
+        this.$myConsole.debug('onLogin supplied')
+    } else {
+        this.$myConsole.debug('onLogin NOT (?) supplied')
+    }
+
+    this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri || this.redirect
+
     this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
     this.$myConsole.debug('Signup options: ' + JSON.stringify(this.signupOptions))
     this.$set(this.signupOptions, 'onSubmit', this.signup)
@@ -61,7 +136,7 @@ export default {
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
     this.$set(this.signupOptions, 'onCancel', this.cancel)
 
-    if (!this.invitationRequired) {
+    if (!this.registration.requiresInvite) {
       this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
       this.changeToRegister('publicAccess')
     } else if (this.inviteToken) {
@@ -82,7 +157,7 @@ export default {
     this.warning = this.$route.query.warning
     this.error = this.$route.query.error
 
-    this.loadEnv()
+    this.env = await this.loadEnv()
   },
   computed: {
     hasToken: function () {
@@ -90,28 +165,6 @@ export default {
     }
   },
   methods: {
-    loadEnv () {
-      var _this = this
-      this.$myConsole.debug('env: ' + process.env.NODE_ENV)
-      this.$myConsole.debug(JSON.stringify(Config.apiURL))
-      this.$myConsole.debug('axios: get env from ' + this.apiURL)
-      axios.get(this.apiURL + '/env')
-        .then(function (response) {
-          if (response.data && response.data.codeVersion) {
-            _this.$myConsole.debug('*** env: ')
-            _this.$myConsole.debug(JSON.stringify(response.data))
-            _this.env = response.data
-            _this.initializeOptions()
-          } else {
-            _this.$myConsole.debug('*** no env detected: ' + JSON.stringify(response))
-          }
-        })
-        .catch(function (err) {
-          _this.$myConsole.debug('Error retrieving env: ' + err)
-          // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
-          // _this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
-        })
-    },
     clearLocalMessages: function () {
       this.message = ''
       this.warning = ''
@@ -121,127 +174,24 @@ export default {
       this.$myConsole.debug('cleared local messages...')
       this.$store.dispatch('clearMessages')
     },
-    initializeOptions: function () {
+    initializeOptions: function (reset) {
       if (this.inviteToken) {
         this.$myConsole.debug('hide invitation token field')
         this.signupOptions.fields[0].value = this.inviteToken
       }
 
-      this.setToSignup()
-    },
-    async signup (form) {
-      var fields = this.signupOptions.fields
-      var credentials = { shortForm: true }
-      for (var i = 0; i < fields.length; i++) {
-        var f = fields[i]
-        credentials[f.name] = form[f.prompt] || form[f.name]
-      }
-      delete axios.defaults.headers.common['Authorization']
-
-      if (!credentials.username) { credentials.username = credentials.email }
-      if (this.noConfirm) {
-        credentials.confirmPassword = credentials.password
-      }
-      
-      if (this.redirect_uri) {
-        credentials.redirect_uri = this.redirect_uri
-      }
-
-      this.$myConsole.debug('Signing up with credentials: ')
-      // this.$store.dispatch('logMessage', 'Submitting registration request...')
-      try {
-        var response = await auth.signup(this, credentials)
-        this.$myConsole.debug('SignUp call:' + JSON.stringify(response))
-
-        if (response.data.error) {
-          this.$set(this.formErrors, 'form', response.data.error)
-          console.error(response.data.error)
-
-          if (response.data.validation_errors && response.data.validation_errors[0].message === 'unique validation failed on email') {
-            this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?email=' + this.form.email)
-            // this.warning = 'Looks like you are already registered... redirecting you to recover password'
-
-            // var _this = this
-            // setTimeout(function () {
-            //   _this.setToRecover()
-            // }, 2000); //will call the function after 2 secs.
-          }
-        } else {
-          this.$myConsole.debug('redirect ? ' + this.redirect_uri)
-          if (this.redirect_uri) {
-            this.$myConsole.debug('** redirecting to ' + this.redirect_uri)
-            this.delayedRedirect('Submitting registration request', 'message', this.redirect_uri)
-          } else {
-            this.$myConsole.debug('no redirect..')
-            const message = response.data.message || 'Created Account'
-            return this.initializeSession(response, message)
-          }
+      this.clearLocalMessages()
+      this.$myConsole.debug('signup options: ')
+      this.$myConsole.debug(JSON.stringify(this.signupOptions))
+      if (this.env) {
+        if (process.env.NODE_ENV !== 'production') {
+          this.signupOptions.header += ' (' + process.env.NODE_ENV + ' only)'
+          // this.signupOptions.fields[0].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
+          // this.signupOptions.header = this.signupOptions.header
+          this.signupOptions.preForm = '(valid for today only)'
         }
-      } catch (err) {
-        console.debug('Failed to sign up...')
-        return 
       }
-    },
-    initializeSession (response, onSuccess) {
-      console.debug('initialize session...')
-      if (response && response.data && response.data.validation_errors) {
-        this.$myConsole.debug('get service response')
-        var val = this.validateResponse(response)
-        if (val.formErrors) { this.$set(this, 'formErrors', val.formErrors) }
-        return response.data
-      } else if (response && response.error) {
-        this.$store.dispatch('logError', response.error)
-        return response
-      } else if (response && response.data) {
-        if (response.data.success) {
-          if (response.data.token) {
-            var refreshToken = response.data.refreshToken
-            this.$myConsole.debug('token cached: ' + response.data.token)
-            this.$myConsole.debug('refresh token: ' + refreshToken)
-            this.$store.dispatch('AUTH_TOKEN', {token: response.data.token, refreshToken: refreshToken})
-
-            var pass = 'Bearer ' + response.data.token
-            axios.defaults.headers.common['Authorization'] = pass
-            // auth.updateToken()
-            this.$myConsole.debug('updated token...')
-          } else {
-            this.$myConsole.debug('no token in response' + JSON.stringify(response.data))            
-          }
-
-          if (onSuccess) { alert(onSuccess) }
-
-          if (this.redirect_uri) {
-            this.$myConsole.debug('** reroute to ' + this.redirect_uri)
-            window.location = this.redirect_uri
-          } else {
-            if (onSuccess) {
-              this.$myConsole.debug('dispatch log message: ' + onSuccess)
-              this.$store.dispatch('logMessage', onSuccess)
-            }
-            if (response.data.payload) {
-              this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
-              this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: response.data.payload, key: Config.CLIENT_ID})
-              this.$router.push('/Dashboard?message=' + onSuccess)
-              // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
-            }
-          }
-          return { success: true }
-        } else if (response.data.message) {
-          this.$myConsole.debug('log message error: ' + response.data.message)
-          this.$set(this, 'authError','Sorry - Authorization Failed')
-          return { error: response.data.message }
-        } else if (response.data.error) {
-          this.$myConsole.debug('log error: ' + response.data.error)
-          this.$set(this, 'authError', 'Sorry - Authorization Failed')
-          return { error: response.data.error }
-        } else {
-          this.$store.dispatch('logWarning', 'unrecognized data response')
-          return 'no recognized response...'
-        }
-      } else {
-        this.$store.dispatch('logWarning', 'unrecognized response')
-        return {warning: 'unrecognized response'}
-      }
+      if (reset) { this.clearLocalMessages() }
     },
 
     checkInput (e) {
@@ -301,10 +251,9 @@ export default {
       this.$set(this, 'formErrors', {})
       this.$myConsole.debug('cancel this form')
       this.authError = ''
-      this.mode = 'Login'
-      this.$router.push('/Dashboard')
-      // this.$router.go(-1)
-      this.$store.dispatch('toggleModal', this.myId)
+      if (this.onCancel) {
+        this.onCancel()
+      }
     },
     changeToRequest: function (hold) {
       console.log('change to request for ' + this.mode)
@@ -313,21 +262,37 @@ export default {
       // Note; fields (in order) are: promo/token, email, password
       this.$myConsole.debug('exclude password from form')
       this.signupOptions.fields[0].value = hold
-      this.signupOptions.fields[2].type = 'hidden'
-      this.signupOptions.header = 'Request access to Beta version'
-      this.signupOptions.submitButton = 'Request Beta Access'
+      this.signupOptions.fields[0].type = loginType.request.token
+      this.signupOptions.fields[3].type = loginType.request.password
+      this.signupOptions.header = loginType.request.header
+      this.signupOptions.submitButton = loginType.request.button
+
     },
     changeToRegister: function (hold) {
       console.log('change to registration for ' + this.mode)
       // Token provided: enable direct registration
-      if (this.invitationRequired) {
-        this.signupOptions.header = 'Register for Beta version'
-        this.signupOptions.fields[0].type = 'text'
-      } else {
-        this.signupOptions.header = 'Register'
-        this.signupOptions.fields[0].type = 'hidden'
+
+      var setup = loginType.default || {}
+      if (this.registration.requiresInvite) {
+        if (this.form.token) {
+          setup = loginType.token
+        } else if (this.registration.forGuest) {
+          setup = loginType.guest
+        } else {
+          setup = loginType.request
+        }
       }
-      this.signupOptions.fields[2].type = 'password'
+      
+      this.signupOptions.header = setup.header
+      this.signupOptions.fields[0].type = setup.token
+      this.signupOptions.fields[3].type = setup.password
+      this.signupOptions.submitButton = setup.button
+
+      if (this.registration.withName) {
+        this.signupOptions.fields[1].type = setup.name
+      } else {
+        this.signupOptions.field[1].type = 'hidden'
+      }
       
       // Note: fields (in order) are: promo/token, email, password
       this.$myConsole.debug('include password in form')
@@ -336,9 +301,6 @@ export default {
     }    
   },
   watch: {
-    mode: function () {
-      this.$myConsole.debug('reset mode to ' + this.mode)
-    },
     hasToken: function () {
       this.$myConsole.debug('token specified...')
       if (this.hasToken) {
