@@ -1,8 +1,32 @@
 <!--
+  Package to manage basic Registration / Login / Recover Password actions
 
 Usage example.
 
+<template>
+    ... 
 
+    v-dialog(v-model='showLogin' max-width='500px')
+        Login(:onCancel='cancelRequest' :onRegister='register' :onRecover='recover')
+    v-dialog(v-model='showRegistration' max-width='500px')
+        Register(:onCancel='cancelRequest' :onLogin='login')
+    v-dialog(v-model='showRecover' max-width='500px')
+        Recover(:onCancel='cancelRequest' :onLogin='login' :onRegister='register')
+
+</template>
+
+<script>
+const Login = () => import('@/custom/components/Login')
+const Register = () => import('@/custom/components/Register')
+const Recover = () => import('@/custom/components/Recover')
+
+export default {
+  components: {
+    Login,
+    Register,
+    Recover
+  }
+  ...
  -->
 
 <script>
@@ -139,6 +163,83 @@ export default {
                 return 
             }
         },
+        async recoverPassword(form) {
+            this.message = 'Generating Recovery Email...'
+            this.$myConsole.debug('Form: ' + JSON.stringify(form))
+            const email = form.email
+            this.$myConsole.debug('recover my password via ' + this.apiURL + '/recoverPassword ... for ' + email)
+            var _this = this
+            axios.post(this.apiURL + '/recoverPassword', { email: email })
+                .then(function (response) {
+                    if (response && response.data && response.data.validation_errors) {
+                        this.$myConsole.debug('get service response')
+                        var val = _this.validateResponse(response)
+                        if (val.formErrors) { _this.$set(_this, 'formErrors', val.formErrors) }
+                        return response.data
+                    } else if (response && response.error) {
+                        _this.$store.dispatch('logError', response.error)
+                        return response
+                    } else if (response && response.data) {
+                        this.$myConsole.debug('recover response: ' + JSON.stringify(response))
+                        _this.setToLogin(1)
+
+                        _this.delayedRedirect('Password recovery link sent to \'' + email + '\' (if account exists)')
+                        return response
+                    }
+                })
+                .catch(function (err) {
+                    _this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
+                    _this.$myConsole.debug('Error Generating Password Recovery ' + err)
+                })
+        },
+        delayedRedirect: function (message, type, path) {
+            if (type === 'error') {
+                this.error = message
+            } else if (type === 'warning') {
+                this.warning = message
+            } else {
+                this.message = message
+            }
+            var _this = this
+
+            setTimeout(function () {
+                _this.message = ''
+                _this.warning = ''
+                _this.error = ''
+
+                if (path && path.match(/^http/)) {
+                    window.location = path
+                } else if (path) {
+                    _this.$router.push(path)
+                } else {
+                    _this.$router.push('/')
+                }
+            }, 2000); //will call the function after 2 secs.
+        },
+
+        async loadEnv() {
+            this.$myConsole.debug('env: ' + process.env.NODE_ENV)
+            this.$myConsole.debug(JSON.stringify(Config.apiURL))
+            this.$myConsole.debug('axios: get env from ' + this.apiURL)
+            return axios.get(this.apiURL + '/env')
+                .then( response => {
+                    if (response.data) {
+                        this.$myConsole.debug('*** env: ')
+                        this.$myConsole.debug(JSON.stringify(response.data))
+                        return Promise.resolve(response.data)
+                    } else {
+                        this.$myConsole.debug('*** no env detected: ' + JSON.stringify(response))
+                        return Promise.resolve({})
+                    }
+                })
+                .catch( err => {
+                    this.$myConsole.debug('Error retrieving env: ' + err)
+                    // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
+                    this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
+                    return Promise.resolve({})
+                })
+        },
+
         initializeSession (response, onSuccess) {
             console.debug('initialize session...')
             if (response && response.data && response.data.validation_errors) {
