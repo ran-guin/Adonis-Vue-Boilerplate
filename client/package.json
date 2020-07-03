@@ -24,6 +24,8 @@
     "vuex": "^3.4.0"
   },
   "devDependencies": {
+    "@ran-guin/forms": "^1.0.16",
+    "@ran-guin/services": "^1.0.7",
     "@vue/cli-plugin-babel": "^4.4.4",
     "@vue/cli-plugin-eslint": "^4.4.4",
     "@vue/cli-service": "^4.4.4",
