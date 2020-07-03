@@ -7,7 +7,7 @@ const PromoCode = use('App/Models/PromoCode')
 const Recovery = use('App/Models/PasswordRecovery')
 const Login = use('App/Models/Login')
 
-const customModel = use('App/Custom')
+const customModel = {} // use('App/Custom')
 
 const { validate } = use('Validator')
 const Validator = use('Validator')
