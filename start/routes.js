@@ -43,6 +43,7 @@ Route.get('/check', 'AuthController.check')
 // Auth access
 Route.get('/env', 'AuthController.env')
 Route.get('/accessResetPassword', 'AuthController.accessResetPassword')
+Route.get('/accessResetPassword/:token', 'AuthController.accessResetPassword')
 Route.get('/resendWelcome', 'AuthController.resendWelcome')
 
 Route.post('/recoverPassword', 'AuthController.recoverPassword')
