@@ -81,7 +81,7 @@ export default {
 
     this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
     this.$myConsole.debug('Recover options: ' + JSON.stringify(this.recoverOptions))
-    this.$set(this.recoverOptions, 'onSubmit', this.recoverPassword)
+    this.$set(this.recoverOptions, 'onSubmit', this.recover)
     this.$set(this.recoverOptions, 'onBlur', this.checkInput)
     this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
     this.$set(this.recoverOptions, 'onCancel', this.cancel)
@@ -134,6 +134,10 @@ export default {
       } else {
         this.$myConsole.debug('no e-target to validate')
       }
+    },
+    recover: function () {
+      this.recoverPassword() // mixin
+      this.cancel()
     },
     cancel: function () {
       this.$set(this, 'formErrors', {})

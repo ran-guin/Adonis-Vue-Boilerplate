@@ -1,8 +1,8 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
-    h6.text-danger(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
-    h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
-    h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+    h6.text-danger.padded(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
+    h6.text-warning.padded(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
+    h6.text-success.padded(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
 
     rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
@@ -16,6 +16,7 @@
 
 <script>
 import Config from '@/config.js'
+import Shared from '@/config.shared.js'
 
 import FormValidator from '@/default/mixins/FormValidator'
 import Login from '@/default/mixins/Login'
@@ -68,12 +69,7 @@ export default {
   ],
   data () {
     return {
-      registration: {
-        requiresInvite: true,
-        forGuest: true,
-        withName: true
-      },
-
+      registration: Shared.registration || {},
       form: {
         email: ''
       },
@@ -141,14 +137,10 @@ export default {
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
     this.$set(this.signupOptions, 'onCancel', this.cancel)
 
-    if (!this.registration.requiresInvite) {
+    if (!this.registration.requires_invite) {
       this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
-      this.changeToRegister('publicAccess')
-    } else if (this.inviteToken) {
-      this.changeToRegister()
-    } else {
-      this.changeToRequest()
     }
+    this.updateForm()
 
     var presets = ['email', 'token']
     for (var i = 0; i < presets.length; i++) {
@@ -220,15 +212,17 @@ export default {
       }
 
       if (e && e.target && e.target.name === 'token') {
-        const hold = e.target.value // form reset on field change below so keep track of value
+        const newToken = e.target.value // form reset on field change below so keep track of value
         this.$myConsole.debug('reset: ' + e.target.name + ' = ' + e.target.value)
 
+        this.updateForm(newToken)
+
         // Adjust form options for invites vs beta request
-        if (this.mode === 'SignUp' && e.target.value) {
-          this.changeToRegister(hold)
-        } else {
-          this.changeToRequest(hold)
-        }
+        // if (this.mode === 'SignUp' && e.target.value) {
+        //   this.changeToRegister(hold)
+        // } else {
+        //   this.changeToRequest(hold)
+        // }
       }
     },
     inputFocus (e) {
@@ -260,28 +254,30 @@ export default {
         this.onCancel()
       }
     },
-    changeToRequest: function (hold) {
-      console.log('change to request for ' + this.mode)
-      // No token provided: enable request for access
+    // changeToRequest: function (hold) {
+    //   console.log('change to request for ' + this.mode)
+    //   // No token provided: enable request for access
 
-      // Note; fields (in order) are: promo/token, email, password
-      this.$myConsole.debug('exclude password from form')
-      this.signupOptions.fields[0].value = hold
-      this.signupOptions.fields[0].type = loginType.request.token
-      this.signupOptions.fields[3].type = loginType.request.password
-      this.signupOptions.header = loginType.request.header
-      this.signupOptions.submitButton = loginType.request.button
+    //   if (this.registration.for_guest) {
+    //       setup = loginType.guest
+    //   // Note; fields (in order) are: promo/token, email, password
+    //   this.$myConsole.debug('exclude password from form')
+    //   this.signupOptions.fields[0].value = hold
+    //   this.signupOptions.fields[0].type = loginType.request.token
+    //   this.signupOptions.fields[3].type = loginType.request.password
+    //   this.signupOptions.header = loginType.request.header
+    //   this.signupOptions.submitButton = loginType.request.button
 
-    },
-    changeToRegister: function (hold) {
+    // },
+    updateForm: function (token) {
       console.log('change to registration for ' + this.mode)
       // Token provided: enable direct registration
 
       var setup = loginType.default || {}
-      if (this.registration.requiresInvite) {
+      if (this.registration.requires_invite) {
         if (this.form.token) {
           setup = loginType.token
-        } else if (this.registration.forGuest) {
+        } else if (this.registration.for_guest) {
           setup = loginType.guest
         } else {
           setup = loginType.request
@@ -293,26 +289,25 @@ export default {
       this.signupOptions.fields[3].type = setup.password
       this.signupOptions.submitButton = setup.button
 
-      if (this.registration.withName) {
+      if (this.registration.with_name) {
         this.signupOptions.fields[1].type = setup.name
       } else {
         this.signupOptions.field[1].type = 'hidden'
       }
-      
-      // Note: fields (in order) are: promo/token, email, password
-      this.$myConsole.debug('include password in form')
-      this.signupOptions.fields[0].value = hold
-      this.signupOptions.submitButton = 'Register'
+
+      if (token) { this.signupOptions.fields[0].value = token }
     }    
   },
   watch: {
     hasToken: function () {
       this.$myConsole.debug('token specified...')
-      if (this.hasToken) {
-        this.changeToRegister()
-      } else {
-        this.changeToRequest()
-      }
+      this.updateForm()
+
+      // if (this.hasToken) {
+      //   this.changeToRegister()
+      // } else {
+      //   this.changeToRequest()
+      // }
     }
   }
 }

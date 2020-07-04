@@ -14,7 +14,8 @@
             v-radio(@change='demoLogin()' value='Host' label='Host')
             v-radio(@change='demoLogin()' value='DemoAdmin' label='Admin')
       v-btn.btn-primary(@click='demoLogin') Login to Demo Version
-    div(v-else) 
+      p &nbsp;
+    div(v-else)
       rgv-form.login-form(:form='form' :options='loginOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
     a.text-sm(v-if='onRecover' @click='onRecover') Forgot password ?
