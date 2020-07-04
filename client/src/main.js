@@ -4,14 +4,12 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify';
 
-import RGV from '@ran-guin/vue-components';
+import {rgvConsole, rgvString, rgvEncrypt} from '@ran-guin/services'
+import {rgvForm} from '@ran-guin/forms'
+Vue.component('rgv-form', rgvForm)
 
-import myConsole from '@ran-guin/vue-components/src/services/myConsole.js';
-import myString from '@ran-guin/vue-components/src/services/myString.js';
-import myCrypt from './services/aes_encryption.js';
-import dbGet from './services/dbGet.js';
+import dbGet from '@/services/dbGet.js';
 
-// import 'material-design-icons-iconfont/dist/material-design-icons.css'
 // import AsyncComputed from 'vue-async-computed'
 
 import axios from 'axios'
@@ -40,17 +38,22 @@ Vue.config.productionTip = false
 
 var timeoutMinutes = Config.idleTimeOut || 10 // manage from config file
 
-Vue.use(RGV)
+
+// import {rgvRecursiveListGroup} from '@ran-guin/recursive-list'
+// Vue.use(rgv)
 const plugin = {
     install () {
-        Vue.myConsole = myConsole
-        Vue.prototype.$myConsole = myConsole
+//        Vue.rgvRecursiveListGroup = rgvRecursiveListGroup
+//        Vue.prototype.rgvRecursiveListGroup = rgvRecursiveListGroup 
+        
+	Vue.myConsole = rgvConsole
+        Vue.prototype.$myConsole = rgvConsole
 
-        Vue.myString = myString
-        Vue.prototype.$myString = myString
+        Vue.myString = rgvString
+        Vue.prototype.$myString = rgvString
 
-        Vue.myCrypt = myCrypt
-        Vue.prototype.$myCrypt = myCrypt
+        Vue.myCrypt = rgvEncrypt
+        Vue.prototype.$myCrypt = rgvEncrypt
 
         Vue.dbGet = dbGet
         Vue.prototype.$dbGet = dbGet
@@ -94,3 +97,5 @@ new Vue({
   vuetify,
   render: h => h(App)
 }).$mount('#app')
+
+console.log('compiled main...')

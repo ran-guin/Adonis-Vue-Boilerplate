@@ -15,7 +15,7 @@ class PublicController {
 
   async sendMessage ({request, response}) {
     const input = request.all()
-    const {message, user_id, from, to, cc, forward, subject, cache} = input
+    const {message, user_id, from, to, cc, forward, subject, cache, type} = input
 
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     if (from && !to) {
@@ -201,7 +201,7 @@ class PublicController {
   recoverPassword ({request, response, view, params}) {
     const {message, warning, error} = request.all()
     
-    var suffix = ''
+    var suffix = 'launch=Recover'
     if (message) {
       suffix = suffix + 'message=' + message + '&'
     }
@@ -212,7 +212,7 @@ class PublicController {
       suffix = suffix + 'error=' + error + '&'
     }
 
-    response.redirect('/#/Recover?' + suffix)
+    response.redirect('/#/Public?' + suffix)
   }
   
   public ({request, response, view, params}) {
@@ -246,10 +246,12 @@ class PublicController {
     }
 
     if (type === 'Recover') {
-      response.redirect('/#/Recover?' + suffix)
+      response.redirect('/#/Public?launch=Recover&' + suffix)
+    } else if (type === 'ResetPassword') {
+        response.redirect('/#/Public?launch=ResetPassword' + suffix)
     } else {
-    // return view.render('pages/login', {mode: 'login'})
-      response.redirect('/#/Login?' + suffix)
+      // return view.render('pages/login', {mode: 'login'})
+      response.redirect('/#/Public' + suffix)
     }
   }
 
@@ -261,7 +263,7 @@ class PublicController {
 
   register ({request, response, view, params}) {
     const token = params.token
-    response.redirect('/#/SignUp', {token: token, root_url: api_url})
+    response.redirect('/#/Login?launch=Register&token=' + token)
     // return view.render('pages/register') - requires way to pass payload & token to client
   }
 

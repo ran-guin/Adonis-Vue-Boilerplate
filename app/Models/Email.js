@@ -1,109 +1,84 @@
 'use strict'
 
 const Model = use('Model')
+
 const nodemailer = require("nodemailer");
-
-const Env = use('Env')
-
-const mailDriver = Env.get('MAIL_DRIVER', 'zoho')
-const webUser = Env.get('EMAIL_USER', 'emailUser')
-const webPass = Env.get('EMAIL_PASSWORD', 'emailPass')
-const emailDomain = Env.get('EMAIL_DOMAIN', '@cosinesystems.org')
-
-const appName = Env.get('APP_NAME', 'Cosine')
-const url = Env.get('BASE_URL', 'https://cosinesystems.ca')
 
 const Config = use('Config')
 const Custom = Config.get('custom')
+const email = Custom.email || {}
 
-const Messages = {
-  recover: {
-    from: 'no-reply' + emailDomain,
-    subject: appName + ' Password Recovery',
-    text: "You have requested a password recover / reset.  Please click on the link below to reset your passord",
-    html: "<a href='" + url + "/resetPassword'>Reset Password</a><p /><a href='" + url + "/fakeReset>I did not request a password reset!</a>"
-  },
-  welcome: {
-      from: 'no-reply' + emailDomain,
-      subject: 'Welcome to ' + appName,
-      text: "Thank you for registering with " + appName + ".  Please click on the link below to complete your registration:",
-      html: "<a href='" + url + "/confirmRegistration>Confirm Registration</a><p /><a href='" + url + "/cancelRegistration>Cancel Registration</a>"
-  }
-}
-
-const MailHosts = {
-  zoho: 'smtp.zoho.com',
-  gmail: 'smtp.gmail.com'
+var CustomEmail
+try {
+  CustomEmail = use('App/Models/CustomEmail')
+  console.log('loaded custom email model...')
+} catch (err) {
+  console.log('Custom Email module not defined...' + err.message)
 }
 
 class Email extends Model {
 
-  static sendMessage (message) {
+  static sendMessage (message, options) {
     // Generate test SMTP service account from ethereal.email
     // Only needed if you don't have a real mail account for testing
     // let testAccount = await nodemailer.createTestAccount();
     console.log('generate email message')
     console.log(JSON.stringify(message))
 
-    var thisMessage = message
-    if (message.constructor === Object && message.type) {
-      console.log('use standard ' + message.type + ' Message')
-      const type = message.type
-      thisMessage = Messages[type]
+    var thisMessage = message || {}
+    if (CustomEmail) {
+      const email = new CustomEmail()
 
-      if (message.to) {
-        thisMessage.to = message.to
+      thisMessage = email.Messages(message) || message
+      console.log('Std: ' + JSON.stringify(thisMessage))
+
+      if (message.constructor === Object) {
+        var keys = Object.keys(message)
+        for (var i = 0; i < keys.length; i++) {
+          thisMessage[keys[i]] = message[keys[i]]
+        }
+  
+        if (options) {
+          console.debug('add options: ' + JSON.stringify(options))
+        }
       }
+
+      var subject = thisMessage.subject || 'Automated Message'
+      var text = thisMessage.text || thisMessage.message
+      var html = thisMessage.html
+      var from = thisMessage.from || Config.EMAIL_SOURCE
+      var to = thisMessage.to || thisMessage.forward
+
+      var from_alias = thisMessage.alias 
+      if (from_alias) { from = '"' + from_alias + '" <' + from + ">" }
+
+      console.log('sendMessage: ' + JSON.stringify(thisMessage, null, 2))
+
+      const transport = email.transporter() || {}
+
+      console.log('defined transport settings...')
+      console.debug('transport: ' + JSON.stringify(transport))
+
+      var transporter = nodemailer.createTransport(transport)
+
+      // send mail with defined transport object
+      var mailOptions = {
+        from: from, // sender address
+        to: to, // list of receivers
+        subject: subject, // Subject line
+        text: text, // plain text body
+        html: html // html body
+      }
+      console.debug('Mail options: ' + JSON.stringify(mailOptions))
+      if (! transporter) {
+        return Promise.reject(new Error('rejected '))
+      }
+      // try {
+      return transporter.sendMail(mailOptions)
     } else {
-      thisMessage = message
+      console.log('Custom email not defined')
+      return {success: false, message: 'No CustomEmail module defined'}
     }
-
-    var subject = thisMessage.subject || 'Automated Message'
-    var text = thisMessage.text || thisMessage.message
-    var html = thisMessage.html
-    var from = thisMessage.from || Config.EMAIL_SOURCE
-    var to = thisMessage.to || thisMessage.forward
-
-    var from_alias = thisMessage.alias 
-    if (from_alias) { from = '"' + from_alias + '" <' + from + ">" }
-
-    console.log('sendMessage: ' + JSON.stringify(thisMessage, null, 2))
-    // create reusable transporter object using the default SMTP transport
-
-    var auth = null
-    if (webUser && webPass) {
-      auth = {
-        user: webUser,
-        pass: webPass
-      }
-    }
-
-    const transport = Custom.email_transporter || {
-      host: MailHosts[mailDriver],
-      port: 465,
-      secure: true, // use SSL
-      auth: auth
-    }
-
-    var transporter = nodemailer.createTransport(transport)
-
-    // send mail with defined transport object
-    var mailOptions = {
-      from: from, // sender address
-      to: to, // list of receivers
-      subject: subject, // Subject line
-      text: text, // plain text body
-      html: html // html body
-    }
-
-    console.log('defined transport settings...')
-    // send mail with defined transport object
-
-    if (! transporter) {
-      return Promise.reject(new Error('rejected '))
-    }
-    // try {
-    return transporter.sendMail(mailOptions)
       //   if(error) {
       //     console.log("error sending message: " + error.message)
           

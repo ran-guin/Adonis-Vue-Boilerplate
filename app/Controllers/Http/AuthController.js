@@ -2,13 +2,18 @@
 const Hash = use('Hash')
 const Database = use('Database')
 const User = use('App/Models/User')
-const Invitation = use('App/Models/Invitation')
-const Promo = use('App/Models/Promo')
+const RegistrationInvitation = use('App/Models/RegistrationInvitation')
+const PromoCode = use('App/Models/PromoCode')
 const Recovery = use('App/Models/PasswordRecovery')
 const Login = use('App/Models/Login')
+
+const customModel = {} // use('App/Custom')
+
 const { validate } = use('Validator')
 const Validator = use('Validator')
 const Env = use('Env')
+
+const Custom = use('App/Custom')
 
 // const uuidv4 = require('uuid/v4');
 const Email = use('App/Models/Email')
@@ -16,6 +21,7 @@ const Email = use('App/Models/Email')
 const uuidv4 = require('uuid/v4');
 
 var Config = use('Config')
+const Shared = Config.get('shared')
 // Customizations:
 
 const url = Env.get('API_URL')
@@ -34,7 +40,7 @@ const pendingMessage = `
   <P>We will keep you posted and send you an invitation when we are ready to launch the beta version.</P>
 `
 
-const maxRecover = 10*60*1000 // recovery link valid for 10 minutes
+const maxRecover = 30*60*1000 // recovery link valid for 30 minutes
 const maxInvite = 5*24*60*60*1000 // recovery link valid for 5 days
 const passwordRecoveryMessage = `
   <P><B>Password Recovery Request<B></P>
@@ -156,7 +162,7 @@ class AuthController {
         const link = "<BR><BR><a href='" + url + "/accessResetPassword/" + reset_token + "'> Reset Password"
 
         const Message = {
-          from: 'no-reply@' + email_domain,
+          from: 'no-reply' + email_domain,
           to: user.email,
           subject: app_name + 'Password Recovery',
           html: passwordRecoveryMessage + link
@@ -207,12 +213,11 @@ class AuthController {
       console.log('time diff = ' + timediff/1000/60 + ' minutes')
       if (timediff > maxRecover) {
         console.log('expired')
-        return response.redirect('/login?error=Recovery Link has expired.  Please regenerate recovery link if required.')
+        return response.redirect('/#/Public?launch=Recover&error=Recovery Link has expired.  Please regenerate recovery link if required.')
       }
       else if (recovery.status === 'initialized') {
         console.log('initialized')
-        return view.render('pages/recoverPassword', {token: accessToken, message: message, warning: warning, error: error})
-
+        return response.redirect('/#/Public?launch=ResetPassword&token=' + accessToken)
       } else if (recovery && recovery.status) {
         console.log('recovered, but status is already ' + recovery.status)
 	
@@ -224,7 +229,7 @@ class AuthController {
         Failure.ip = user.IP(request.request)
         await Failure.save()
 
-        return view.render('pages/recoverPassword', {token: accessToken, message: message, warning: warning, error: error})
+        return response.redirect('/#/Recover?error=' + Failure.note + '.  Please regenerate recovery link if required.')
       }
     } else {
       console.log('invalid token')
@@ -249,7 +254,7 @@ class AuthController {
     const validation = await Validator.validateAll(request.all(), rules)
     if (validation.fails()) {
       var errors = validation.messages()
-      return response.redirect('/accessResetPassword/' + token + '?warning=Password must be at least 8 characters')
+      return response.redirect('/#/Public?launch=ResetPassword&token=' + token + '&warning=Password must be at least 8 characters')
     } else {
       console.log('resetting password')
       var recovery = await Recovery.findBy('token', token)
@@ -259,7 +264,8 @@ class AuthController {
         console.log('time diff = ' + timediff)
         if (timediff > maxRecover) {
           console.log('expired')
-          return response.redirect('/login?error=Recovery Link has expired.  Please regenerate recovery link if required.')
+          // return response.redirect('/login?error=Recovery Link has expired.  Please regenerate recovery link if required.')
+          return response.redirect('/#/Public?launch=Recover&error=Recovery Link has expired.  Please regenerate recovery link if required.')
         } else if (recovery.status === 'initialized') {
           if (password === confirmPassword) {
             console.log('RESET Password for ' + recovery.user_id)
@@ -271,10 +277,12 @@ class AuthController {
             await recovery.save()
 
             console.log('new password saved')
-            return response.redirect('/login?message=Password has been Reset.  Please login again')
+            return response.redirect('/#/Public?launch=Login&message=Password has been Reset.  Please login again')
+            // return response.redirect('/login?message=Password has been Reset.  Please login again')
           } else {
             console.log('passwords do not match')
-            return response.redirect('/accessResetPassword/' + token + '?warning=Password mismatch')
+            return response.redirect('/#/Public?launch=ResetPassword&warning=Password mismatch')
+            // return response.redirect('/accessResetPassword/' + token + '?warning=Password mismatch')
           }
         } else if (recovery && recovery.status) {
           var user = new User()
@@ -288,7 +296,8 @@ class AuthController {
           Failure.ip = user.IP(request.request)
 
           await Failure.save()
-          return response.redirect('/login?error=This link has already been used.  Please try again.')
+          return response.redirect('/#/Public?launch=Recover&error=This link has already been used.  Please try again.')
+          // return response.redirect('/login?error=This link has already been used.  Please try again.')
           // return response.json({success: false, status: recovery.status})
         }
       } else {
@@ -298,7 +307,8 @@ class AuthController {
         Failure.note = 'invalid token'
         Failure.ip = user.IP(request.request)
         await Failure.save()
-        return response.redirect('/login?error=Invalid recovery link')
+        return response.redirect('/#/Public?launch=Recover&error=Invalid Recovery Link')
+        // return response.redirect('/login?error=Invalid recovery link')
       }
     }
   }
@@ -307,7 +317,8 @@ class AuthController {
     const {username, email, password, confirmPassword, shortForm, source, token} = request.all()
     const rules = {}
 
-    const invitation_required = Config.get('custom.invitation_required')
+    const invitation_required = Shared.registration && Shared.registration.requires_invite
+    const guest_registration = Shared.registration && Shared.registration.for_guest
 
     rules.password = 'required|min:8'
     rules.email = 'required|email|unique:users,email'
@@ -329,21 +340,27 @@ class AuthController {
       if (source === 'server') {
         console.log('detected server side registration')
         console.log(errors)
-        response.redirect('/register')
+        response.redirect('/#/Public?launch=Register')
       } else {
-        response.json( { error: 'Failed Validation', validation_errors: errors, rules: rules} )
+        var errmsg = 'Failed Validation'
+        if (errors.length && errors[0].message && errors[0].message.match(/unique validation/)) {
+          errmsg = 'Already Registered'
+        }
+        response.json( { error: errmsg, validation_errors: errors, rules: rules} )
       }
     } else {
       const authenticator = Config.get('auth.authenticator')
       console.log(authenticator + ' signup attempt for ' + email)
 
       var invitation
+      var initialStatus
+      var validationStatus
       if (token) {
         // invitation token
         console.log('checking registration token: ' + token)
         try {
-          invitation = await Invitation.findBy('token', token)
-          var promo = await Promo.findBy('code', token)
+          invitation = await RegistrationInvitation.findBy('token', token)
+          var promo = await PromoCode.findBy('code', token)
           var invite_id
 
           if (promo) {
@@ -352,17 +369,18 @@ class AuthController {
               console.log('promo code status is ' + promo.status)
               failed = 'promo code ' + promo.status
             } else {
-              invitation = new Invitation()
+              invitation = new RegistrationInvitation()
               invitation.token = token
               invitation.email = email
               invitation.requested = new Date()
-
+              initialStatus = 'Member'
+              validationStatus = 'PromoCode'
               console.log('generated invitation record for promo usage')
             }
           } else if (invitation) {
             console.log('invite: ' + JSON.stringify(invitation))
             if (invitation.status !== 'sent') {
-              failed = 'Invitation status ' + invitation.status
+              failed = 'RegistrationInvitation status ' + invitation.status
             } else {
               const now = new Date()
               const timediff = now.getTime() - then.getTime()
@@ -371,12 +389,15 @@ class AuthController {
                 console.log('expired invitation')
                 invitation.status = 'expired'
 
-                failed = 'Invitation link has expired.  You must request another invite'
+                failed = 'RegistrationInvitation link has expired.  You must request another invite'
               } else {
                 invite_id = invitation.id
               }
+              initialStatus = 'Member'
+              validationStatus = 'Invitation'
             }
           } else if ( !invitation_required ) {
+	    initialStatus = 'Member'
             console.debug('no invitation / promo code required...')
           } else {
             console.log('no promo or invitation...')
@@ -386,8 +407,10 @@ class AuthController {
           console.log('problem checking for invitations / promo codes')
           response.json({success: false})
         }
+      } else if (guest_registration) {
+        initialStatus = 'Guest'
       } else if (invitation_required) {
-        var invite = new Invitation()
+        var invite = new RegistrationInvitation()
         invite.email = email
         invite.requested = new Date()
 
@@ -395,7 +418,7 @@ class AuthController {
         console.log('registered request')
 
         const Message = {
-          from: 'no-reply@' + email_domain,
+          from: 'no-reply' + email_domain,
           to: invite.email,
           subject: 'Thanks for pre-registering for ' + app_name,
           html: pendingMessage
@@ -410,14 +433,15 @@ class AuthController {
         console.log(failed)
         response.json({success: false, error: failed })
         // return response.redirect('/signUp?error=' + failed)
-      } else if (invitation || !invitation_required) {
-        console.log('registration proceeding...')
+      } else if (initialStatus) {
+        console.log(validationStatus + ' registration proceeding...')
         const uuid = uuidv4()
         var user = new User()
         user.username = username
         user.email = email
         user.password = password
         user.UUID = uuid
+
         if (password && password.length && (shortForm || (password === confirmPassword))) {
           try {
             await user.save()
@@ -456,6 +480,11 @@ class AuthController {
               payload: payload
             }
             console.log('response: ' + JSON.stringify(returnval))
+            
+            if (customModel && customModel.onLogin) {
+              // customModel.onLogin(user, {status: initialStatus, token: token})
+	      console.debug('call custom onLogin method')
+	    }
 
             const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Registration"
             const Message = {
@@ -465,6 +494,14 @@ class AuthController {
               html: welcomeMessage + welcomeLink
             }
             await Email.sendMessage(Message)
+              .then( response => {
+                console.log('Welcome message response: ' + JSON.stringify(response))
+                returnval.message = returnval.message + ' ' + response.message
+              })
+              .catch ( err => {
+                console.debug('Warning sending welcome message: ' + err.message)
+                returnval.message = returnval.message + ' (' + err.message + ')'
+              })
 
             if (authenticator === 'jwt') {
               // add token to response if jwt authentication is being used
@@ -487,6 +524,17 @@ class AuthController {
           response.json({error: 'Password Error'})
         }
       }
+    }
+  }
+  async invite ({request, response}) {
+    const {to, from} = request.all()
+    
+    var payload = this.header(request, 'payload') || {}
+    if (payload.userid && to) {
+      const sent = await Email.sendMessage('invitation', {to: to, from: from})
+      response.json({sent: sent})
+    } else {
+      response.json({error: 'Missing userid or target address'})
     }
   }
 
