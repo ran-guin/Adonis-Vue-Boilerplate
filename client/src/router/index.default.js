@@ -6,6 +6,7 @@ import Data from '@/default/pages/Data.vue'
 import Construction from '@/default/pages/Construction.vue'
 
 // Customized pages:
+import Home from '@/default/pages/Home.vue'
 import Public from '@/default/pages/Public.vue'
 import Contact from '@/default/pages/ContactUs.vue'
 import Dashboard from '@/default/pages/Dashboard.vue'
@@ -22,6 +23,11 @@ export default new Router({
       path: '/',
       name: 'default',
       component: Public
+    },
+    {
+      path: '/home',
+      name: 'home',
+      component: Home
     },
     {
       path: '/Login',
