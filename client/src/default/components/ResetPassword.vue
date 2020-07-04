@@ -1,10 +1,10 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
-    h6.text-danger.padded(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
-    h6.text-warning.padded(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
-    h6.text-success.padded(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
-    
-    rgv-form.recover-form(:form='form' :options='recoverOptions' :remoteErrors='formErrors' :onCancel='cancel')
+    h6.text-danger(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
+    h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
+    h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+
+    rgv-form.Reset-form(:form='form' :options='resetOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
     a.text-sm(v-if='onLogin' @click='onLogin') I already have an account
     br
@@ -32,20 +32,24 @@ export default {
         email: ''
       },
       inviteToken: '',
-      recoverOptions: {
+      resetOptions: {
         access: 'append',
         fields: [
-          { name: 'email', type: 'email', prompt: 'Email Address', rules: [Config.rules.email], icon: 'email' }
+          { name: 'email', type: 'hidden', prompt: 'Email Address', rules: [Config.rules.email], icon: 'email' },
+          { name: 'password', type: 'password', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock'},
+          { name: 'confirm_password', type: 'password', prompt: 'Confirm Password', rules: [Config.rules.min(8)], icon: 'lock'}
         ],
         submitButtonClass: 'btn-primary btn-lg',
         submitButton: 'Send Password Recovery Link',
         // buttonType: 'submit',
-        header: 'Recover Password',
+        header: 'Reset Password',
         title: ''
       },
       config: Config,
       apiURL: Config.apiURL[process.env.NODE_ENV],
-
+      message: '',
+      warning: '',
+      error: '',
       rules: Config.rules,
       invitationRequired: Config.invitationRequired || false,
       authError: '',
@@ -71,6 +75,10 @@ export default {
     }
   },
   created: function () {
+    var email = this.$route.params.email || this.$route.query.email
+
+    this.$set(this.resetOptions.fields[0], 'value', email)
+    console.log('using email: ' + email)
     if (this.onRegister) {
         this.$myConsole.debug('onRegister supplied')
     }
@@ -80,11 +88,11 @@ export default {
     this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri || this.redirect
 
     this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
-    this.$myConsole.debug('Recover options: ' + JSON.stringify(this.recoverOptions))
-    this.$set(this.recoverOptions, 'onSubmit', this.recoverPassword)
-    this.$set(this.recoverOptions, 'onBlur', this.checkInput)
-    this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
-    this.$set(this.recoverOptions, 'onCancel', this.cancel)
+    this.$myConsole.debug('Reset options: ' + JSON.stringify(this.resetOptions))
+    this.$set(this.resetOptions, 'onSubmit', this.recoverPassword)
+    this.$set(this.resetOptions, 'onBlur', this.checkInput)
+    this.$set(this.resetOptions, 'onFocus', this.inputFocus)
+    this.$set(this.resetOptions, 'onCancel', this.cancel)
 
     var presets = ['email']
     for (var i = 0; i < presets.length; i++) {
@@ -94,12 +102,24 @@ export default {
 
     this.$store.dispatch('clearMessages')
     this.$myConsole.debug('*** get url messages/warnings...')
+    this.message = this.$route.query.message
+    this.warning = this.$route.query.warning
+    this.error = this.$route.query.error
 
     this.loadEnv()
   },
   computed: {
   },
   methods: {
+    clearLocalMessages: function () {
+      this.message = ''
+      this.warning = ''
+      this.error = ''
+      this.authError = ''
+      this.formErrors = {}
+      this.$myConsole.debug('cleared local messages...')
+      this.$store.dispatch('clearMessages')
+    },
     checkInput (e) {
       this.$myConsole.debug('validate input')
       if (e && e.target) {
@@ -150,9 +170,7 @@ export default {
 </script>
 
 <style>
-
-.padded {
-  padding: 2rem;
+.error {
+  font-weight: bold;
 }
-
 </style>

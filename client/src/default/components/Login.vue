@@ -1,5 +1,9 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
+    h6.text-danger(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
+    h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
+    h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+
     div(v-if='nodeEnv==="demo"')
       h4 Login to Demo Version as:
       v-container
@@ -36,6 +40,11 @@
         ],
         data() {
             return {
+                embeddedMessage: {
+                    error: '',
+                    warning: '',
+                    message: ''
+                },
                 demoRole: '',
                 mode: '',
                 noLogin: true, // hide login buttons when generating login page
@@ -110,6 +119,21 @@
                 this.$router.push('/Public')
             } else {
                 this.setup()
+            }
+
+            const error = this.$route.params.error || this.$route.query.error
+            const warning = this.$route.params.warning || this.$route.query.warning
+            const message = this.$route.params.message || this.$route.query.message
+
+            this.$set(this.embeddedMessage, 'error', error)
+            this.$set(this.embeddedMessage, 'warning', warning)
+            this.$set(this.embeddedMessage, 'message', message)
+
+            if (error || warning || error) {
+                var mElement = document.getElementById('embeddedMessage')
+                if (mElement) {
+                    mElement.innerHTML = '<h3>MESSAGE<h3>'
+                }
             }
         },
         computed: {

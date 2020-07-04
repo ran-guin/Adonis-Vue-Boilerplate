@@ -1,5 +1,9 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
+    h6.text-danger(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
+    h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
+    h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+
     rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
     a.text-sm(v-if='onLogin' @click='onLogin') I already have an account
@@ -80,7 +84,8 @@ export default {
           { name: 'token', type: 'text', prompt: 'Promo Code', placeholder: 'leave blank to request beta access', icon: 'redeem'},
           { name: 'username', type: 'text', prompt: 'Preferred Username (optional)', rules: [Config.rules.email], icon: 'person' },
           { name: 'email', type: 'email', prompt: 'Email Address', rules: [Config.rules.email], icon: 'email' },
-          { name: 'password', type: 'hidden', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock'}
+          { name: 'password', type: 'hidden', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock'},
+          { name: 'confirm_password', type: 'hidden', prompt: 'Confirm Password', rules: [Config.rules.min(8)], icon: 'lock'}
         ],
         submitButtonClass: 'btn-primary btn-lg',
         submitButton: 'Request Beta Access',
