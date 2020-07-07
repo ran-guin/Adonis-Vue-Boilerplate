@@ -4,7 +4,7 @@
     h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
     h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
 
-    div(v-if='nodeEnv==="demo"')
+    div(v-if='nodeEnv==="demo" || nodeEnv=="local"')
       h4 Login to Demo Version as:
       v-container
         v-radio-group(v-model='demoRole')
