@@ -4,10 +4,10 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify';
 
-import {rgvConsole, rgvString, rgvEncrypt} from '@ran-guin/services'
 import {rgvForm} from '@ran-guin/forms'
 Vue.component('rgv-form', rgvForm)
 
+import {rgvConsole, rgvString, rgvEncrypt} from '@ran-guin/services'
 import dbGet from '@/services/dbGet.js';
 
 // import AsyncComputed from 'vue-async-computed'
