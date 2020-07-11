@@ -9,8 +9,8 @@
       v-container
         v-radio-group(v-model='demoRole')
           v-layout.justify-space-around
+            v-radio(@change='demoLogin()' value='Guest' label='Guest')
             v-radio(@change='demoLogin()' value='Member' label='Member') 
-            v-radio(@change='demoLogin()' value='Driver' label='Driver')
             v-radio(@change='demoLogin()' value='Host' label='Host')
             v-radio(@change='demoLogin()' value='DemoAdmin' label='Admin')
       v-btn.btn-primary(@click='demoLogin') Login to Demo Version
