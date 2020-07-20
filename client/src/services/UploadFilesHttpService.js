@@ -19,8 +19,9 @@ class UploadFilesHttpService {
   }
 
   getFiles(dir) {
-    console.debug('get files/env via http API...' + dir)
-    return http.get("/files?dir=" + dir);
+    var directory = dir || ''
+    console.debug('get files via http API...' + directory)
+    return http.get("/files?dir=" + directory);
   }
 }
 

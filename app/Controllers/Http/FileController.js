@@ -9,6 +9,7 @@ const Helpers = use('Helpers')
 const fs = require('fs')
 
 const sharp = require('sharp')
+const { toNamespacedPath } = require('path')
 // const formidable = require('formidable')
 
 const public_directories = [
@@ -23,69 +24,76 @@ class FileController {
 
     async files ({request, response}) {
         const {dir} = request.all()
-        console.log('get files from ' + dir)
         
+        if (dir === 'undefined') { dir = '' }
+
         const directory = dir || 'custom/images/'
         const path = './public/'
 
+        console.log('get files from ' + path + directory)
         if (public_directories.indexOf(directory) >= 0) {
             console.log(directory + ' access permitted...')
+            var Found = {}
 
-            var found = []
+            var ext = []
             var Files = fs.readdirSync(path + directory, (err, files) => {
+                console.log('....')
                 if (err) {
+                    console.log('err: ' + err.message)
                     throw err
                     response.json({message: 'Error'})
                 }
                 console.log(files.length + ' Files found...')
-                found = files
-                console.log('Found ' + found)
-                // response.json({message: 'Found', count: found.length})
-                // files object contains all files names
-                // log them on console
-                // files.forEach(file => {
-                //     console.log(file);
-                // });
+                
             });
+
+            Files.forEach(file => {
+                var fname = file.split('.')
+                console.log(JSON.stringify(fname))
+                if (fname[0] && fname.length === 2) {
+                    if (Found[fname[0]]) { Found[fname[0]].push(fname[1]) }
+                    else { Found[fname[0]] = [fname[1]] }
+                }
+            });
+
             console.log('found ' + Files.length)
-            response.json(Files)
+            console.log(JSON.stringify(Found))
+            response.json(Object.keys(Found))
 
         } else {
+            console.log(directory + ' access NOT permitted...')
             response.json({message: directory + ' not accessible'})
         }
     }
 
     async upload ({request, response, params}) {
         const input = request.all() || {}
-
+        console.log('upload file...')
         const F = request.file('file', {
             types: ['image'],
             extnames: ['png', 'gif', 'jpg', 'jpeg']
         })
         if (F) {
-            console.log("Uploaded File...")
+            console.log("Uploaded File: " + F.filename)
 
             await F.move(Helpers.tmpPath('uploads'), {overwrite: true})            
-            
-            console.log('update input')
             
             input.tmpPath = './tmp/uploads/'
             input.ext = F.extname
             input.name = F.fileName
             input.status = F.status
             input.dir = './client/src/assets/custom/images/events/'
+            input.alt = 'jpeg'
+            
+            console.debug('input: ' + JSON.stringify(input))
+            var ext = '.' + F.extname
+            var altFile = input.name.replace(ext, '.jpeg')
 
-            console.log('compress images')
+            console.log('compress images ' + altFile)
 
-            await this.getMetadata(input)
-                .then (meta => {
-                    console.log('Meta: ' + JSON.stringify(meta))
-                })
-                .catch (err => {
-                    console.debug('Meta Err: ' + err.message)
-                })
+            this.getMetadata(input)
 
-            response.json({message: 'Thanks !'})
+            response.json({message: 'Thanks !', filename: input.name, altFile: altFile})
         
         } else {
             console.log('no file found')
@@ -93,8 +101,8 @@ class FileController {
         }
     }
 
-    async getMetadata (input) {
-        const {name, tmpPath, ext, dir, height, width, format, status} = input
+    getMetadata (input) {
+        const {name, alt, tmpPath, ext, dir, height, width, format, status} = input
 
         const tmpFile = tmpPath + name
 
@@ -108,11 +116,9 @@ class FileController {
 
         var newFormat = format || 'webp'
             
-        console.log('check ' + tmpFile)
         const Img = sharp(tmpFile)
         Img.metadata()
             .then ( metadata => {
-                // console.log('metadata extracted...' + JSON.stringify(metadata))
                 console.log("Image Size: " + metadata.height + ' x ' + metadata.width)
 
                 const max_width = width || 780
@@ -120,54 +126,45 @@ class FileController {
                 
                 console.debug('check image dimensions...')
 
-                if ((metadata.width > metadata.height) && metadata.width > max_width) {
-                    console.debug('reduce width')
-                    target = target + '.opt-' + max_width
-                    target = target + '.' + newFormat
+                try {
+                    var resize = {}
+                    if ((metadata.width > metadata.height) && metadata.width > max_width) {
+                        console.debug('reduce width')
+                        target = target + '-opt-' + max_width
+                        target = target + '.' + newFormat
 
-                    console.log('write to ' + target)
+                        console.log('write to ' + target + '.' + newFormat)
+                        resize = { width: max_width}
+                    } else if (metadata.height > max_height) {
+                        console.debug('reduce height')
+                        resize = { height: max_height }
+                    }
 
+                    target = target + '-opt-' + max_width
                     Img
                         .clone()
-                        .resize({ width: max_width })
+                        .resize(resize)
                         .webp({ quality: 80 })
-                        .toFile(target)
-                    
-                    console.log('compressed...')
-                } else if (metadata.height > max_height) {
-                    console.debug('reduce height')
-                    target = target + '.opt-' + max_width
-                    target = target + '.' + newFormat
-                    console.log('write to ' + target)
-                    Img
-                        .clone()
-                        // .resize({ width: max_width })
-                        .resize({ height: max_height })
-                        .webp({ quality: 80 })
-                        .toFile(target)
-                    
-                    console.log('compressed...')
-                } else if (ext !== 'webp') {
-                    console.debug('image is small enough already')
-                    target = target + '.' + newFormat
-                    console.log('write to ' + target)
-                    Img
-                        .clone()
-                        .webp({ quality: 80 })
-                        .toFile(target)
-                    
-                    console.log('compressed...')
+                        .toFile(target + '.' + newFormat)
+                        
+                    if (alt && alt === 'jpeg') {
+                        Img
+                            .clone()
+                            .resize({ width: max_width })
+                            .jpeg({ quality: 80 })
+                            .toFile(target + '.' + alt)
+                    }
+                    console.log('saved ' + target)
+                    return Promise.resolve({message: 'compressed'})                
+                } catch (err) {
+                    console.log("error resizing")
+                    return Promise.reject({message: 'error resizing'})                
                 }
-                return Promise.resolve({message: 'compressed'})
             })
             .catch (err => {
                 console.debug("Error generating metadata for image " + err.message)
                 return Promise.reject({error: 'Error1'})
             })
-		// } catch (err) {
-		// 	console.debug("Error trying to generating metadata for image " + err.message)
-        //     return Promise.reject(new Error('Error2'))
-		// }
     }
 
 }

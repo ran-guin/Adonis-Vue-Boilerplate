@@ -15,6 +15,10 @@
 
     <div v-if='pickedImage'>
       <img :src='imageName' :width='width' />
+      <!-- <picture>
+        <source type="image/webp" :src="imageName" :width='width'/>
+        <source type="image/jpeg" :src="altName" :width='width'/>
+      </picture> -->
       <v-row class='justify-space-around' v-if='onSave'>
         <v-btn class='btn-primary centred' @click='saveImage' x-small> Save </v-btn>
         <v-btn class='btn-primary centred' @click='pickedImage=""' x-small>
@@ -33,7 +37,12 @@
           <ul>
             <li v-for="(file, index) in fileInfos" :key='index'>
               <a @click='pickImage(file)'>
-                <img :src='directory + file' width='40%'/>
+                <img :src='directory + file + ".webp"' width='40%'/>
+                <!-- <picture>
+                  <source type="image/webp" :src='directory + file + ".webp"' :width='width'/>
+                  <source type="image/jpeg" :src='directory + file + ".jpeg"' :width='width'/>
+                </picture> -->
+
               </a>
             </li>
             <v-btn @click='pickList=false'> Cancel </v-btn>
@@ -96,7 +105,8 @@ export default {
       message: "",
       fileInfos: [],
       pickList: false,
-      pickedImage: ''
+      pickedImage: '',
+      altImage: ''
     };
   },
   props: {
@@ -114,7 +124,11 @@ export default {
   computed: {
     imageName: function () {
       return this.directory + this.pickedImage
+    },
+    altName: function () {
+      return this.directory + this.altImage
     }
+
   },
   methods: {
     pickImage: function (file) {
@@ -122,31 +136,37 @@ export default {
       this.existing = file
       console.log('set image to ' + file)
       this.pickedImage = file
+      this.message = '';
     },
     saveImage: function () {
       this.onSave(this.pickedImage)
+      this.message = '';
     },
-    selectFile(file) {
+    selectFile: function (file) {
       this.progress = 0;
       this.currentFile = file;
+      this.message = '';
     },
-    upload() {
+    async upload () {
       if (!this.currentFile) {
         this.message = "Please select a file! ";
         return;
       }
       this.message = "";
-
+      console.log('upload ' + this.currentFile)
       UploadService.upload(this.currentFile, (event) => {
         this.progress = Math.round((100 * event.loaded) / event.total);
       })
         .then((response) => {
-          this.message = response.data.message;
-          console.log('call getFiles')
-          return UploadService.getFiles();
+          this.message = response.data.message
+          this.pickedImage = response.data.filename
+          this.altImage = response.data.altFile
+
+          console.log('recall getFiles')
+          return UploadService.getFiles(this.directory);
         })
         .then((files) => {
-          console.log('set files.data:')
+          console.log('reset files.data:')
           this.fileInfos = files.data;
         })
         .catch((err) => {
@@ -161,10 +181,10 @@ export default {
       .then( response => {
         this.fileInfos = response.data;
         console.log('RESP' + JSON.stringify(response))
-        console.debug('loaded ' + this.fileInfos.length + ' files')
+        console.log('loaded ' + this.fileInfos.length + ' files')
       })
       .catch (err => {
-        console.debug('could not retrieve files (?) ' + err.message)
+        console.log('could not retrieve files (?) ' + err.message)
       });
   },
 };
