@@ -32,6 +32,7 @@ import '@/assets/default/css/custom.css'
 
 // Custom Files:
 import '@/assets/custom/css/colours.css'
+import '@/assets/custom/css/custom.css'
 
 const key = Config.CLIENT_ID
 Vue.config.productionTip = false
