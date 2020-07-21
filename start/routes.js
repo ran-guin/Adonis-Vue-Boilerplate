@@ -77,6 +77,7 @@ Route.get('/lookup/:table', 'GenericController.lookup')
 
 Route.get('/users/:user_id/contacts', 'ContactController.find')
 Route.get('/users/:user_id/settings', 'ContactController.settings')
+Route.post('/users/:user_id/settings', 'ContactController.settings')
 Route.post('/users/:user_id/contact', 'ContactController.add')
 
 Route.get('/files', 'FileController.files')
