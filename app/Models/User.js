@@ -216,7 +216,7 @@ class User extends Model {
     return payload
   }
 
-  async settings (user_id) {
+  async settings (user_id, data) {
 
     const publicSettings = ['latitude', 'longitude', 'range_in_km', 'access', 'birthdate', 'gender']
     if (user_id) {
@@ -224,6 +224,15 @@ class User extends Model {
         .select(publicSettings)
         .from('user_settings')
         .where('user_id', 'like', user_id)
+
+      if (data) {
+        var keys = Object.keys(data)
+        for (var i = 0; i  < keys.length; i++) {
+          settings = settings
+            .update(keys[i], data[keys[i]])
+        }
+    
+      }
 
       return await settings
     } else {
