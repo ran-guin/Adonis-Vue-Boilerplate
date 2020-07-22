@@ -230,10 +230,11 @@ class User extends Model {
         for (var i = 0; i  < keys.length; i++) {
           settings = settings
             .update(keys[i], data[keys[i]])
+
+          console.log('update ' + keys[i] + ' : ' + data[keys[i]])
         }
     
       }
-
       return await settings
     } else {
       return Promise.reject(new Error('no user_id supplied'))
