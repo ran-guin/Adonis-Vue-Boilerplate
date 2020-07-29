@@ -119,7 +119,7 @@ export default {
         text: function () {
             return {
                 x1: this.width * 0.06,
-                x2: this.width * 0.25,
+                x2: this.width * 0.12,
                 y1: this.height / 2 - this.height / 10, // add font height
                 y2: this.height / 2 + this.height / 10 + this.height/6
             } 
