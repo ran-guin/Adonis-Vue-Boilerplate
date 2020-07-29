@@ -9,10 +9,7 @@
       v-container
         v-radio-group(v-model='demoRole')
           v-layout.justify-space-around
-            v-radio(@change='demoLogin()' value='Guest' label='Guest')
-            v-radio(@change='demoLogin()' value='Member' label='Member') 
-            v-radio(@change='demoLogin()' value='Host' label='Host')
-            v-radio(@change='demoLogin()' value='DemoAdmin' label='Admin')
+            v-radio(v-for='loginAs in demoLogins' @change='demoLogin()' :value='loginAs' :label='loginAs')
       v-btn.btn-primary(@click='demoLogin') Login to Demo Version
       p &nbsp;
     div(v-else)
@@ -81,7 +78,8 @@
                 redirect_default: Config.lpURL[process.env.NODE_ENV],
                 rules: Config.rules,
                 invitationRequired: false,
-                redirect_uri: ''
+                redirect_uri: '',
+                demoLogins: Config.demoLogins
             }
         },
         props: {
