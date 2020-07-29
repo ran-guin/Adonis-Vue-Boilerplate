@@ -57,13 +57,13 @@
             show-size
             label="File input"
             @change="selectFile"
+            prepend-icon='camera'
           ></v-file-input>
         </v-col>
 
         <v-col cols="4" class="pl-2" v-if='!pickList'>
-          <v-btn class='btn-primary' small @click="upload">
-            Upload
-            <v-icon right dark>camera</v-icon>
+          <v-btn class='btn-primary' small @click="upload" icon>
+            <v-icon right dark>cloud_upload</v-icon>
           </v-btn>
         </v-col>
       </v-row>
