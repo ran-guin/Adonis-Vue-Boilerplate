@@ -14,10 +14,13 @@ const { toNamespacedPath } = require('path')
 
 const public_directories = [
     'custom/images/',
-    'custom/images/events/',
+    'custom/images/originals/',
     'custom/images/large/',
+    'custom/images/medium/',
     'custom/images/small/',
+    'custom/images/xs/',
     'custom/images/users/',
+    'custom/images/events/',
 ]
 
 class FileController {
@@ -78,13 +81,25 @@ class FileController {
 
             await F.move(Helpers.tmpPath('uploads'), {overwrite: true})            
             
-            input.tmpPath = './tmp/uploads/'
             input.ext = F.extname
             input.name = F.fileName
             input.status = F.status
-            input.dir = './client/src/assets/custom/images/events/'
-            input.alt = 'jpeg'
+
+            const Defaults = {
+                tmpPath: './tmp/uploads/',
+                alt: 'jpeg',
+                dir: './tmp/resized/',
+                quality: 80,
+                format: 'webp'
+            }
             
+            var defaults = Object.keys(Defaults)
+            for (var i = 0; i < defaults.length; i++) {
+                if (!input[defaults[i]]) {
+                    input[defaults[i]] = Defaults[defaults[i]]
+                }
+            }
+
             console.debug('input: ' + JSON.stringify(input))
             var ext = '.' + F.extname
             var altFile = input.name.replace(ext, '.jpeg')
@@ -102,11 +117,24 @@ class FileController {
     }
 
     getMetadata (input) {
-        const {name, alt, tmpPath, ext, dir, height, width, format, status} = input
-
+        const {name, alt, tmpPath, ext, dir, height, width, format, status, size, quality, width, height} = input
         const tmpFile = tmpPath + name
-
+        
         console.log("Input: " + JSON.stringify(input))
+        const Sizes = {
+            xs: { width: 128 },
+            small: { width: 512 },
+            medium: { width: 780 },
+            large: { width: 1024 },
+            xl: { width: 2048 }
+        }
+        if (height || width) { 
+            size = 'custom'
+            Sizes.custom = { width: width, height: height }
+        }
+
+        const Size = Sizes[size]
+
         var target
         if (dir) {
             target = dir + name.replace('.' + ext, '')
@@ -114,15 +142,15 @@ class FileController {
             target = tmpPath + name.replace('.' + ext, '')
         }
 
-        var newFormat = format || 'webp'
+        var newFormat = format
             
         const Img = sharp(tmpFile)
         Img.metadata()
             .then ( metadata => {
                 console.log("Image Size: " + metadata.height + ' x ' + metadata.width)
 
-                const max_width = width || 780
-                const max_height = height || 780
+                const max_width = Size.width
+                const max_height = Size.height || Size.width
                 
                 console.debug('check image dimensions...')
 
@@ -144,14 +172,14 @@ class FileController {
                     Img
                         .clone()
                         .resize(resize)
-                        .webp({ quality: 80 })
+                        .webp({ quality: quality})
                         .toFile(target + '.' + newFormat)
                         
                     if (alt && alt === 'jpeg') {
                         Img
                             .clone()
                             .resize({ width: max_width })
-                            .jpeg({ quality: 80 })
+                            .jpeg({ quality: quality })
                             .toFile(target + '.' + alt)
                     }
                     console.log('saved ' + target)
