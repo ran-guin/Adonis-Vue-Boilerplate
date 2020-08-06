@@ -12,11 +12,12 @@
         a(@click='myWidth=width')
           v-icon() zoom_out
         br
-        
+      
       v-row.justify-space-around(v-if='onSave')
-        v-btn.btn-primary.centred(@click='saveImage' x-small='' v-if='onSave')  Save 
+        hr
+        v-btn.btn-primary.centred(@click='saveImage' v-if='onSave')  Save 
         //- v-row.justify-space-around()        
-        v-btn.btn-primary.centred(@click='imageNames=[]' x-small='')
+        v-btn.btn-primary.centred(@click='imageNames=[]')
           v-icon replay
         br
     div(v-else-if='pickList')
