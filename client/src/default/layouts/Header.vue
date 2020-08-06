@@ -29,8 +29,8 @@ import UserMenu from '@/default/components/UserMenu.vue'
 import Login from '@/default/components/Login.vue'
 import Register from '@/default/components/Register.vue'
 
-const publicLinks = config.public
-const privateLinks = config.private
+const publicLinks = config.public || []
+const privateLinks = config.private || []
 
 export default {
   data () {
@@ -68,7 +68,6 @@ export default {
   },
   created: function () {
     var link
-
     var pages = Object.keys(publicLinks)
     for (var i = 0; i < pages.length; i++) {
       link = publicLinks[pages[i]] || false

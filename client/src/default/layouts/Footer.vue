@@ -17,7 +17,7 @@ import config from '@/config'
 export default {
   data () {
     return {
-      animateLogo: true
+      animateLogo: false
     }
   },
   components: {

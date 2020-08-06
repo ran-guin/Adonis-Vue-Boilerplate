@@ -21,7 +21,18 @@ const public_directories = [
     'custom/images/xs/',
     'custom/images/users/',
     'custom/images/events/',
+    'default/images/',
+    'tmp/uploads/',
+    'tmp/resized/'
 ]
+
+const Sizes = {
+    xs: { width: 128 },
+    small: { width: 512 },
+    medium: { width: 780 },
+    large: { width: 1024 },
+    xl: { width: 2048 }
+}
 
 class FileController {
 
@@ -51,17 +62,21 @@ class FileController {
             });
 
             Files.forEach(file => {
-                var fname = file.split('.')
+                var fname = file.match(/^(.+)\.(svg|gif|png|webp|jpg|jpeg)$/)
                 console.log(JSON.stringify(fname))
-                if (fname[0] && fname.length === 2) {
-                    if (Found[fname[0]]) { Found[fname[0]].push(fname[1]) }
-                    else { Found[fname[0]] = [fname[1]] }
+                if (fname && fname.length) {
+                    var name = fname[1]
+                    var type = fname[2]
+                    var f = fname[0]
+                    if (!Found[name]) { Found[name] = {} }
+
+                    Found[name][type] = f
                 }
             });
 
             console.log('found ' + Files.length)
             console.log(JSON.stringify(Found))
-            response.json(Object.keys(Found))
+            response.json(Found)
 
         } else {
             console.log(directory + ' access NOT permitted...')
@@ -71,128 +86,136 @@ class FileController {
 
     async upload ({request, response, params}) {
         const input = request.all() || {}
-        console.log('upload file...')
-        const F = request.file('file', {
+        const {name, format, status, size, quality, width, height} = input
+
+        console.log('upload file...' + JSON.stringify(input))
+
+        const multipleFiles = request.files()
+
+        const singleFile = request.file('file', {
             types: ['image'],
             extnames: ['png', 'gif', 'jpg', 'jpeg']
         })
-        if (F) {
-            console.log("Uploaded File: " + F.filename)
 
+        var files = []
+        if (multipleFiles) {
+            files = multipleFiles.files || []
+            console.log('found files ' + files.length)
+        }
+        if (singleFile && !files.length) {
+            files.push(singleFile)
+            console.log('found file')
+        }
+
+        var uploaded = []
+        var resized = []
+        for (var i =0; i < files.length; i++) {
+            const F = files[i]
+            // Save file to uploads directory
             await F.move(Helpers.tmpPath('uploads'), {overwrite: true})            
             
-            input.ext = F.extname
-            input.name = F.fileName
-            input.status = F.status
+            console.log("Uploaded file: " + F.fileName)
 
-            const Defaults = {
-                tmpPath: './tmp/uploads/',
-                alt: 'jpeg',
-                dir: './tmp/resized/',
-                quality: 80,
-                format: 'webp'
+            // **** Resize ****
+            var max_width
+            var max_height
+            var ext = []
+            if (height || width) { 
+                max_width = width || height
+                max_height = height || width
+            } else if (size) {
+                max_width = Sizes[size].width || 768
+                max_height = Sizes[size].height || Sizes[size].width
+            } else {
+                max_width = 768
+                max_height = 768
             }
+ 
+            if (format) {
+                ext = [format] 
+            } else {
+                ext = ['webp', 'jpeg'] // default to most compressed standards
+            }
+
+            var clientDir = 'tmp/resized/'
+            var target_name = F.fileName.replace('.' + F.extname, '') + '-opt-' + max_width + '-Q' + quality
+            var target = './public/' + clientDir + target_name
             
-            var defaults = Object.keys(Defaults)
-            for (var i = 0; i < defaults.length; i++) {
-                if (!input[defaults[i]]) {
-                    input[defaults[i]] = Defaults[defaults[i]]
-                }
+            const specs = {
+                input: './tmp/uploads/' + F.fileName,
+                output: target,
+                ext: ext,
+                quality: quality,
+                max_width: max_width,
+                max_height: max_height,
+                size: size,
             }
+            console.log("Uploaded File3: " + F.fileName)
+            console.log('resize: ' + JSON.stringify(specs))
 
-            console.debug('input: ' + JSON.stringify(input))
-            var ext = '.' + F.extname
-            var altFile = input.name.replace(ext, '.jpeg')
+            var saved = await this.resize(specs)
+            console.log('saved: ' + JSON.stringify(saved))
 
-            console.log('compress images ' + altFile)
-
-            this.getMetadata(input)
-
-            response.json({message: 'Thanks !', filename: input.name, altFile: altFile})
-        
+            uploaded.push(specs.input)
+            resized.push(target_name + '.jpeg')
+        }
+        if (files.length) {
+            response.json({message: 'Thanks ! ', uploaded: uploaded, resized: resized, ext: ext})
         } else {
             console.log('no file found')
             response.json({message: 'no file found'})
         }
     }
 
-    getMetadata (input) {
-        const {name, alt, tmpPath, ext, dir, height, width, format, status, size, quality, width, height} = input
-        const tmpFile = tmpPath + name
-        
-        console.log("Input: " + JSON.stringify(input))
-        const Sizes = {
-            xs: { width: 128 },
-            small: { width: 512 },
-            medium: { width: 780 },
-            large: { width: 1024 },
-            xl: { width: 2048 }
-        }
-        if (height || width) { 
-            size = 'custom'
-            Sizes.custom = { width: width, height: height }
-        }
+    resize (specs) {
+        const {input, output, ext, max_width, max_height, quality} = specs
+        return new Promise((resolve, reject) => {
+            const Img = sharp(input)
+            Img.metadata()
+                .then (metadata => {
+                    console.log("Image Size: " + metadata.height + ' x ' + metadata.width)
 
-        const Size = Sizes[size]
-
-        var target
-        if (dir) {
-            target = dir + name.replace('.' + ext, '')
-        } else {
-            target = tmpPath + name.replace('.' + ext, '')
-        }
-
-        var newFormat = format
-            
-        const Img = sharp(tmpFile)
-        Img.metadata()
-            .then ( metadata => {
-                console.log("Image Size: " + metadata.height + ' x ' + metadata.width)
-
-                const max_width = Size.width
-                const max_height = Size.height || Size.width
-                
-                console.debug('check image dimensions...')
-
-                try {
                     var resize = {}
                     if ((metadata.width > metadata.height) && metadata.width > max_width) {
                         console.debug('reduce width')
-                        target = target + '-opt-' + max_width
-                        target = target + '.' + newFormat
-
-                        console.log('write to ' + target + '.' + newFormat)
+        
+                        console.log('write to ' + output + '.' + ext)
                         resize = { width: max_width}
                     } else if (metadata.height > max_height) {
                         console.debug('reduce height')
                         resize = { height: max_height }
                     }
+        
+                    var webp = ext.indexOf('webp')
+                    var jpeg = ext.indexOf('jpeg')
 
-                    target = target + '-opt-' + max_width
-                    Img
-                        .clone()
-                        .resize(resize)
-                        .webp({ quality: quality})
-                        .toFile(target + '.' + newFormat)
-                        
-                    if (alt && alt === 'jpeg') {
+                    var saved = []
+                    if (webp >=0) {
+                        Img
+                            .clone()
+                            .resize(resize)
+                            .webp({ quality: parseInt(quality)})
+                            .toFile(output + '.' + ext[webp])
+                        console.log('saved ' + output + '.webp')
+                        saved.push(output + '.webp')
+                    }
+                    if (jpeg >=0) {
                         Img
                             .clone()
                             .resize({ width: max_width })
-                            .jpeg({ quality: quality })
-                            .toFile(target + '.' + alt)
+                            .jpeg({ quality: parseInt(quality) })
+                            .toFile(output + '.' + ext[jpeg])
+                        console.log('saved ' + output + '.jpeg')
+                        saved.push(output + '.jpeg')
                     }
-                    console.log('saved ' + target)
-                    return Promise.resolve({message: 'compressed'})                
-                } catch (err) {
-                    console.log("error resizing")
-                    return Promise.reject({message: 'error resizing'})                
-                }
-            })
-            .catch (err => {
-                console.debug("Error generating metadata for image " + err.message)
-                return Promise.reject({error: 'Error1'})
-            })
+                    resolve(saved)
+                })
+                .catch (err => {
+                    console.debug("Error generating metadata for image " + err.message)
+                    // return err.message
+                    resolve(err)
+                })
+        })
     }
 
 }
