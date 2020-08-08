@@ -13,6 +13,7 @@ class ContactSchema extends Schema {
       table.string('name', 255)
       table.string('suite', 255)
       table.string('buzzer', 255)
+      table.string('notes', 255)
       table.string('access_notes', 255)
       table.string('email', 255)
       table.string('phone', 255)
