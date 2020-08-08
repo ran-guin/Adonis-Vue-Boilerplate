@@ -37,7 +37,7 @@ const Sizes = {
 class FileController {
 
     async files ({request, response}) {
-        const {dir} = request.all()
+        const {dir, format, search} = request.all()
         
         if (dir === 'undefined') { dir = '' }
 
@@ -62,15 +62,32 @@ class FileController {
             });
 
             Files.forEach(file => {
-                var fname = file.match(/^(.+)\.(svg|gif|png|webp|jpg|jpeg)$/)
+                var fname
+                
+                fname = file.match(/^(.+)\.([a-z]+)$/)
+
+                var ok = false
                 console.log(JSON.stringify(fname))
                 if (fname && fname.length) {
                     var name = fname[1]
                     var type = fname[2]
-                    var f = fname[0]
-                    if (!Found[name]) { Found[name] = {} }
 
-                    Found[name][type] = f
+                    if (format === 'image' && imageTypes.indexOf(type) >= 0) {
+                        ok = true
+                    } else if (format) {
+                        ok = (type === format)
+                    } else if (search) {
+                        var test = new RegExp(search)
+                        ok = file.match(test)
+                    } else {
+                        ok = true
+                    }
+                    if (ok) {
+                        var f = fname[0]
+                        if (!Found[name]) { Found[name] = {} }
+
+                        Found[name][type] = f
+                    }
                 }
             });
 
@@ -83,10 +100,66 @@ class FileController {
             response.json({message: directory + ' not accessible'})
         }
     }
+    
+    async move ({request, response}) {
+        const {from, to, file, rename} = request.all()
+
+        const target = rename || file
+
+        if (public_directories.indexOf(from) >= 0 && public_directories.indexOf(to) >= 0) {
+            var cmd = 'cp ./public/' + from + file + ' ./client/src/assets/' + to + target
+            console.log("CMD: " + cmd)
+
+            var root = process.env.PWD
+            console.log("root: " + root)
+            var oldPath = root + '/public/' + from + file
+            var newPath = root + '/client/src/assets/' + to + target
+            
+            var copied = 0
+            var renamed = 0
+            var error = ''
+
+            this.moveFile(oldPath, newPath, err => { 
+                if (err) { console.log(err.message) } 
+            })
+            response.json({from: from, to: to, file: file, target: target})
+        } else {
+            response.json({success: false, message: 'Access Denied'})
+        }
+    }
+
+    moveFile (oldPath, newPath, callback) {
+        fs.rename(oldPath, newPath, function (err) {
+            if (err) {
+                if (err.code === 'EXDEV') {
+                    copy();
+                } else {
+                    callback(err);
+                }
+                return;
+            }
+            console.log('renamed file')
+            callback();
+        });
+    
+        function copy() {
+            var readStream = fs.createReadStream(oldPath);
+            var writeStream = fs.createWriteStream(newPath);
+    
+            readStream.on('error', callback);
+            writeStream.on('error', callback);
+    
+            readStream.on('close', function () {
+                fs.unlink(oldPath, callback);
+            });
+            readStream.pipe(writeStream);
+            console.log('copied file')    
+        }    
+    }
 
     async upload ({request, response, params}) {
         const input = request.all() || {}
-        const {name, format, status, size, quality, width, height} = input
+        const {name, format, status, size, quality, width, height, clientDirectory} = input
 
         console.log('upload file...' + JSON.stringify(input))
 
@@ -137,7 +210,7 @@ class FileController {
                 ext = ['webp', 'jpeg'] // default to most compressed standards
             }
 
-            var clientDir = 'tmp/resized/'
+            var clientDir = clientDirectory || 'tmp/resized/'
             var target_name = F.fileName.replace('.' + F.extname, '') + '-opt-' + max_width + '-Q' + quality
             var target = './public/' + clientDir + target_name
             

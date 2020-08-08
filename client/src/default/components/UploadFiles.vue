@@ -28,13 +28,10 @@
             a.right(@click='pickList=false')
               v-icon close
           ul
+            li(v-if='fileInfos.length === 0') No files currently available
             li(v-for='(F, file) in fileInfos' :key='file')
-              b {{file}} : {{F}}
-              //- a(v-if='F.jpeg' @click='pickImage(F.jpeg)')
-              //-   img(:src='directory + F.jpeg' width='300px')
               a(v-for='t in fTypes' v-if='F[t]' @click='pickImage(F[t])')
-                //- img(v-if='F.webp' :src='directory + F.webp' width='300px')
-                img(:src='directory + F[t]' width='300px')
+                img(:src='targetDirectory + F[t]' width='300px')
             v-btn(@click='pickList=false')  Cancel 
     div(v-else='')
       v-row(no-gutters='' justify='center' align='center')
@@ -47,18 +44,18 @@
             span(v-if='onSave') Upload
             span(v-else-if='onResize') Resize
             v-icon(right='' dark='') cloud_upload
-      v-row(no-gutters='' justify='center' align='center' v-if='directory')
+      v-row(no-gutters='' justify='center' align='center' v-if='targetDirectory')
         v-col(cols='12')
-          v-btn.btn-primary(x-small='' @click='pickList=true')
+          v-btn.btn-primary(x-small='' @click='pick')
             | Pick from Existing Images
       v-alert(v-if='message' border='left' color='lightgreen')
         | {{ message }}
-      v-card.mx-auto(v-if='fileInfos.length > 0 && !directory')
-        v-list
-          v-subheader List of Files
-          v-list-item-group(color='primary')
-            v-list-item(v-for='(file, index) in fileInfos' :key='index')
-              a(:href='file.url') {{ file.name}}
+      //- v-card.mx-auto(v-if='fileInfos.length > 0 && !targetDirectory')
+      //-   v-list
+      //-     v-subheader List of Files
+      //-     v-list-item-group(color='primary')
+      //-       v-list-item(v-for='(file, index) in fileInfos' :key='index')
+      //-         a(:href='file.url') {{ file.name}}
 </template>
 
 <script>
@@ -76,14 +73,22 @@ export default {
       pickList: false,
       imageNames: [],
       altImage: '',
-      clientDirectory: 'tmp/resized/',
       fTypes: ['svg', 'jpeg', 'jpg', 'png', 'gif'],
       myWidth: '300px',
-      files: []
+      files: [],
+      uploaded: []
     };
   },
   props: {
-    directory: {
+    clientDirectory: {
+      type: String,
+      default: 'tmp/resized/'
+    },
+    serverDirectory: {
+      type: String,
+      default: 'tmp/uploads/'
+    },
+    targetDirectory: {
       type: String
     },
     width: {
@@ -108,13 +113,17 @@ export default {
     multiple: {
       type: Boolean,
       default: false
+    },
+    format: {
+      type: String,
+      default: ''
+    },
+    search: {
+      type: String,
+      default: ''
     }
   },
   computed: {
-    altName: function () {
-      return this.clientDirectory + this.altImage
-    }
-
   },
   methods: {
     addDropFile(e) { 
@@ -124,7 +133,7 @@ export default {
       this.pickList = false
       this.existing = file
       console.log('set image to ' + file)
-      this.imageNames = [this.clientDirectory + file]
+      this.imageNames = [this.targetDirectory + file]
       this.message = '';
       if (this.onPick) {
         this.onPick(file)
@@ -134,11 +143,25 @@ export default {
       console.log('save image ...')
       this.message = 'Save ...';
 
+      if (this.uploaded.length) {
+        for (var i = 0; i < this.uploaded.length; i++) {
+          var filename = this.uploaded[i]
+          console.log('move ' + filename + ' from ' + this.clientDirectory + ' to ' + this.targetDirectory)
+          var data = {
+            file: filename,
+            from: this.clientDirectory,
+            to: this.targetDirectory
+          }
+          axios.post('/moveFile', data)
+        }
+      }
+
       if (this.onSave) {
         if (this.multiple) {
-          this.onSave(this.imageNames)
+          var images = this.imagesNames.map(a => a.replace(this.clientDirectory, this.targetDirectory))
+          this.onSave(images)
         } else {
-          this.onSave(this.imageNames[0])
+          this.onSave(this.imageNames[0].replace(this.clientDirectory, this.targetDirectory))
         }
       } else {
         console.log('no save function supplied')
@@ -188,6 +211,8 @@ export default {
       formData.append('size', this.size || 'medium')
       formData.append('quality', this.quality || 80)
 
+      formData.append("clientDirectory", this.clientDirectory)
+
       if (this.multiple && this.files.length > 1) {
         for (var i = 0; i < this.files.length; i++) {
           formData.append("files", this.files[i]);
@@ -202,7 +227,7 @@ export default {
 
       console.debug('Upload Files via NEWer http API: ' + JSON.stringify(formData))
 
-      var uploaded = ''
+      this.uploaded = ''
       axios.post('/upload', formData, 
         {
           headers: {
@@ -218,20 +243,12 @@ export default {
         .then((response) => {
           console.log('upload response: ' + JSON.stringify(response.data))
           this.message = response.data.message
-          uploaded = response.data.resized
+          this.uploaded = response.data.resized
           this.altImage = response.data.altFile
 
-          console.log('recall getFiles')
-          // return UploadService.getFiles();
-          return axios.get("/files?dir=" + this.clientDirectory);
-        })
-        .then((files) => {
-          console.log('reset files.data:')
-          console.log(JSON.stringify(files.data))
-          this.fileInfos = files.data;
           setTimeout( () => {
-            this.imageNames = uploaded.map(a => this.clientDirectory + a)
-          }, 2000)
+            this.imageNames = this.uploaded.map(a => this.clientDirectory + a)
+          }, 1000)
         })
         .catch((err) => {
           console.log('Err: ' + err.message)
@@ -241,8 +258,9 @@ export default {
         });
     },
     getFiles: function () {
-      // UploadService.getFiles(this.clientDirectory)
-      axios.get("/files?dir=" + this.clientDirectory)
+      var url = "/files?dir=" + this.targetDirectory + '&format=' + this.format + '&search=' + this.search
+      console.log('search for files: ' + url)
+      axios.get(url)
         .then( response => {
           this.fileInfos = response.data;
           console.log('RESP' + JSON.stringify(response))
@@ -254,24 +272,25 @@ export default {
     },
     srcWidth: function (width) {
       return '(max-width: ' + width + 'px)'
+    },
+    pick: function () {
+      this.getFiles()
+      this.pickList = true
     }
   },
   created() {
-    if (this.directory) {
-      this.clientDirectory = this.directory
-    }
     this.myWidth = this.width
   },
   mounted() {
-    if (this.clientDirectory) {
-      this.getFiles()
-    }
+    // if (this.targetDirectory) {
+    //   this.getFiles()
+    // }
   },
   watch: {
-    clientDirectory: function () {
-      console.log('load image files from ' + this.clientDirectory)
-      if (this.clientDirectory) {
-        this.getFiles(this.clientDirectory)
+    targetDirectory: function () {
+      console.log('load image files from ' + this.targetDirectory)
+      if (this.targetDirectory) {
+        this.getFiles(this.targetDirectory)
       }
     },
     imageName: function () {
