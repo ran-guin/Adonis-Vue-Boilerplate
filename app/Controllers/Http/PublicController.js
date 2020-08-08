@@ -139,7 +139,8 @@ class PublicController {
   test ({request, response, view, params}) {
     console.log('Loaded test page...')
     const param = params.param
-    return view.render('pages/test', {scope: 'Test', param: param})
+    // return view.render('pages/test', {scope: 'Test', param: param})
+    return response.json({ page: 'pages/test', scope: 'Test', param: param })
   }
 
   landingPage ({request, response, view, params}) {
