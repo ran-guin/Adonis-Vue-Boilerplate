@@ -16,9 +16,9 @@ Usage example.
 </template>
 
 <script>
-const Login = () => import('@/custom/components/Login')
-const Register = () => import('@/custom/components/Register')
-const Recover = () => import('@/custom/components/Recover')
+const Login = () => import('@/default/components/Login')
+const Register = () => import('@/default/components/Register')
+const Recover = () => import('@/default/components/Recover')
 
 export default {
   components: {
