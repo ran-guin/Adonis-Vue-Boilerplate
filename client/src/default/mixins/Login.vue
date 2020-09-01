@@ -16,9 +16,9 @@ Usage example.
 </template>
 
 <script>
-const Login = () => import('@/custom/components/Login')
-const Register = () => import('@/custom/components/Register')
-const Recover = () => import('@/custom/components/Recover')
+const Login = () => import('@/default/components/Login')
+const Register = () => import('@/default/components/Register')
+const Recover = () => import('@/default/components/Recover')
 
 export default {
   components: {
@@ -116,6 +116,7 @@ export default {
             return await auth.logout(this, loginId)
         },
         async signup (form) {
+            this.clearMessages()
             var credentials = { 
                 shortForm: form.shortForm ? true : false,
                 password: form.password,
@@ -128,7 +129,6 @@ export default {
             delete axios.defaults.headers.common['Authorization']
 
             this.$myConsole.debug('Signing up with credentials: ')
-            // this.$store.dispatch('logMessage', 'Submitting registration request...')
             try {
                 console.log('call auth.signup...')
                 var response = await auth.signup(this, credentials)
@@ -139,13 +139,7 @@ export default {
                     console.error(response.data.error)
 
                     if (response.data.validation_errors && response.data.validation_errors[0].message === 'unique validation failed on email') {
-                        this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?email=' + this.form.email)
-                        // this.warning = 'Looks like you are already registered... redirecting you to recover password'
-
-                        // var _this = this
-                        // setTimeout(function () {
-                        //   _this.setToRecover()
-                        // }, 2000); //will call the function after 2 secs.
+                        this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?message=Already Registered&email=' + this.form.email)
                     }
                 } else {
                     this.$myConsole.debug('redirect ? ' + this.redirect_uri)
@@ -165,31 +159,62 @@ export default {
         },
         async recoverPassword(form) {
             this.message = 'Generating Recovery Email...'
-            this.$myConsole.debug('Form: ' + JSON.stringify(form))
             const email = form.email
             this.$myConsole.debug('recover my password via ' + this.apiURL + '/recoverPassword ... for ' + email)
-            var _this = this
             axios.post(this.apiURL + '/recoverPassword', { email: email })
-                .then(function (response) {
+                .then( response => {
                     if (response && response.data && response.data.validation_errors) {
                         this.$myConsole.debug('get service response')
-                        var val = _this.validateResponse(response)
-                        if (val.formErrors) { _this.$set(_this, 'formErrors', val.formErrors) }
+                        var val = this.validateResponse(response)
+                        if (val.formErrors) { this.$set(this, 'formErrors', val.formErrors) }
                         return response.data
                     } else if (response && response.error) {
-                        _this.$store.dispatch('logError', response.error)
+                        this.$store.dispatch('logError', response.error)
                         return response
                     } else if (response && response.data) {
                         this.$myConsole.debug('recover response: ' + JSON.stringify(response))
-                        _this.setToLogin(1)
+                        // this.setToLogin(1)
 
-                        _this.delayedRedirect('Password recovery link sent to \'' + email + '\' (if account exists)')
+                        this.delayedRedirect('Password recovery link sent to \'' + email + '\' (if account exists)', 'message', this.apiURL + '/login?message=Recovery Link Sent')
                         return response
                     }
                 })
-                .catch(function (err) {
-                    _this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
-                    _this.$myConsole.debug('Error Generating Password Recovery ' + err)
+                .catch( err => {
+                    this.error = 'Problem generating recovery mail (?)  Please contact us directly.'
+                    this.$myConsole.debug('Error Generating Password Recovery ' + err)
+                })
+        },
+        async resetPassword(form) {
+            this.message = 'Resetting Password...'
+            const reset = {
+                email: form.email,
+                password: form.password,
+                confirmPassword: form.confirmPassword,
+                token: form.token
+            }
+            var url = this.apiURL + '/resetPassword'
+            this.$myConsole.debug('reset my password via ' + url + ' ... for ' + form.email)
+
+            axios.post(url, reset)
+                .then( response => {
+                    if (response && response.data && response.data.validation_errors) {
+                        this.$myConsole.debug('get service response')
+                        var val = this.validateResponse(response)
+                        if (val.formErrors) { this.$set(this, 'formErrors', val.formErrors) }
+                        return response.data
+                    } else if (response && response.error) {
+                        this.$store.dispatch('logError', response.error)
+                        return response
+                    } else if (response && response.data) {
+                        this.$myConsole.debug('recover response: ' + JSON.stringify(response))
+
+                        this.delayedRedirect('Password reset for \'' + form.email + '\' (if account exists)', 'message', this.apiURL + '/login?message=Password Reset&email=' + form.email)
+                        return response
+                    }
+                })
+                .catch( err => {
+                    this.error = 'Problem resetting password.'
+                    this.$myConsole.debug('Error Resetting Password: ' + err)
                 })
         },
         delayedRedirect: function (message, type, path) {
@@ -200,8 +225,8 @@ export default {
             } else {
                 this.message = message
             }
-            var _this = this
 
+            var _this = this
             setTimeout(function () {
                 _this.message = ''
                 _this.warning = ''
@@ -234,7 +259,6 @@ export default {
                 })
                 .catch( err => {
                     this.$myConsole.debug('Error retrieving env: ' + err)
-                    // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
                     this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
                     return Promise.resolve({})
                 })
@@ -300,7 +324,50 @@ export default {
                 this.$store.dispatch('logWarning', 'unrecognized response')
                 return {warning: 'unrecognized response'}
             }
-        }
+        },
+        // setToLogin: function (reset) {
+        //     // this.mode = 'Login'
+        //     this.clearLocalMessages()
+        //     this.adjustForEnv()
+        //     this.$myConsole.debug('set login options: ')
+        //     this.$myConsole.debug(JSON.stringify(this.loginOptions))
+        //     if (reset) { this.clearLocalMessages() }
+        // },
+        // setToSignup: function (reset) {
+        // // this.mode = 'SignUp'
+        // this.clearLocalMessages()
+        // this.adjustForEnv()
+        // this.$myConsole.debug('signup options: ')
+        // this.$myConsole.debug(JSON.stringify(this.signupOptions))
+        // if (reset) { this.clearLocalMessages() }
+        // },
+        // setToRecover: function (reset) {
+        // this.clearLocalMessages()
+        // this.adjustForEnv()
+        // // this.mode = 'Recover'
+        // this.$myConsole.debug('set recover options: ')
+        // this.$myConsole.debug(JSON.stringify(this.recoverOptions))
+        // if (reset) { this.clearLocalMessages() }
+        // },
+        // adjustForEnv: function () {
+        //     if (this.env) {
+        //         if (this.nodeEnv === 'demo') {
+
+        //             this.loginOptions.header += ' (' + process.env.NODE_ENV + ' only)'
+        //         }
+        //         if (this.nodeEnv !== 'production') {
+
+        //             this.loginOptions.header += ' (' + process.env.NODE_ENV + ' only)'
+
+        //             if (this.mode === 'Login') {
+        //                 this.loginOptions.fields[0].prompt += ' - try  guest@' + Config.defaultEmailDomain
+        //                 this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
+        //             }
+        //         }
+        //     } else {
+        //         this.$myConsole.debug('no env')
+        //     }
+        // },
     }
 }
 </script>

@@ -1,5 +1,7 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
+    EmbeddedMessage(:clear='clearOnToggle')
+
     h6.text-danger.padded(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
     h6.text-warning.padded(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
     h6.text-success.padded(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
@@ -17,10 +19,12 @@
 import Config from '@/config.js'
 
 import FormValidator from '@/default/mixins/FormValidator'
+import EmbeddedMessage from '@/default/components/EmbeddedMessage'
 import Login from '@/default/mixins/Login'
 
 export default {
   components: {
+    EmbeddedMessage
   },
   mixins: [
     Login,
@@ -68,7 +72,11 @@ export default {
     },
     redirect: {
       type: String
+    },
+    clearOnToggle: {
+        type: Boolean
     }
+
   },
   created: function () {
     if (this.onRegister) {
@@ -81,6 +89,7 @@ export default {
 
     this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
     this.$myConsole.debug('Recover options: ' + JSON.stringify(this.recoverOptions))
+
     this.$set(this.recoverOptions, 'onSubmit', this.recover)
     this.$set(this.recoverOptions, 'onBlur', this.checkInput)
     this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
@@ -135,8 +144,8 @@ export default {
         this.$myConsole.debug('no e-target to validate')
       }
     },
-    recover: function () {
-      this.recoverPassword() // mixin
+    recover: function (form) {
+      this.recoverPassword(form) // mixin
       this.cancel()
     },
     cancel: function () {

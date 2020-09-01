@@ -1,8 +1,6 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
-    h6.text-danger(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
-    h6.text-warning(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
-    h6.text-success(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+    EmbeddedMessage(:clear='clearOnToggle')
 
     div(v-if='nodeEnv==="demo" || nodeEnv=="local"')
       h4 Login to Demo Version as:
@@ -15,9 +13,9 @@
     div(v-else)
       rgv-form.login-form(:form='form' :options='loginOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
-    a.text-sm(v-if='onRecover' @click='onRecover') Forgot password ?
+    a.text-sm(v-if='onRecover' @click='onRecover()') Forgot password ?
     br
-    a.text-sm(v-if='onRegister' @click='onRegister') Sign Up
+    a.text-sm(v-if='onRegister' @click='onRegister()') Sign Up
     p.error(v-if='authError') {{authError}}
     p &nbsp;
 </template>
@@ -26,11 +24,12 @@
 
     // import { rgvForm } from '@ran-guin/forms'
     import FormValidator from '@/default/mixins/FormValidator'
+    import EmbeddedMessage from '@/default/components/EmbeddedMessage'
     import Login from '@/default/mixins/Login'
 
     export default {
         components: {
-          // rgvForm
+          EmbeddedMessage
         },
         mixins: [
             Login,
@@ -38,11 +37,6 @@
         ],
         data() {
             return {
-                embeddedMessage: {
-                    error: '',
-                    warning: '',
-                    message: ''
-                },
                 demoRole: '',
                 mode: '',
                 noLogin: true, // hide login buttons when generating login page
@@ -71,15 +65,13 @@
                 },
                 config: Config,
                 apiURL: Config.apiURL[process.env.NODE_ENV],
-                message: '',
-                warning: '',
-                error: '',
+              
                 noRefresh: true,
                 redirect_default: Config.lpURL[process.env.NODE_ENV],
                 rules: Config.rules,
                 invitationRequired: false,
                 redirect_uri: '',
-                demoLogins: Config.demoLogins
+                demoLogins: Config.demoLogins,
             }
         },
         props: {
@@ -101,6 +93,9 @@
             },
             redirect: {
                 type: String
+            },
+            clearOnToggle: {
+                type: Boolean
             }
         },
         async created () {
@@ -118,21 +113,6 @@
                 this.$router.push('/Public')
             } else {
                 this.setup()
-            }
-
-            const error = this.$route.params.error || this.$route.query.error
-            const warning = this.$route.params.warning || this.$route.query.warning
-            const message = this.$route.params.message || this.$route.query.message
-
-            this.$set(this.embeddedMessage, 'error', error)
-            this.$set(this.embeddedMessage, 'warning', warning)
-            this.$set(this.embeddedMessage, 'message', message)
-
-            if (error || warning || error) {
-                var mElement = document.getElementById('embeddedMessage')
-                if (mElement) {
-                    mElement.innerHTML = '<h3>MESSAGE<h3>'
-                }
             }
         },
         computed: {
@@ -205,16 +185,12 @@
 
                 this.$store.dispatch('clearMessages')
                 this.$myConsole.debug('*** get url messages/warnings...')
-                this.message = this.$route.query.message
-                this.warning = this.$route.query.warning
-                this.error = this.$route.query.error
-
-                this.$myConsole.debug('url message: ' + this.message)
 
                 const delayed_redirect = this.$route.params.delayed_redirect || this.$route.query.delayed_redirect
+                const message = this.$route.params.message || this.$route.query.message
                 if (delayed_redirect) {
                     this.$myConsole.debug('redirecting to ' + delayed_redirect)
-                    this.delayedRedirect(this.message, 'message', delayed_redirect)
+                    this.delayedRedirect(message, 'message', delayed_redirect)
                 }
 
                 this.$myConsole.debug('Route Path: ' + JSON.stringify(path) + '; Mode: ' + this.mode)
@@ -230,42 +206,6 @@
                 }
 
                 this.login(form)
-            },
-            clearLocalMessages: function () {
-                this.message = ''
-                this.warning = ''
-                this.error = ''
-                this.authError = ''
-                this.formErrors = {}
-                this.$myConsole.debug('cleared local messages...')
-                this.$store.dispatch('clearMessages')
-            },
-            setToLogin: function (reset) {
-                this.mode = 'Login'
-                this.clearLocalMessages()
-                this.adjustForEnv()
-                this.$myConsole.debug('set login options: ')
-                this.$myConsole.debug(JSON.stringify(this.loginOptions))
-                if (reset) { this.clearLocalMessages() }
-            },
-            adjustForEnv: function () {
-                if (this.env) {
-                    if (this.nodeEnv === 'demo') {
-
-                        this.loginOptions.header += ' (' + process.env.NODE_ENV + ' only)'
-                    }
-                    if (this.nodeEnv !== 'production') {
-
-                        this.loginOptions.header += ' (' + process.env.NODE_ENV + ' only)'
-
-                        if (this.mode === 'Login') {
-                            this.loginOptions.fields[0].prompt += ' - try  guest@' + Config.defaultEmailDomain
-                            this.loginOptions.fields[1].prompt += ' - use \'demoPassword\' for guest access'
-                        }
-                    }
-                } else {
-                    this.$myConsole.debug('no env')
-                }
             },
             checkInput(e) {
                 this.$myConsole.debug('validate input')
@@ -314,6 +254,7 @@
             },
             cancel: function () {
                 this.$set(this, 'formErrors', {})
+                this.clearMessages()
                 this.$myConsole.debug('cancel this form')
                 this.authError = ''
                 if (this.onCancel) {
@@ -324,6 +265,9 @@
                 this.cancel()
                 this.$router.go(-1)
             },
+            clearMessages() {
+                this.resetMessages = !this.resetMessages
+            }
         },
         watch: {
             mode: function () {

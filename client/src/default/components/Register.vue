@@ -1,8 +1,6 @@
 <template lang='pug'>
   div.centred(style='background-color: white')
-    h6.text-danger.padded(v-if="$route.params.error || $route.query.error") {{$route.params.error || $route.query.error}} 
-    h6.text-warning.padded(v-if="$route.params.warning || $route.query.warning") {{$route.params.warning || $route.query.warning}} 
-    h6.text-success.padded(v-if="$route.params.message || $route.query.message") {{$route.params.message || $route.query.message}}
+    EmbeddedMessage(:clear='clearOnToggle')
 
     rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
@@ -17,6 +15,7 @@
 <script>
 import Config from '@/config.js'
 import Shared from '@/config.shared.js'
+import EmbeddedMessage from '@/default/components/EmbeddedMessage'
 
 import FormValidator from '@/default/mixins/FormValidator'
 import Login from '@/default/mixins/Login'
@@ -62,6 +61,7 @@ const loginType = {
 
 export default {
   components: {
+    EmbeddedMessage
   },
   mixins: [
     Login,
@@ -70,6 +70,8 @@ export default {
   data () {
     return {
       registration: Shared.registration || {},
+      confirmPassword: true,
+      passwordsConfirmed: false,
       form: {
         email: ''
       },
@@ -78,10 +80,10 @@ export default {
         access: 'append',
         fields: [
           { name: 'token', type: 'text', prompt: 'Promo Code', placeholder: 'leave blank to request beta access', icon: 'redeem'},
-          { name: 'username', type: 'text', prompt: 'Preferred Username (optional)', rules: [Config.rules.email], icon: 'person' },
+          { name: 'username', type: 'text', prompt: 'Preferred Username (optional)', icon: 'person' },
           { name: 'email', type: 'email', prompt: 'Email Address', rules: [Config.rules.email], icon: 'email' },
           { name: 'password', type: 'hidden', prompt: 'Password', rules: [Config.rules.min(8)], icon: 'lock'},
-          { name: 'confirm_password', type: 'hidden', prompt: 'Confirm Password', rules: [Config.rules.min(8)], icon: 'lock'}
+          { name: 'confirmPassword', type: 'hidden', prompt: 'Confirm Password', rules: [Config.rules.min(8)], icon: 'lock'}
         ],
         submitButtonClass: 'btn-primary btn-lg',
         submitButton: 'Request Beta Access',
@@ -115,6 +117,9 @@ export default {
     },
     redirect: {
       type: String
+    },
+    clearOnToggle: {
+      type: Boolean
     }
   },
   async created () {
@@ -132,6 +137,7 @@ export default {
 
     this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
     this.$myConsole.debug('Signup options: ' + JSON.stringify(this.signupOptions))
+
     this.$set(this.signupOptions, 'onSubmit', this.signup)
     this.$set(this.signupOptions, 'onBlur', this.checkInput)
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
@@ -177,17 +183,20 @@ export default {
         this.signupOptions.fields[0].value = this.inviteToken
       }
 
-      this.clearLocalMessages()
-      this.$myConsole.debug('signup options: ')
-      this.$myConsole.debug(JSON.stringify(this.signupOptions))
+      if (this.confirmPassword) {
+        this.signupOptions.fields[4].onKeyup = this.comparePasswords
+      }
+
       if (this.env) {
         if (process.env.NODE_ENV !== 'production') {
           this.signupOptions.header += ' (' + process.env.NODE_ENV + ' only)'
-          // this.signupOptions.fields[0].prompt += ' - (' + process.env.NODE_ENV + ' mode)'
-          // this.signupOptions.header = this.signupOptions.header
           this.signupOptions.preForm = '(valid for today only)'
         }
       }
+
+      this.$myConsole.debug('signup options: ')
+      this.$myConsole.debug(JSON.stringify(this.signupOptions))
+
       if (reset) { this.clearLocalMessages() }
     },
 
@@ -216,13 +225,16 @@ export default {
         this.$myConsole.debug('reset: ' + e.target.name + ' = ' + e.target.value)
 
         this.updateForm(newToken)
-
-        // Adjust form options for invites vs beta request
-        // if (this.mode === 'SignUp' && e.target.value) {
-        //   this.changeToRegister(hold)
-        // } else {
-        //   this.changeToRequest(hold)
-        // }
+      }
+    },
+    comparePasswords () {
+      this.$myConsole.debug('compare passwords...')
+      if (this.confirmPassword) {
+        if (this.form.confirmPassword === this.form.password) {
+          this.signupOptions.fields[4].icon = 'check_circle'
+        } else {
+          this.signupOptions.fields[4].icon = 'close'
+        }
       }
     },
     inputFocus (e) {
@@ -254,24 +266,11 @@ export default {
         this.onCancel()
       }
     },
-    // changeToRequest: function (hold) {
-    //   console.log('change to request for ' + this.mode)
-    //   // No token provided: enable request for access
-
-    //   if (this.registration.for_guest) {
-    //       setup = loginType.guest
-    //   // Note; fields (in order) are: promo/token, email, password
-    //   this.$myConsole.debug('exclude password from form')
-    //   this.signupOptions.fields[0].value = hold
-    //   this.signupOptions.fields[0].type = loginType.request.token
-    //   this.signupOptions.fields[3].type = loginType.request.password
-    //   this.signupOptions.header = loginType.request.header
-    //   this.signupOptions.submitButton = loginType.request.button
-
-    // },
     updateForm: function (token) {
-      console.log('change to registration for ' + this.mode)
+      console.log('generate registration form')
       // Token provided: enable direct registration
+
+      this.initializeOptions()
 
       var setup = loginType.default || {}
       if (this.registration.requires_invite) {
@@ -287,6 +286,13 @@ export default {
       this.signupOptions.header = setup.header
       this.signupOptions.fields[0].type = setup.token
       this.signupOptions.fields[3].type = setup.password
+
+      if (this.confirmPassword) {
+        this.signupOptions.fields[4].type = setup.password
+      } else {
+        this.form.noConfirm = true
+      }
+      
       this.signupOptions.submitButton = setup.button
 
       if (this.registration.with_name) {
