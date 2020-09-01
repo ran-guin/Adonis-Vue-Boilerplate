@@ -38,6 +38,8 @@ Route.post('/login', 'AuthController.login')
 Route.post('logout', 'AuthController.logout')
 Route.post('register', 'AuthController.register')
 
+Route.post('registrationInvite', 'AuthController.registrationInvite')
+
 Route.get('/check', 'AuthController.check')
 
 // Auth access
@@ -82,3 +84,6 @@ Route.post('/users/:user_id/contact', 'ContactController.add')
 
 Route.get('/files', 'FileController.files')
 Route.post('/upload', 'FileController.upload')
+Route.get('/upload', 'FileController.upload')
+Route.post('/moveFiles', 'FileController.move')
+Route.post('/moveFile', 'FileController.move')
