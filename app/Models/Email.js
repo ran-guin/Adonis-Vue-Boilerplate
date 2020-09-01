@@ -45,12 +45,20 @@ class Email extends Model {
 
       var subject = thisMessage.subject || 'Automated Message'
       var text = thisMessage.text || thisMessage.message
-      var html = thisMessage.html
+      var html = thisMessage.html || '<p>' + text + '</p>'
       var from = thisMessage.from || Config.EMAIL_SOURCE
-      var to = thisMessage.to || thisMessage.forward
+      var to = thisMessage.to || options.to
+      var cc = thisMessage.cc || options.cc
 
       var from_alias = thisMessage.alias 
       if (from_alias) { from = '"' + from_alias + '" <' + from + ">" }
+
+      if (options.prepend) {
+        html = '<p>' + options.prepend + "</p>\n" + text
+      }
+      if (options.append) {
+        html = html + "\n<p>" + options.append + "</p>"
+      }
 
       console.log('sendMessage: ' + JSON.stringify(thisMessage, null, 2))
 
@@ -66,42 +74,32 @@ class Email extends Model {
         from: from, // sender address
         to: to, // list of receivers
         subject: subject, // Subject line
-        text: text, // plain text body
-        html: html // html body
+        // text: text, // plain text body
+        html: html, // html body
+        cc: cc
       }
       console.debug('Mail options: ' + JSON.stringify(mailOptions))
       if (! transporter) {
         return Promise.reject(new Error('rejected '))
       }
-      // try {
-      return transporter.sendMail(mailOptions)
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.log('failed to send mail via transporter ' + err.message)
+          // return Promise.reject("Failed to send email confirmation. " + err.message)
+        } else {
+          console.log(info.envelope);
+          console.log(info.messageId);
+          // return Promise.resolve('Message sent: ' + info.response)
+        }
+      })
+      return Promise.resolve({success: true, message: 'Message sent'})
+        
     } else {
       console.log('Custom email not defined')
       return {success: false, message: 'No CustomEmail module defined'}
     }
-      //   if(error) {
-      //     console.log("error sending message: " + error.message)
-          
-      //     return Promise.reject(new Error(error.message))
-
-      //     // throw new Error(error.message)
-      //     // return new Promise((resolve, reject) => {
-      //     //   reject(new Error(error.message));
-      //     // });
-
-      //   } else {
-      //     // Preview only available when sending through an Ethereal account
-      //     // if (nodemailer.getTestMessageUrl) {
-      //     //   console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info))
-      //     // }
-      //     console.log("message sent: " + info.response)
-      //     return Promise.resolve('Message sent: ' + info.response)
-      //   }
-      // })
-    // } catch (err) {
-    //   console.log('failed to send mail via transporter ' + err.message)
-    //   return Promise.reject("Failed transport delivery " + err.message)
-    // }
+        
   }
 
   static test (val) {
