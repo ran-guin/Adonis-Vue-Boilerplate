@@ -233,7 +233,7 @@ class PublicController {
     const {message, warning, error} = request.all()
     const type = params.type
     // return view.render('pages/login')
-    console.log('direct to welcome page with login mode')
+    console.log('direct to welcome page with login mode ' + type)
     
     var suffix = ''
     if (message) {
@@ -249,10 +249,12 @@ class PublicController {
     if (type === 'Recover') {
       response.redirect('/#/Public?launch=Recover&' + suffix)
     } else if (type === 'ResetPassword') {
-        response.redirect('/#/Public?launch=ResetPassword' + suffix)
+      console.log('launch reset...')
+      response.redirect('/#/Public?launch=ResetPassword&' + suffix)
     } else {
       // return view.render('pages/login', {mode: 'login'})
-      response.redirect('/#/Public' + suffix)
+      console.log('launch login page...')
+      response.redirect('/#/Public?launch=Login&' + suffix)
     }
   }
 

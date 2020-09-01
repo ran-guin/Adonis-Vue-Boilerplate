@@ -27,6 +27,7 @@ const Shared = Config.get('shared')
 const url = Env.get('API_URL')
 const app_name = Env.get('APP_NAME')
 const email_domain = Env.get('EMAIL_DOMAIN')
+const email_default = Env.get('EMAIL_DEFAULT') || 'info'
 
 const welcomeMessage = `
   <P><B>Welcome to ` + app_name + `<B></P>
@@ -162,7 +163,7 @@ class AuthController {
         const link = "<BR><BR><a href='" + url + "/accessResetPassword/" + reset_token + "'> Reset Password"
 
         const Message = {
-          from: 'no-reply' + email_domain,
+          from: email_default + email_domain,
           to: user.email,
           subject: app_name + 'Password Recovery',
           html: passwordRecoveryMessage + link
@@ -203,10 +204,12 @@ class AuthController {
       accessToken: 'required'
     }
 
-    console.log('resetting password')
+    console.log('resetting password for ' + accessToken)
     var recovery = await Recovery.findBy('token', accessToken)
+    console.log('use token: ' + accessToken)
 
     if (recovery) {
+      console.log("checking recovery token...")
       const now = new Date()
       const then = new Date(recovery.requested)
       const timediff = now.getTime() - then.getTime()
@@ -240,7 +243,7 @@ class AuthController {
       Failure.note = 'invalid token'
       Failure.ip = user.IP(request.request)
       await Failure.save()
-      return response.redirect('/login?error=Invalid recovery link')
+      return response.redirect('/login?error=Invalid recovery link&timed_message=Invalid Token')
     }
   }
   async resetPassword ({auth, view, request, response}) {
@@ -256,10 +259,11 @@ class AuthController {
       var errors = validation.messages()
       return response.redirect('/#/Public?launch=ResetPassword&token=' + token + '&warning=Password must be at least 8 characters')
     } else {
-      console.log('resetting password')
+      console.log('resetting password using ' + token)
       var recovery = await Recovery.findBy('token', token)
       if (recovery) {
         // Valid toek found ...
+        console.log('found token...')
         const timediff = new Date().getTime() - new Date(recovery.requested).getTime()
         console.log('time diff = ' + timediff)
         if (timediff > maxRecover) {
@@ -301,6 +305,7 @@ class AuthController {
           // return response.json({success: false, status: recovery.status})
         }
       } else {
+        console.log('failed to find token...')
         var user = new User()
         var Failure = new Recovery()
         Failure.status = 'failed'
@@ -418,7 +423,7 @@ class AuthController {
         console.log('registered request')
 
         const Message = {
-          from: 'no-reply' + email_domain,
+          from: email_default + email_domain,
           to: invite.email,
           subject: 'Thanks for pre-registering for ' + app_name,
           html: pendingMessage
@@ -485,10 +490,9 @@ class AuthController {
               // customModel.onLogin(user, {status: initialStatus, token: token})
 	      console.debug('call custom onLogin method')
 	    }
-
             const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Registration"
             const Message = {
-              from: 'no-reply' + email_domain,
+              from: email_default + email_domain,
               to: user.email,
               subject: 'Welcome to ' + app_name,
               html: welcomeMessage + welcomeLink
@@ -526,16 +530,56 @@ class AuthController {
       }
     }
   }
-  async invite ({request, response}) {
-    const {to, from} = request.all()
-    
-    var payload = this.header(request, 'payload') || {}
-    if (payload.userid && to) {
-      const sent = await Email.sendMessage('invitation', {to: to, from: from})
-      response.json({sent: sent})
-    } else {
+
+  async registrationInvite ({request, response}) {
+    const {to, from, host_id, append, prepend} = request.all()
+    console.log('invite to join ...' + JSON.stringify(request.all()))
+
+    if (!(from && to && host_id)) {
       response.json({error: 'Missing userid or target address'})
+    } else {
+      const sent = await Email.sendMessage('invitation', {to: to, append: append, prepend: prepend, cc: cc})
+      response.json({sent: sent, message: 'sent invite to ' + to})
     }
+    var payload = this.header(request, 'payload') || {}
+
+    const cc = Env.get('ADMIN_EMAIL', '')
+
+    var list = to.split(/[,;]\s*/)
+    var existing = []
+    var invites = []
+
+    var invited = 0
+    var reminded = 0
+
+    for (var i = 0; i < list.length; i++) {
+      var member = await RegistrationInvitation.findBy('email', list[i])
+      if (member) {
+        existing.push({id: member.invitee, status: member.status})
+        console.log(list[i] + ' is already a member with status: ' + member.status)
+        const remind = await Email.sendMessage('reminder', {to: list[i], append: append, prepend: prepend, cc: cc})
+        if (remind && remind.success) { reminded++ }
+      } else {
+        var invite = new RegistrationInvitation()
+        invite.host = host_id
+        invite.email = list[i]
+        invite.status = 'sent',
+        invite.token = uuidv4()
+
+        await invite.save()
+        invites.push(invite)
+        const sent = await Email.sendMessage('invitation', {to: list[i], append: append, prepend: prepend, cc: cc})
+        if (sent && sent.success) { invited++ }
+      }
+    }
+
+    if (existing) {
+      console.log(reminded + ' reminders sent: ' + JSON.stringify(existing))
+    }
+    if (invites) {
+      console.log(invited + ' new invites: ' + JSON.stringify(invites))
+    }
+    response.json({invited: invited, reminded: reminded})    
   }
 
   async resendWelcome ({request, response}) {
@@ -546,7 +590,7 @@ class AuthController {
       const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Email Address"
 
       const Message = {
-        from: 'no-reply' + email_domain,
+        from: email_default + email_domain,
         to: user.email,
         subject: 'Welcome to ' + app_name,
         html: welcomeMessage + welcomeLink
