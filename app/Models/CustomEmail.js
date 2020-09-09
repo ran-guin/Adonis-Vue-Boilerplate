@@ -15,7 +15,8 @@ const emailDomain = Env.get('EMAIL_DOMAIN', '@cosinesystems.org')
 const webUser = Env.get('EMAIL_USER', 'emailUser')
 const webPass = Env.get('EMAIL_PASSWORD', 'emailPass')
 const defaultEmail = Email.domain || Env.get('EMAIL_DEFAULT', 'no-reply')
-const defaultDomain = Email.default || Env.get('EMAIL_DOMAIN', '@cosinesystems.org')
+const defaultDomain = Email.default || Env.get('EMAIL_DOMAIN', '@sparcmeup.com')
+const defaultCC = Email.default || Env.get('EMAIL_CC')
 
 const url = Custom.url || 'https://sparc.idvpn.ca'
 
@@ -62,34 +63,37 @@ class CustomEmail extends Model {
 
         switch (input.type) {
             case "recover": return {
-                from: WebGLShaderPrecisionFormat,
+                from: from,
                 subject: this.appName + ' Password Recovery',
                 html: "You have requested a password recover / reset.  Please click on the link below to reset your passord"
                     + "<a href='" + myUrl + "/resetPassword" + "?token=" + token + "'>Reset Password</a>"
-                    + "<p /><a href='" + myUrl + "/fakeReset" + "?token=" + token + "'>I did not request a password reset!</a>"
+                    + "<p /><a href='" + myUrl + "/fakeReset" + "?token=" + token + "'>I did not request a password reset!</a>",
+                cc: defaultCC
             }
             case "welcome": return {
                 from: from,
                 subject: 'Welcome to ' + appName,
                 html: "Thank you for registering with " + appName + ".  Please click on the link below to complete your registration:"
                     + "<a href='" + myUrl + "/confirmRegistration" + "?token=" + token + "'>Confirm Registration</a>"
-                    + "<p /><a href='" + myUrl + "/cancelRegistration" + "?token=" + token + "'>Cancel Registration</a>"
-            }
+                    + "<p /><a href='" + myUrl + "/cancelRegistration" + "?token=" + token + "'>Cancel Registration</a>",
+                cc: defaultCC
+                }
             case "invitation": return {
                 from: from,
                 subject: 'Invitation to join SPARC',
                 html: 'You have been invited to join SPARC - (' + myUrl + ')<P>SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
                     + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
-                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>"
-                
+                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>",
+                cc: defaultCC               
             }
             case "reminder": return {
                 from: from,
                 subject: 'Another Invitation to join SPARC',
                 html: 'You have been invited again to join SPARC - (' + myUrl + ')<P>SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
                     + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
-                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>"
-            }
+                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>",
+                cc: defaultCC
+                }
             default: return null
         } 
     }
