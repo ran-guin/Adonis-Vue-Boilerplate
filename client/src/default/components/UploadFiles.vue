@@ -252,8 +252,14 @@ export default {
         })
         .catch((err) => {
           console.log('Err: ' + err.message)
+          console.log('Status ' + err.status)
+
+          if (err.message.match(/code 413/)) {
+            err.message = 'File too large'
+          }
           this.progress = 0;
-          this.message = "Could not upload the file! " + err.message;
+          this.message = err.status + " Could not upload the file! " + err.message;
+
           this.currentFile = undefined;
         });
     },
