@@ -107,51 +107,80 @@ class FileController {
         const target = rename || file
 
         if (public_directories.indexOf(from) >= 0 && public_directories.indexOf(to) >= 0) {
-            var cmd = 'cp ./public/' + from + file + ' ./client/src/assets/' + to + target
-            console.log("CMD: " + cmd)
-
             var root = process.env.PWD
-            console.log("root: " + root)
+
             var oldPath = root + '/public/' + from + file
             var newPath = root + '/client/src/assets/' + to + target
+            var ccPath = root + '/public/' + to + target
             
             var copied = 0
             var renamed = 0
             var error = ''
 
-            this.moveFile(oldPath, newPath, err => { 
-                if (err) { console.log(err.message) } 
+            console.log('copy ' + oldPath + ' to ' + ccPath)
+
+            this.copyFile(oldPath, ccPath, false, err => { 
+                if (err) { console.log(err.message) }
+                console.log("finished copy...")
+               
+                console.log('move ' + oldPath + ' to ' + newPath)
+                this.copyFile(oldPath, newPath, true, err2 => { 
+                    if (err2) {
+                        console.log(err2.message)
+                    } 
+                    response.json({from: from, to: to, file: file, target: target})            
+                })            
             })
-            response.json({from: from, to: to, file: file, target: target})
+            console.log('done')
         } else {
             response.json({success: false, message: 'Access Denied'})
         }
     }
 
-    moveFile (oldPath, newPath, callback) {
-        fs.rename(oldPath, newPath, function (err) {
-            if (err) {
-                if (err.code === 'EXDEV') {
-                    copy();
-                } else {
-                    callback(err);
+    copyFile (src, dest, clear, callback) {
+        if (clear) {
+            console.log('move ' + src + ' to ' + dest)
+            fs.rename(src, dest, function (err) {
+                if (err) {
+                    console.log('err..')
+                    if (err.code === 'EXDEV') {
+                        copy(clear);
+                    } else {
+                        callback(err);
+                    }
+                    return;
                 }
-                return;
-            }
-            console.log('renamed file')
-            callback();
-        });
-    
-        function copy() {
-            var readStream = fs.createReadStream(oldPath);
-            var writeStream = fs.createWriteStream(newPath);
+                console.log('renamed/moved file')
+                callback();
+            });
+        } else {
+            console.log('copy ' + src + ' to ' + dest)
+            fs.copyFile(src, dest, function (err) {
+                if (err) {
+                    console.log('copy error: ' + err.message)
+                    if (err.code === 'EXDEV') {
+                        copy();
+                    } else {
+                        callback(err);
+                    }
+                    return;
+                }
+                console.log('copied ' + src + ' to ' + dest)
+                callback();
+            })         
+        }
+        function copy () {
+            var readStream = fs.createReadStream(src);
+            var writeStream = fs.createWriteStream(dest);
     
             readStream.on('error', callback);
             writeStream.on('error', callback);
     
             readStream.on('close', function () {
-                fs.unlink(oldPath, callback);
+                fs.unlink(src, callback);
             });
+            console.log('deleting original')    
+
             readStream.pipe(writeStream);
             console.log('copied file')    
         }    
