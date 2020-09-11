@@ -273,39 +273,6 @@ export default {
           _this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
         })
     },
-    clearLocalMessages: function () {
-      this.message = ''
-      this.warning = ''
-      this.error = ''
-      this.authError = ''
-      this.formErrors = {}
-      this.$myConsole.debug('cleared local messages...')
-      this.$store.dispatch('clearMessages')
-    },
-    setToLogin: function (reset) {
-      this.mode = 'Login'
-      this.clearLocalMessages()
-      this.adjustForEnv()
-      this.$myConsole.debug('set login options: ')
-      this.$myConsole.debug(JSON.stringify(this.loginOptions))
-      if (reset) { this.clearLocalMessages() }
-    },
-    setToSignup: function (reset) {
-      this.mode = 'SignUp'
-      this.clearLocalMessages()
-      this.adjustForEnv()
-      this.$myConsole.debug('signup options: ')
-      this.$myConsole.debug(JSON.stringify(this.signupOptions))
-      if (reset) { this.clearLocalMessages() }
-    },
-    setToRecover: function (reset) {
-      this.clearLocalMessages()
-      this.adjustForEnv()
-      this.mode = 'Recover'
-      this.$myConsole.debug('set recover options: ')
-      this.$myConsole.debug(JSON.stringify(this.recoverOptions))
-      if (reset) { this.clearLocalMessages() }
-    },
     initializeOptions: function () {
       if (this.inviteToken) {
         this.$myConsole.debug('hide invitation token field')
