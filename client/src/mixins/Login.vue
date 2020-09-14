@@ -266,7 +266,7 @@ export default {
                             this.$myConsole.debug('no token in response' + JSON.stringify(response.data))            
                         }
 
-                        if (onSuccess) { alert(onSuccess) }
+                        // if (onSuccess) { alert(onSuccess) }
 
                         if (this.redirect_uri) {
                             this.$myConsole.debug('** reroute to ' + this.redirect_uri)
