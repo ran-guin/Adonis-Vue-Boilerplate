@@ -41,7 +41,8 @@
                 mode: '',
                 noLogin: true, // hide login buttons when generating login page
                 form: {
-                    email: ''
+                    email: '',
+                    password: ''
                 },
                 inviteToken: '',
                 noFooter: false,
@@ -106,6 +107,11 @@
                 this.$myConsole.debug('onRecover supplied')
             }
 
+            var redirect_uri = this.redirect || this.$route.query.redirect || this.$route.query.redirect_uri
+            if (redirect_uri) {
+                this.setRedirect(redirect_uri)
+            }          
+
             if (this.page === 'Logout') {
                 console.log('logout')
                 await this.logout()
@@ -114,6 +120,9 @@
             } else {
                 this.setup()
             }
+        },
+        updated: function () {
+            this.$set(this.form, 'password', '')
         },
         computed: {
             nodeEnv: function () {
@@ -161,7 +170,7 @@
                 var presets = ['email', 'token']
                 for (var i = 0; i < presets.length; i++) {
                     var val = this.$route.params[presets[i]] || this.$route.query[presets[i]]
-                    if (val) { this.form[presets[i]] = val }
+                    if (val) {  this.$set(this.form, presets[i], val) }
                 }
                 // var email = this.$route.params.email || this.$route.query.email
                 // if (email) {
@@ -266,7 +275,7 @@
                 this.$router.go(-1)
             },
             clearMessages() {
-                this.resetMessages = !this.resetMessages
+                this.clearOnToggle = !this.clearOnToggle
             }
         },
         watch: {
