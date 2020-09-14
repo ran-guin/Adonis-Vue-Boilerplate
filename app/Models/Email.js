@@ -25,6 +25,8 @@ class Email extends Model {
     console.log('generate email message')
     console.log(JSON.stringify(message))
 
+    if (!options) { options = {} }
+
     var thisMessage = message || {}
     if (CustomEmail) {
       const email = new CustomEmail()
@@ -47,17 +49,18 @@ class Email extends Model {
       var text = thisMessage.text || thisMessage.message
       var html = thisMessage.html || '<p>' + text + '</p>'
       var from = thisMessage.from || Config.EMAIL_SOURCE
-      var to = thisMessage.to || options.to
-      var cc = thisMessage.cc || options.cc
+      var to = thisMessage.to
+      var cc = thisMessage.cc
+      var response = thisMessage.response || '(email sent)'
 
       var from_alias = thisMessage.alias 
       if (from_alias) { from = '"' + from_alias + '" <' + from + ">" }
 
-      if (options.prepend) {
-        html = '<p>' + options.prepend + "</p>\n" + text
+      if (thisMessage.prepend) {
+        html = '<p>' + thisMessage.prepend + "</p>\n" + html
       }
-      if (options.append) {
-        html = html + "\n<p>" + options.append + "</p>"
+      if (thisMessage.append) {
+        html = html + "\n<p>" + thisMessage.append + "</p>"
       }
 
       console.log('sendMessage: ' + JSON.stringify(thisMessage, null, 2))
@@ -93,7 +96,8 @@ class Email extends Model {
           // return Promise.resolve('Message sent: ' + info.response)
         }
       })
-      return Promise.resolve({success: true, message: 'Message sent'})
+
+      return Promise.resolve({success: true, message: response})
         
     } else {
       console.log('Custom email not defined')

@@ -18,7 +18,7 @@ const defaultEmail = Email.domain || Env.get('EMAIL_DEFAULT', 'no-reply')
 const defaultDomain = Email.default || Env.get('EMAIL_DOMAIN', '@sparcmeup.com')
 const defaultCC = Email.default || Env.get('EMAIL_CC')
 
-const url = Custom.url || 'https://sparc.idvpn.ca'
+const url = Env.get('APP_URL') || Custom.url || 'https://sparc.idvpn.ca'
 
 const MailHosts = {
     zoho: 'smtp.zoho.com',
@@ -56,6 +56,7 @@ class CustomEmail extends Model {
         const appName = input.appName || Custom.appName
         const myUrl = input.url || url
         const token = input.token
+        const redirect = input.redirect
 
         if ( !from.match(/@/) ) {
             from = from + domain
@@ -68,7 +69,8 @@ class CustomEmail extends Model {
                 html: "You have requested a password recover / reset.  Please click on the link below to reset your passord"
                     + "<a href='" + myUrl + "/resetPassword" + "?token=" + token + "'>Reset Password</a>"
                     + "<p /><a href='" + myUrl + "/fakeReset" + "?token=" + token + "'>I did not request a password reset!</a>",
-                cc: defaultCC
+                cc: defaultCC,
+                response: 'Recovery email sent (check Spam if not found in Inbox)'
             }
             case "welcome": return {
                 from: from,
@@ -76,24 +78,38 @@ class CustomEmail extends Model {
                 html: "Thank you for registering with " + appName + ".  Please click on the link below to complete your registration:"
                     + "<a href='" + myUrl + "/confirmRegistration" + "?token=" + token + "'>Confirm Registration</a>"
                     + "<p /><a href='" + myUrl + "/cancelRegistration" + "?token=" + token + "'>Cancel Registration</a>",
-                cc: defaultCC
-                }
+                cc: defaultCC,
+                response: 'Confirmation email sent' 
+            }
             case "invitation": return {
                 from: from,
                 subject: 'Invitation to join SPARC',
-                html: 'You have been invited to join SPARC - (' + myUrl + ')<P>SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
-                    + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
-                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>",
-                cc: defaultCC               
+                html: 'You have been invited to join SPARC - (' + myUrl + ')<br>SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
+                    // + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
+                    + "<p /><a href='" + myUrl + "/register/" + token + "'>Register (Free)</a>"
+                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>What is SPARC ?</a>"
+                    + '<p /><ul><li>We are free to use</li><li>We do not have ads</li><li>We do not share your information</li></ul>',
+                cc: defaultCC,              
+                response: 'Invitation sent' 
             }
             case "reminder": return {
                 from: from,
                 subject: 'Another Invitation to join SPARC',
-                html: 'You have been invited again to join SPARC - (' + myUrl + ')<P>SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
-                    + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
-                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>Find out more</a>",
+                html: 'SPARC is a non-commercial community platform to participate in and host local community events/activities of all kinds'
+                    + "<p /><a href='" + myUrl + "/register/" + token + "'>Register (Free)</a></P>"
+                    // + "<a href='" + myUrl + "/#/Register" + "?token=" + token + "'>Register</a>"
+                    + "<p /><a href='" + myUrl + "/#/AboutSparc'>What is SPARC ?</a>"
+                    + '<p /><ul><li>We are free to use</li><li>We do not have ads</li><li>We do not share your information</li></ul>',
+                cc: defaultCC,
+                response: 'Invitation sent (again)'
+            }
+            case "pre-register": return {
+                from: from,
+                subject: 'Pre-registration request for SPARC',
+                html: '<B>Thanks for pre-registering with ' + app_name + '</B>'
+                    + '<P />We will keep you posted and send you an invitation when we are ready to launch the beta version.',
                 cc: defaultCC
-                }
+            }
             default: return null
         } 
     }
