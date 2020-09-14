@@ -2,7 +2,7 @@
  div.fullscreen
     PageLayout(:noRefresh=noRefresh :noMobileHeader='noMobileHeader' :noLogin='noLogin')
       div.myContainer(style='height: 100%')
-        rgv-messaging(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
+        EmbeddedMessage(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
         p &nbsp;
         div(v-if="mode==='Login'")
           div.centred
@@ -46,11 +46,14 @@ import Config from '@/config.js'
 import axios from 'axios'
 import auth from '@/auth'
 
+import EmbeddedMessage from '@/default/components/EmbeddedMessage'
+
 import FormValidator from '@/mixins/FormValidator'
 
 export default {
   components: {
-    PageLayout
+    PageLayout,
+    EmbeddedMessage
   },
   mixins: [
     FormValidator
@@ -251,6 +254,11 @@ export default {
     }
   },
   methods: {
+    clearLocalMessages: function () {
+      this.message = ''
+      this.warning = ''
+      this.error = ''
+    },
     loadEnv () {
       var _this = this
       this.$myConsole.debug('env: ' + process.env.NODE_ENV)
