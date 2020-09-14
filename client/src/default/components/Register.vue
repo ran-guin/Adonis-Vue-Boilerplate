@@ -2,7 +2,7 @@
   div.centred(style='background-color: white')
     EmbeddedMessage(:clear='clearOnToggle')
 
-    rgv-form.signup-form(:form='form' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
+    rgv-form.signup-form(:form='registrationForm' :options='signupOptions' :remoteErrors='formErrors' :onCancel='cancel')
     hr
     a.text-sm(v-if='onLogin' @click='onLogin') I already have an account
     br
@@ -26,7 +26,7 @@ const loginType = {
     prompt: 'Request access for Beta',
     button: 'Register for Beta Access',
     token: 'text',
-    name: 'hidden',
+    named: 'hidden',
     password: 'hidden',
     header: 'Request access for Beta Version'
   },
@@ -35,7 +35,7 @@ const loginType = {
     prompt: 'Register as Guest',
     button: 'Register as Guest',
     token: 'text',
-    name: 'text',
+    named: 'text',
     password: 'password',
     header: 'Register as Guest'
   },
@@ -44,7 +44,7 @@ const loginType = {
     prompt: 'Register by Invitation',
     button: 'Register',
     token: 'text',
-    name: 'text',
+    named: 'text',
     password: 'password',
     header: 'Register by Invitation'
   },
@@ -53,7 +53,7 @@ const loginType = {
     prompt: 'Register',
     button: 'Register',
     token: 'hidden',
-    name: 'text',
+    named: 'text',
     password: 'password',
     header: 'Register'
   }
@@ -72,7 +72,7 @@ export default {
       registration: Shared.registration || {},
       confirmPassword: true,
       passwordsConfirmed: false,
-      form: {
+      registrationForm: {
         email: ''
       },
       inviteToken: '',
@@ -86,7 +86,7 @@ export default {
           { name: 'confirmPassword', type: 'hidden', prompt: 'Confirm Password', rules: [Config.rules.min(8)], icon: 'lock'}
         ],
         submitButtonClass: 'btn-primary btn-lg',
-        submitButton: 'Request Beta Access',
+        submitButton: 'Request Beta access',
         header: 'Request access to Beta version',
         title: ''
       },
@@ -122,7 +122,7 @@ export default {
       type: Boolean
     }
   },
-  async created () {
+  created () {
 
     if (this.onRecover) {
         this.$myConsole.debug('onRecover supplied')
@@ -143,28 +143,35 @@ export default {
     this.$set(this.signupOptions, 'onFocus', this.inputFocus)
     this.$set(this.signupOptions, 'onCancel', this.cancel)
 
+    if (this.redirect_uri) {
+      this.signupOptions.fields.push( { name: 'redirect_uri', type: 'hidden', value: this.redirect_uri } )
+      this.setRedirect(this.redirect_uri)
+    }          
+
     if (!this.registration.requires_invite) {
-      this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
+      this.$set(this.registrationForm, 'token', 'publicaccess') // promos should include this string as well to bypass invitation process...
     }
     this.updateForm()
-
-    var presets = ['email', 'token']
-    for (var i = 0; i < presets.length; i++) {
-      var val = this.$route.params[presets[i]] || this.$route.query[presets[i]]
-      if (val) { this.form[presets[i]] = val }
-    }
 
     this.$store.dispatch('clearMessages')
     this.$myConsole.debug('*** get url messages/warnings...')
     this.message = this.$route.query.message
     this.warning = this.$route.query.warning
     this.error = this.$route.query.error
-
+  },
+  async updated () {
+    // running after DOM is loaded over-rides auto-complete of email / password
     this.env = await this.loadEnv()
+
+    var presets = ['email', 'password', 'token']
+    for (var i = 0; i < presets.length; i++) {
+      var val = this.$route.params[presets[i]] || this.$route.query[presets[i]] || ''
+      this.$set(this.registrationForm, presets[i], val)
+    }
   },
   computed: {
     hasToken: function () {
-      return this.form.token ? true : false
+      return this.registrationForm.token ? true : false
     }
   },
   methods: {
@@ -173,24 +180,24 @@ export default {
       this.warning = ''
       this.error = ''
       this.authError = ''
-      this.formErrors = {}
+      this.registrationFormErrors = {}
       this.$myConsole.debug('cleared local messages...')
       this.$store.dispatch('clearMessages')
     },
     initializeOptions: function (reset) {
       if (this.inviteToken) {
         this.$myConsole.debug('hide invitation token field')
-        this.signupOptions.fields[0].value = this.inviteToken
+        this.$set(this.signupOptions.fields[0], 'value', this.inviteToken)
       }
 
       if (this.confirmPassword) {
-        this.signupOptions.fields[4].onKeyup = this.comparePasswords
+        this.$set(this.signupOptions.fields[4], 'onKeyup', this.comparePasswords)
       }
 
       if (this.env) {
         if (process.env.NODE_ENV !== 'production') {
-          this.signupOptions.header += ' (' + process.env.NODE_ENV + ' only)'
-          this.signupOptions.preForm = '(valid for today only)'
+          this.$set(this.signupOptions, 'header', this.signupOptions.header + ' (' + process.env.NODE_ENV + ' only)')
+          this.$set(this.signupOptions, 'preForm', '(valid for today only)')
         }
       }
 
@@ -230,10 +237,10 @@ export default {
     comparePasswords () {
       this.$myConsole.debug('compare passwords...')
       if (this.confirmPassword) {
-        if (this.form.confirmPassword === this.form.password) {
-          this.signupOptions.fields[4].icon = 'check_circle'
+        if (this.registrationForm.confirmPassword === this.registrationForm.password) {
+          this.$set(this.signupOptions.fields[4], 'icon', 'check_circle')
         } else {
-          this.signupOptions.fields[4].icon = 'close'
+          this.$set(this.signupOptions.fields[4], 'icon', 'close')
         }
       }
     },
@@ -274,7 +281,7 @@ export default {
 
       var setup = loginType.default || {}
       if (this.registration.requires_invite) {
-        if (this.form.token) {
+        if (this.registrationForm.token) {
           setup = loginType.token
         } else if (this.registration.for_guest) {
           setup = loginType.guest
@@ -284,25 +291,29 @@ export default {
       }
       
       this.signupOptions.header = setup.header
-      this.signupOptions.fields[0].type = setup.token
-      this.signupOptions.fields[3].type = setup.password
+      this.$set(this.signupOptions.fields[0], 'type', setup.token)
+      this.$set(this.signupOptions.fields[3], 'type', setup.password)
 
       if (this.confirmPassword) {
-        this.signupOptions.fields[4].type = setup.password
+        this.$set(this.signupOptions.fields[4], 'type', setup.password)
       } else {
-        this.form.noConfirm = true
+         this.$set(this.registrationForm, 'noConfirm', true)
       }
       
-      this.signupOptions.submitButton = setup.button
+      this.$set(this.signupOptions, 'submitButton', setup.button)
 
       if (this.registration.with_name) {
-        this.signupOptions.fields[1].type = setup.name
+        this.$set(this.signupOptions.fields[1], 'type', setup.named)
       } else {
-        this.signupOptions.field[1].type = 'hidden'
+        this.$set(this.signupOptions.field[1], 'type', 'hidden')
       }
 
-      if (token) { this.signupOptions.fields[0].value = token }
-    }    
+      if (token) { this.$set(this.signupOptions.fields[0], 'value',  token) }
+    },
+    clearMessages() {
+        this.clearOnToggle = !this.clearOnToggle
+    }
+   
   },
   watch: {
     hasToken: function () {
@@ -314,6 +325,9 @@ export default {
       // } else {
       //   this.changeToRequest()
       // }
+    },
+    registrationForm: function () {
+      console.log('form changed to ' + JSON.stringify(this.registrationForm))
     }
   }
 }
