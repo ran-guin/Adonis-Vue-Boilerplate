@@ -10,6 +10,9 @@ class PromoSchema extends Schema {
       table.string('code','15')
       table.string('description','255') // description of context if applicable
       table.enu('status', ['active', 'revoked']).notNullable().defaultTo('active')
+      table.integer('quota').unsigned()
+      table.integer('used').unsigned().defaultTo(0)
+      table.date('expiry')
       table.timestamps()
     })
   }
