@@ -28,6 +28,8 @@ Route.get('/test', 'PublicController.test')
 
 Route.get('login', 'PublicController.login')
 Route.get('register', 'PublicController.register')
+Route.get('register/:token', 'PublicController.register')
+Route.get('registerFor/:token/:event_id', 'PublicController.register')
 Route.get('recover', 'PublicController.recoverPassword')
 Route.get('construction', 'PublicController.construction')
 Route.get('/about', 'PublicController.about')
@@ -53,6 +55,9 @@ Route.post('/resetPassword', 'AuthController.resetPassword')
 
 Route.post('/confirmRegistration/:token', 'AuthController.confirmRegistration')
 Route.get('/confirmRegistration/:token', 'AuthController.confirmRegistration')
+Route.post('/cancelRegistration/:token', 'AuthController.cancelRegistration')
+Route.get('/cancelRegistration/:token', 'AuthController.cancelRegistration')
+
 
 Route.post('/message/outgoing', 'PublicController.sendMessage')
 Route.post('/message/incoming', 'PublicController.receiveMessage')
