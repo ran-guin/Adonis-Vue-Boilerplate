@@ -98,7 +98,7 @@ export default {
     var presets = ['email']
     for (var i = 0; i < presets.length; i++) {
       var val = this.$route.params[presets[i]] || this.$route.query[presets[i]]
-      if (val) { this.form[presets[i]] = val }
+      if (val) {  this.form.$set(this.form, presets[i], val) }
     }
 
     this.$store.dispatch('clearMessages')

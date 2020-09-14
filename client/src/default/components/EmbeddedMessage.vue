@@ -8,9 +8,10 @@
                 li(v-if='msg') {{msg}}
             ul.ext-success(v-if="embeddedMessages.messages.length" v-for='msg in embeddedMessages.messages')
                 li(v-if='msg') {{msg}}
-        div.right(v-else style='padding-right: 1rem')
+        div(v-else style='padding-right: 1rem' :class='icon_position')
             v-btn(icon @click='showMessage=true' small)
                 v-icon warning
+            br
     
     v-dialog(v-if='showDialog' max-width='100%')
         v-container
@@ -56,6 +57,14 @@
             delay: {
                 type: Number,
                 default: 5000
+            },
+            icon_position: {
+                type: String,
+                default: 'right'
+            },
+            autoclear: {
+                type: Boolean,
+                default: false
             }
         },
         methods: {
@@ -96,6 +105,9 @@
                 setTimeout(() => {
                     this.showMessage = false
                     this.showDialog = false
+                    if (this.autoclear) {
+                        this.clearMessages()
+                    }
                 }, this.delay)
             }
           }
