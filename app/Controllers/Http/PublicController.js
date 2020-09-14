@@ -82,8 +82,8 @@ class PublicController {
     if (cache  && email) {
       console.log('cache received message')
 
-      var warning
-      var msg
+      var warning = ''
+      var msg = ''
       try {
         var oldContact = await Contact.findBy('email', email)
         var oldUser = await User.findBy('email', email)
@@ -266,7 +266,16 @@ class PublicController {
 
   register ({request, response, view, params}) {
     const token = params.token
-    response.redirect('/#/Login?launch=Register&token=' + token)
+    const redirect = params.redirect
+
+    var url = '/#/Public?launch=Register'
+    if (token) {
+      url = url + '&token=' + token
+    }
+    if (redirect) {
+      url = url + '&redirect=' + redirect
+    }
+    response.redirect(url)
     // return view.render('pages/register') - requires way to pass payload & token to client
   }
 

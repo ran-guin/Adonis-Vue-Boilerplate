@@ -2,6 +2,7 @@
 const Hash = use('Hash')
 const Database = use('Database')
 const User = use('App/Models/User')
+const UserConnection = use('App/Models/UserConnection')
 const RegistrationInvitation = use('App/Models/RegistrationInvitation')
 const PromoCode = use('App/Models/PromoCode')
 const Recovery = use('App/Models/PasswordRecovery')
@@ -11,46 +12,22 @@ const customModel = {} // use('App/Custom')
 
 const { validate } = use('Validator')
 const Validator = use('Validator')
-const Env = use('Env')
 
 const Custom = use('App/Custom')
 
-// const uuidv4 = require('uuid/v4');
 const Email = use('App/Models/Email')
 
 const uuidv4 = require('uuid/v4');
 
 var Config = use('Config')
 const Shared = Config.get('shared')
+
 // Customizations:
-
-const url = Env.get('API_URL')
-const app_name = Env.get('APP_NAME')
-const email_domain = Env.get('EMAIL_DOMAIN')
-const email_default = Env.get('EMAIL_DEFAULT') || 'info'
-
-const welcomeMessage = `
-  <P><B>Welcome to ` + app_name + `<B></P>
-
-  <P>Thank you for registering with us.</P>
-  <P>Please click on the following link to activate your registration and confirm your email address:</P>
-`
-const pendingMessage = `
-  <P><B>Thanks for pre-registering with ` + app_name + `<B></P>
-
-  <P>We will keep you posted and send you an invitation when we are ready to launch the beta version.</P>
-`
 
 const maxRecover = 30*60*1000 // recovery link valid for 30 minutes
 const maxInvite = 5*24*60*60*1000 // recovery link valid for 5 days
-const passwordRecoveryMessage = `
-  <P><B>Password Recovery Request<B></P>
 
-  <P>You have requested a password recover / reset.</P>  
-  <P>Please click on the link below to reset your passord</P>
-`
-
-// End Custommizations
+// End Customizations
 
 class AuthController {
   env ({response}) {
@@ -84,7 +61,27 @@ class AuthController {
       return header[scope]
     } else { return header }
   }
+  async cancelRegistration ({auth, params, view, request, response}) {
+    var uuid = params.token || token
+    const rules = {
+      uuid: 'required'
+    }
 
+    console.log('confirm registration')
+    var user = await User.findBy('uuid', uuid)
+
+    if (user) {
+      console.log('cancel registration')
+      if (user.status === 'inactive') {
+      
+      }
+      await user.save()
+      return response.json({success: true, message: 'Registration Cancelled'})
+    } else {
+      return response.json({success: false, message: uuid + ' NOT FOUND'})
+  
+    }
+  }
   async confirmRegistration ({auth, params, view, request, response}) {
     var {token, message, warning, error} = request.all()
     var uuid = params.token || token
@@ -156,20 +153,7 @@ class AuthController {
         console.log('.. save')
         await recovery.save()
 
-        console.log('saved recovery...')
-        const fakelink = "<a href='" + url + "/accessResetPasswordFlag/" + email + "'> I did not request a reset password </a>"
-
-        console.log('send Password recovery message to ' + user.email)
-        const link = "<BR><BR><a href='" + url + "/accessResetPassword/" + reset_token + "'> Reset Password"
-
-        const Message = {
-          from: email_default + email_domain,
-          to: user.email,
-          subject: app_name + 'Password Recovery',
-          html: passwordRecoveryMessage + link
-        }
-        console.log('launch password recovery message')
-        await Email.sendMessage(Message)
+        await Email.sendMessage('recover', { to: user.email})
         .catch (err => {
           warning = err.message
         })
@@ -358,6 +342,7 @@ class AuthController {
       console.log(authenticator + ' signup attempt for ' + email)
 
       var invitation
+      var newInvitation
       var initialStatus
       var validationStatus
       if (token) {
@@ -365,6 +350,7 @@ class AuthController {
         console.log('checking registration token: ' + token)
         try {
           invitation = await RegistrationInvitation.findBy('token', token)
+
           var promo = await PromoCode.findBy('code', token)
           var invite_id
 
@@ -378,31 +364,44 @@ class AuthController {
               invitation.token = token
               invitation.email = email
               invitation.requested = new Date()
+              invitation.status = 'promo code'
+
               initialStatus = 'Member'
               validationStatus = 'PromoCode'
               console.log('generated invitation record for promo usage')
             }
           } else if (invitation) {
             console.log('invite: ' + JSON.stringify(invitation))
-            if (invitation.status !== 'sent') {
+            if (invitation.quota === 1 && invitation.status !== 'sent') {
               failed = 'RegistrationInvitation status ' + invitation.status
+            } else if (invitation.quota && (invitation.used >= invitation.quota)) {
+              failed = 'Quota reached for these invitations'
             } else {
               const now = new Date()
-              const timediff = now.getTime() - then.getTime()
+              const expiry = new Date(invitation.expiry)
+              const timediff = now.getTime() - expiry.getTime()
               console.log('time diff = ' + timediff/1000/60 + ' minutes')
-              if (timediff > maxInvite) {
+              if (expiry && (timediff > 0)) {
                 console.log('expired invitation')
                 invitation.status = 'expired'
 
                 failed = 'RegistrationInvitation link has expired.  You must request another invite'
               } else {
                 invite_id = invitation.id
+                invitation.used++
               }
               initialStatus = 'Member'
               validationStatus = 'Invitation'
+
+              if (invitation.email !== email) {
+                newInvitation = new RegistrationInvitation()
+                newInvitation.email = email
+                newInvitation.requested = new Date()
+                newInvitation.status = 'accepted'
+              }
             }
           } else if ( !invitation_required ) {
-	    initialStatus = 'Member'
+	          initialStatus = 'Member'
             console.debug('no invitation / promo code required...')
           } else {
             console.log('no promo or invitation...')
@@ -422,13 +421,7 @@ class AuthController {
         await invite.save()
         console.log('registered request')
 
-        const Message = {
-          from: email_default + email_domain,
-          to: invite.email,
-          subject: 'Thanks for pre-registering for ' + app_name,
-          html: pendingMessage
-        }
-        await Email.sendMessage(Message)
+        await Email.sendMessage({type: 'pre-register', to: invite.email})
         response.json({ success: true, message: 'Request acknowledged' })
       }
 
@@ -464,10 +457,16 @@ class AuthController {
 
             if (invitation) {
               // should always be defined as long as invites are required
-              invitation.user_id = reloaded.id
               invitation.status = 'accepted'
+              if (newInvitation) {
+                newInvitation.user_id = reloaded.id // separate invitations to group list (or where email != invitation target)
+                newInvitation.save()
+              } else {
+                invitation.user_id = reloaded.id
+              }
               invitation.save()
             }
+           
 
             console.log('login: ' + JSON.stringify(login))
 
@@ -488,16 +487,9 @@ class AuthController {
             
             if (customModel && customModel.onLogin) {
               // customModel.onLogin(user, {status: initialStatus, token: token})
-	      console.debug('call custom onLogin method')
-	    }
-            const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Registration"
-            const Message = {
-              from: email_default + email_domain,
-              to: user.email,
-              subject: 'Welcome to ' + app_name,
-              html: welcomeMessage + welcomeLink
+              console.debug('call custom onLogin method')
             }
-            await Email.sendMessage(Message)
+            await Email.sendMessage({type: 'welcome', to: user.email})
               .then( response => {
                 console.log('Welcome message response: ' + JSON.stringify(response))
                 returnval.message = returnval.message + ' ' + response.message
@@ -537,49 +529,54 @@ class AuthController {
 
     if (!(from && to && host_id)) {
       response.json({error: 'Missing userid or target address'})
+      // } else {
+      //   const sent = await Email.sendMessage({type: 'invitation', to: to, append: append, prepend: prepend, cc: cc})
+      //   response.json({sent: sent, message: 'sent invite to ' + to})
     } else {
-      const sent = await Email.sendMessage('invitation', {to: to, append: append, prepend: prepend, cc: cc})
-      response.json({sent: sent, message: 'sent invite to ' + to})
-    }
-    var payload = this.header(request, 'payload') || {}
+      var payload = this.header(request, 'payload') || {}
 
-    const cc = Env.get('ADMIN_EMAIL', '')
+      var list = to.split(/[,;]\s*/)
+      var existing = []
+      var invites = []
 
-    var list = to.split(/[,;]\s*/)
-    var existing = []
-    var invites = []
+      var invited = 0
+      var reminded = 0
 
-    var invited = 0
-    var reminded = 0
+      for (var i = 0; i < list.length; i++) {
+        console.log('check for user: ' + list[i])
+        var member = await User.findBy('email', list[i])
+        console.log('found: ' + JSON.stringify(member))
+        if (member) {
+          existing.push({id: member.id, status: member.status})
+          console.log(list[i] + ' is already a member with status: ' + member.status)
+          const remind = await Email.sendMessage({type: 'reminder', to: list[i], append: append, prepend: prepend})
+          if (remind && remind.success) { reminded++ }
+        } else {
+          console.log('invite...')
+          var invite = new RegistrationInvitation()
+          console.log('gen token...')
+          var token = uuidv4()
+          console.log('generated token: ' + token)
+          invite.host_id = host_id
+          invite.email = list[i]
+          invite.status = 'sent',
+          invite.token = token
 
-    for (var i = 0; i < list.length; i++) {
-      var member = await RegistrationInvitation.findBy('email', list[i])
-      if (member) {
-        existing.push({id: member.invitee, status: member.status})
-        console.log(list[i] + ' is already a member with status: ' + member.status)
-        const remind = await Email.sendMessage('reminder', {to: list[i], append: append, prepend: prepend, cc: cc})
-        if (remind && remind.success) { reminded++ }
-      } else {
-        var invite = new RegistrationInvitation()
-        invite.host = host_id
-        invite.email = list[i]
-        invite.status = 'sent',
-        invite.token = uuidv4()
-
-        await invite.save()
-        invites.push(invite)
-        const sent = await Email.sendMessage('invitation', {to: list[i], append: append, prepend: prepend, cc: cc})
-        if (sent && sent.success) { invited++ }
+          await invite.save()
+          invites.push(invite)
+          const sent = await Email.sendMessage({type: 'invitation', to: list[i], append: append, prepend: prepend, token: token})
+          if (sent && sent.success) { invited++ }
+        }
       }
-    }
 
-    if (existing) {
-      console.log(reminded + ' reminders sent: ' + JSON.stringify(existing))
-    }
-    if (invites) {
-      console.log(invited + ' new invites: ' + JSON.stringify(invites))
-    }
-    response.json({invited: invited, reminded: reminded})    
+      if (existing) {
+        console.log(reminded + ' reminders sent: ' + JSON.stringify(existing))
+      }
+      if (invites) {
+        console.log(invited + ' new invites: ' + JSON.stringify(invites))
+      }
+      response.json({invited: invited, reminded: reminded})
+    } 
   }
 
   async resendWelcome ({request, response}) {
@@ -587,15 +584,7 @@ class AuthController {
     console.log('p ?' + JSON.stringify(payload))
 
     if (payload && payload.userid) {
-      const welcomeLink = "<BR><BR><a href='" + url + "/confirmRegistration/" + user.UUID + "'> Confirm Email Address"
-
-      const Message = {
-        from: email_default + email_domain,
-        to: user.email,
-        subject: 'Welcome to ' + app_name,
-        html: welcomeMessage + welcomeLink
-      }
-      await Email.sendMessage(Message)
+      await Email.sendMessage({type: 'welcome', to: user.email, cc: cc})
     } else {
       return response.json({success: false, error: 'no payload or userid'})
     }
