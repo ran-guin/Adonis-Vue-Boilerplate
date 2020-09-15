@@ -17,7 +17,7 @@ class PublicController {
     const input = request.all()
     const {message, user_id, from, to, cc, forward, subject, cache, type} = input
 
-    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const timestamp = new Date().slice(0, 19).replace('T', ' ');
     if (from && !to) {
       forward = 'ran.guin+cosine@gmail.com'
     }
@@ -61,7 +61,7 @@ class PublicController {
     const input = request.all()
     const {message, email, to, forward, subject, phone, role, redirect, cache} = input
   
-    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const timestamp = new Date().slice(0, 19).replace('T', ' ');
 
     if (!to && !forward) {
       input.forward = 'ran.guin+forward@gmail.com'
