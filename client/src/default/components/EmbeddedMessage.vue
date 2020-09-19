@@ -40,9 +40,12 @@
             }
         },
         async created () {
-          if (this.clear) {
+            if (this.embeddedMessages.messages[0] === "undefined") {
+                this.$set(this.embeddedMessages, 'messages', [])
+            }
+            if (this.clear) {
             this.clearMessages()
-          }
+            }
           this.getMessages()
         },
         props: {
