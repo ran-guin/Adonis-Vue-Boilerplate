@@ -37,7 +37,7 @@ import axios from 'axios'
 export default {
     data () {
         return {
-
+            cacheRedirect: ''
         }
     },
     mounted: function () {
@@ -49,6 +49,9 @@ export default {
         },
     },
     methods: {
+        setRedirect (redirect) {
+            this.cacheRedirect = redirect
+        },
         async login (form) {
             var credentials = {
                 email: form.email,
@@ -108,7 +111,16 @@ export default {
                 console.log(err.message)
                 return {success: false, message: err.message}
             }
-            return this.initializeSession(response)
+
+            if (this.cacheRedirect) {
+                this.$myConsole.debug('** redirecting to ' + this.cacheRedirect)
+                this.delayedRedirect('Logged in successfully', 'message', this.cacheRedirect)
+            } else {
+                this.$myConsole.debug('no redirect..')
+                // const message = response.data.message || ''
+                return this.initializeSession(response, '')
+            }
+            // return this.initializeSession(response, null, this.redirect)
         },
         async logout () {
             var loginId = this.payload.login_id
@@ -116,7 +128,7 @@ export default {
             return await auth.logout(this, loginId)
         },
         async signup (form) {
-            this.clearMessages()
+            // this.clearMessages()
             var credentials = { 
                 shortForm: form.shortForm ? true : false,
                 password: form.password,
@@ -142,10 +154,10 @@ export default {
                         this.delayedRedirect('Looks like you are already registered... redirecting you to recover password', 'warning', this.apiURL + '/recover?message=Already Registered&email=' + this.form.email)
                     }
                 } else {
-                    this.$myConsole.debug('redirect ? ' + this.redirect_uri)
-                    if (this.redirect_uri) {
-                        this.$myConsole.debug('** redirecting to ' + this.redirect_uri)
-                        this.delayedRedirect('Submitting registration request', 'message', this.redirect_uri)
+                    this.$myConsole.debug('redirect ? ' + this.cacheRedirect)
+                    if (this.cacheRedirect) {
+                        this.$myConsole.debug('** redirecting to ' + this.cacheRedirect)
+                        this.delayedRedirect('Submitting registration request', 'message', this.cacheRedirect)
                     } else {
                         this.$myConsole.debug('no redirect..')
                         const message = response.data.message || 'Created Account'
@@ -264,7 +276,10 @@ export default {
                 })
         },
 
-        initializeSession (response, onSuccess) {
+        initializeSession (response, messageOnSuccess) {
+
+            if (messageOnSuccess === 'undefined') { messageOnSuccess = '' }
+
             console.debug('initialize session...')
             if (response && response.data && response.data.validation_errors) {
                 this.$myConsole.debug('get service response')
@@ -290,20 +305,20 @@ export default {
                             this.$myConsole.debug('no token in response' + JSON.stringify(response.data))            
                         }
 
-                        if (onSuccess) { alert(onSuccess) }
+                        // if (messageOnSuccess) { alert(messageOnSuccess) }
 
-                        if (this.redirect_uri) {
-                            this.$myConsole.debug('** reroute to ' + this.redirect_uri)
-                            window.location = this.redirect_uri
+                        if (this.cacheRedirect) {
+                            this.$myConsole.debug('** reroute to ' + this.cacheRedirect)
+                            window.location = this.cacheRedirect
                         } else {
-                        if (onSuccess) {
-                            this.$myConsole.debug('dispatch log message: ' + onSuccess)
-                            this.$store.dispatch('logMessage', onSuccess)
+                        if (messageOnSuccess) {
+                            this.$myConsole.debug('dispatch log message: ' + messageOnSuccess)
+                            this.$store.dispatch('logMessage', messageOnSuccess)
                         }
                         if (response.data.payload) {
                             this.$myConsole.debug('initialized payload: ' + JSON.stringify(response.data.payload))
                             this.$store.dispatch('CACHE_KEYED_PAYLOAD', {payload: response.data.payload, key: Config.CLIENT_ID})
-                            this.$router.push('/Dashboard?message=' + onSuccess)
+                            this.$router.push('/Dashboard?message=' + messageOnSuccess)
                             // this.$set(this, 'payload', response.data.payload) this should be redundant (?)
                         }
                     }
