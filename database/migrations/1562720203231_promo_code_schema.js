@@ -12,6 +12,8 @@ class PromoSchema extends Schema {
       table.enu('status', ['active', 'revoked']).notNullable().defaultTo('active')
       table.integer('quota').unsigned()
       table.integer('used').unsigned().defaultTo(0)
+      table.integer('group_id').unsigned().index('group')
+      table.foreign('group_id').references('groups.id').onDelete('cascade')
       table.date('expiry')
       table.timestamps()
     })
