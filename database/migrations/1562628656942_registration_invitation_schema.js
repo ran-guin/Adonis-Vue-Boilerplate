@@ -13,6 +13,8 @@ class RegistrationInvitationSchema extends Schema {
       table.foreign('user_id').references('users.id').onDelete('cascade')
       table.integer('host_id').unsigned().index('host')
       table.foreign('host_id').references('users.id').onDelete('cascade')
+      table.integer('group_id').unsigned().index('group')
+      table.foreign('group_id').references('groups.id').onDelete('cascade')
       table.timestamp('requested')
       table.integer('quota').unsigned().defaultTo(1)
       table.integer('used').unsigned().defaultTo(0)
