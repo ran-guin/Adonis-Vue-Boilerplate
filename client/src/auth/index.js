@@ -87,10 +87,21 @@ export default {
         // location.href = apiURL
         console.log('dispatch logout request...')
         await root.$store.dispatch('AUTH_LOGOUT')
-        console.log('dispatched logout request...')
-        await axios.post(apiURL + '/logout', data)
-        console.log('posted logout request')
-        return Promise.resolve()
+        console.log('dispatched logout request: ' + apiURL + '/logout')
+        axios.post(apiURL + '/logout', data)
+        .then( response => {
+          console.log("logout request response: " + JSON.stringify(response))
+          return new Promise(function (resolve) {
+            resolve({message: 'logged out'})
+          })
+    
+        })
+        .catch( err => {
+          console.log('error posting logout request: ' + err)
+          return new Promise(function (resolve, reject) {
+            reject('failed to log out')
+          })
+        })
       } else {
         console.log('Not tracking login/logouts...')
         return await root.$store.dispatch('AUTH_LOGOUT')
