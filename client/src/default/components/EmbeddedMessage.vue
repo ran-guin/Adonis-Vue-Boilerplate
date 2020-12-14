@@ -44,14 +44,17 @@
                 this.$set(this.embeddedMessages, 'messages', [])
             }
             if (this.clear) {
-            this.clearMessages()
+                this.clearMessages()
             }
-          this.getMessages()
+            this.getMessages()
         },
         props: {
             clear: {
                 type: Boolean,
                 default: false
+            },
+            onClear: {
+                type: Function
             },
             type: {
                 type: String,
@@ -100,6 +103,9 @@
           },
           clearMessages: function () {
               console.log('clear messages')
+              
+              if (this.onClear) { this.onClear() }
+
               this.$router.replace({query: {message: '', warning: '', error: ''}, params: {message: '', warning: '', error: ''}}).catch(()=>{});
               this.getMessages()
           },
