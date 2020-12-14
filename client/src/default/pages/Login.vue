@@ -2,7 +2,7 @@
  div.fullscreen
     PageLayout(:noRefresh=noRefresh :noMobileHeader='noMobileHeader' :noLogin='noLogin')
       div.myContainer(style='height: 100%')
-        EmbeddedMessage(:msg='message' :warn='warning' :err='error' :clear='clearLocalMessages')
+        EmbeddedMessage(:msg='message' :warn='warning' :err='error' :onClear='clearLocalMessages')
         p &nbsp;
         div(v-if="mode==='Login'")
           div.centred
@@ -137,93 +137,97 @@ export default {
       default: 'Login'
     }
   },
-  created: function () {
+  async created () {
+    console.log('init default login page ...')
     if (this.page === 'Logout') {
-      this.logout()
-      this.page = 'Login'
-    }
-
-    this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri
-    this.inviteToken = this.invitationToken || this.$route.params.token || this.$route.query.token
-    this.$myConsole.debug('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
-
-    this.$myConsole.debug('url query ?: ' + JSON.stringify(this.$route.query))
-    this.$myConsole.debug('url params ?: ' + JSON.stringify(this.$route.params))
-
-    this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
-    this.$myConsole.debug('apiURL' + process.env.NODE_ENV + ' -> ' + this.apiURL)
-
-    this.$myConsole.debug('Login options: ' + JSON.stringify(this.loginOptions))
-    this.$set(this.loginOptions, 'onSubmit', this.login)
-    this.$set(this.loginOptions, 'onBlur', this.checkInput)
-    this.$set(this.loginOptions, 'onFocus', this.inputFocus)
-    this.$set(this.loginOptions, 'onCancel', this.cancel)
-
-    this.$myConsole.debug('initialized login options...')
-
-    this.$myConsole.debug('Signup options: ' + JSON.stringify(this.signupOptions))
-    this.$set(this.signupOptions, 'onSubmit', this.signup)
-    this.$set(this.signupOptions, 'onBlur', this.checkInput)
-    this.$set(this.signupOptions, 'onFocus', this.inputFocus)
-    this.$set(this.signupOptions, 'onCancel', this.cancel)
-
-    if (!this.invitationRequired) {
-      this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
-      this.changeToRegister('publicAccess')
-    } else if (this.inviteToken) {
-      this.changeToRegister()
+      console.log('logging out via Login Page...')
+      var returned = await this.myLogout()
+      console.log('logged out...' + returned)
+      // this.page = 'Login'
+      // this.$router.push('/Public')
     } else {
-      this.changeToRequest()
+      console.log('get custom input params..')
+      this.redirect_uri = this.$route.query.redirect || this.$route.query.redirect_uri
+      this.inviteToken = this.invitationToken || this.$route.params.token || this.$route.query.token
+      this.$myConsole.debug('token supplied ? ' + this.$route.params.token + ' = ' + this.inviteToken)
+
+      this.$myConsole.debug('url query ?: ' + JSON.stringify(this.$route.query))
+      this.$myConsole.debug('url params ?: ' + JSON.stringify(this.$route.params))
+
+      this.$myConsole.debug('Rules: ' + JSON.stringify(this.rules))
+      this.$myConsole.debug('apiURL' + process.env.NODE_ENV + ' -> ' + this.apiURL)
+
+      this.$myConsole.debug('Login options: ' + JSON.stringify(this.loginOptions))
+      this.$set(this.loginOptions, 'onSubmit', this.login)
+      this.$set(this.loginOptions, 'onBlur', this.checkInput)
+      this.$set(this.loginOptions, 'onFocus', this.inputFocus)
+      this.$set(this.loginOptions, 'onCancel', this.cancel)
+
+      this.$myConsole.debug('initialized login options...')
+
+      this.$myConsole.debug('Signup options: ' + JSON.stringify(this.signupOptions))
+      this.$set(this.signupOptions, 'onSubmit', this.signup)
+      this.$set(this.signupOptions, 'onBlur', this.checkInput)
+      this.$set(this.signupOptions, 'onFocus', this.inputFocus)
+      this.$set(this.signupOptions, 'onCancel', this.cancel)
+
+      if (!this.invitationRequired) {
+        this.form.token = 'publicaccess' // promos should include this string as well to bypass invitation process...
+        this.changeToRegister('publicAccess')
+      } else if (this.inviteToken) {
+        this.changeToRegister()
+      } else {
+        this.changeToRequest()
+      }
+      this.$myConsole.debug('Recovery options: ' + JSON.stringify(this.recoverOptions))
+      this.$set(this.recoverOptions, 'onSubmit', this.recoverPassword)
+      this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
+      this.$set(this.recoverOptions, 'onCancel', this.cancel)
+      this.$myConsole.debug('Connection: ' + JSON.stringify(this.request))
+      this.$store.dispatch('AUTH_LOGOUT')
+
+      var path = this.$route.path.match(/\/?(\w+)/)
+
+      var presets = ['email', 'token']
+      for (var i = 0; i < presets.length; i++) {
+        var val = this.$route.params[presets[i]] || this.$route.query[presets[i]]
+        if (val) { this.form[presets[i]] = val }
+      }
+      // var email = this.$route.params.email || this.$route.query.email
+      // if (email) { 
+      //   this.$myConsole.debug('*** preset email: ' + email)
+      //   this.form.email = email
+      // }
+
+      if (this.page) {
+        this.mode = this.page
+        this.$myConsole.debug('Mode: ' + this.mode)
+      } else if (this.$route.query.mode || this.$route.params.mode) {
+        this.mode = this.$route.query.mode || this.$route.params.mode
+        this.$myConsole.debug('input mode: ' + this.mode)
+      } else if (!this.mode && path) {
+        this.$myConsole.debug('default mode to path: ' + path[1])
+        this.mode = path[1]
+      } else {
+        this.$myConsole.debug('Default mode to Login')
+        this.mode = 'Login'
+      }
+
+      this.$store.dispatch('clearMessages')
+      this.$myConsole.debug('*** get url messages/warnings...')
+      this.message = this.$route.query.message
+      this.warning = this.$route.query.warning
+      this.error = this.$route.query.error
+
+      this.$myConsole.debug('url message: ' + this.message)
+
+      const delayed_redirect = this.$route.params.delayed_redirect || this.$route.query.delayed_redirect
+      if (delayed_redirect) {
+        this.$myConsole.debug('redirecting to ' + delayed_redirect)
+        this.delayedRedirect(this.message, 'message', delayed_redirect)
+      }
+      this.$myConsole.debug('Route Path: ' + JSON.stringify(path) + '; Mode: ' + this.mode)
     }
-    this.$myConsole.debug('Recovery options: ' + JSON.stringify(this.recoverOptions))
-    this.$set(this.recoverOptions, 'onSubmit', this.recoverPassword)
-    this.$set(this.recoverOptions, 'onFocus', this.inputFocus)
-    this.$set(this.recoverOptions, 'onCancel', this.cancel)
-    this.$myConsole.debug('Connection: ' + JSON.stringify(this.request))
-    this.$store.dispatch('AUTH_LOGOUT')
-
-    var path = this.$route.path.match(/\/?(\w+)/)
-
-    var presets = ['email', 'token']
-    for (var i = 0; i < presets.length; i++) {
-      var val = this.$route.params[presets[i]] || this.$route.query[presets[i]]
-      if (val) { this.form[presets[i]] = val }
-    }
-    // var email = this.$route.params.email || this.$route.query.email
-    // if (email) { 
-    //   this.$myConsole.debug('*** preset email: ' + email)
-    //   this.form.email = email
-    // }
-
-    if (this.page) {
-      this.mode = this.page
-      this.$myConsole.debug('Mode: ' + this.mode)
-    } else if (this.$route.query.mode || this.$route.params.mode) {
-      this.mode = this.$route.query.mode || this.$route.params.mode
-      this.$myConsole.debug('input mode: ' + this.mode)
-    } else if (!this.mode && path) {
-      this.$myConsole.debug('default mode to path: ' + path[1])
-      this.mode = path[1]
-    } else {
-      this.$myConsole.debug('Default mode to Login')
-      this.mode = 'Login'
-    }
-
-    this.$store.dispatch('clearMessages')
-    this.$myConsole.debug('*** get url messages/warnings...')
-    this.message = this.$route.query.message
-    this.warning = this.$route.query.warning
-    this.error = this.$route.query.error
-
-    this.$myConsole.debug('url message: ' + this.message)
-
-    const delayed_redirect = this.$route.params.delayed_redirect || this.$route.query.delayed_redirect
-    if (delayed_redirect) {
-      this.$myConsole.debug('redirecting to ' + delayed_redirect)
-      this.delayedRedirect(this.message, 'message', delayed_redirect)
-    }
-
-    this.$myConsole.debug('Route Path: ' + JSON.stringify(path) + '; Mode: ' + this.mode)
     this.loadEnv()
   },
   computed: {
@@ -260,25 +264,25 @@ export default {
       this.error = ''
     },
     loadEnv () {
-      var _this = this
+      // var _this = this
       this.$myConsole.debug('env: ' + process.env.NODE_ENV)
       this.$myConsole.debug(JSON.stringify(Config.apiURL))
       this.$myConsole.debug('axios: get env from ' + this.apiURL)
       axios.get(this.apiURL + '/env')
-        .then(function (response) {
+        .then( response => {
           if (response.data && response.data.codeVersion) {
-            _this.$myConsole.debug('*** env: ')
-            _this.$myConsole.debug(JSON.stringify(response.data))
-            _this.env = response.data
-            _this.initializeOptions()
+            this.$myConsole.debug('*** env: ')
+            this.$myConsole.debug(JSON.stringify(response.data))
+            this.env = response.data
+            this.initializeOptions()
           } else {
             this.$myConsole.debug('*** no env detected: ' + JSON.stringify(response))
           }
         })
-        .catch(function (err) {
+        .catch( err => {
           this.$myConsole.debug('Error retrieving env: ' + err)
           // _this.$store.dispatch('logError', 'Problem connecting to server.  Please try again later.')
-          _this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
+          this.delayedRedirect('Problem connecting to server.  Please try again later.', 'error')
         })
     },
     initializeOptions: function () {
@@ -343,10 +347,11 @@ export default {
       }
       return this.initializeSession(response)
     },
-    async logout () {
+    async myLogout () {
       var loginId = this.payload.login_id
       this.$myConsole.debug('logout via auth...')
-      auth.logout(this, loginId)
+      var verify = await auth.logout(this, loginId)
+      this.$myConsole.debug('Logged out...' + verify) 
     },
     async signup (form) {
       var fields = this.signupOptions.fields
