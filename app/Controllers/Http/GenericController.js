@@ -98,16 +98,15 @@ class GenericController {
 	}
 	
 	async append ({ request, response, session, params }) {
+		var input = request.all()
 		Logger.info('custom: ' + JSON.stringify(customConfig))
-		if (params.table) { table = params.table }
 
 		const DBuploadable = customConfig.upload || {}
 		const uploadableTables = Object.keys(DBuploadable) || []
 
-		var input = request.get()
 		Logger.info('upload: ' + JSON.stringify(input))
 
-		var table = input.table
+		var table = input.table || params.table
 		var record = input.record || input.data || {}
 
 		Logger.debug(Object.keys(record))
@@ -120,7 +119,7 @@ class GenericController {
 		}
 		
 		table = table.toLowerCase()
-		const validation = input.validate || DBuploadable[table]
+		const validation = input.validate || DBuploadable[table] // array
 
 		if (uploadableTables.indexOf(table) === -1) {
 			const msg = table + ' does not have upload capabilities'
@@ -148,24 +147,24 @@ class GenericController {
 			}
 		}
 
-		if (validation) {
-			Logger.info('validating: ' + JSON.stringify(validation))
+		// if (validation) {
+		// 	Logger.info('validating: ' + JSON.stringify(validation))
 
-			// validate form input
-			const validated = await validate(request.all(), validation) // eg name: 'required|min:3|max:255'
+		// 	// validate form input
+		// 	const validated = await validate(request.all(), validation) // eg name: 'required|min:3|max:255'
 
-			// show error messages upon validation fail
-			if (validated.fails()) {
-				session.withErrors(validated.messages())
-					   .flashAll()
+		// 	// show error messages upon validation fail
+		// 	if (validated.fails()) {
+		// 		session.withErrors(validated.messages())
+		// 			   .flashAll()
 
-				Logger.warning(validated.messages().message)
-				return {
-					'input' : record,
-					'validation error': validated.messages()
-				}
-			}
-		}
+		// 		Logger.warning(validated.messages().message)
+		// 		return {
+		// 			'input' : record,
+		// 			'validation error': validated.messages()
+		// 		}
+		// 	}
+		// }
 	  
 		// persist to database
 
