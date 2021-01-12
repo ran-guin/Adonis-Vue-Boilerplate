@@ -48,7 +48,7 @@ import auth from '@/auth'
 
 import EmbeddedMessage from '@/default/components/EmbeddedMessage'
 
-import FormValidator from '@/mixins/FormValidator'
+import FormValidator from '@/default/mixins/FormValidator'
 
 export default {
   components: {
@@ -141,8 +141,8 @@ export default {
     console.log('init default login page ...')
     if (this.page === 'Logout') {
       console.log('logging out via Login Page...')
-      var returned = await this.myLogout()
-      console.log('logged out...' + returned)
+      var returned = this.myLogout()
+      console.log('logged out...' + returned.constructor)
       // this.page = 'Login'
       // this.$router.push('/Public')
     } else {

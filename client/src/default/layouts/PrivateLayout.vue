@@ -5,7 +5,7 @@
 
 <script>
 import PageLayout from '@/default/layouts/PageLayout.vue'
-import Authentication from '@/mixins/Authentication.vue'
+import Authentication from '@/default/mixins/Authentication.vue'
 
 import config from '@/config'
 

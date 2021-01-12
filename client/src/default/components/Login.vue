@@ -7,7 +7,7 @@
       v-container
         v-radio-group(v-model='demoRole')
           v-layout.justify-space-around
-            v-radio(v-for='loginAs in demoLogins' @change='demoLogin()' :value='loginAs' :label='loginAs')
+            v-radio(v-for='pwd, loginAs in demoLogins' :value='loginAs' :label='loginAs')
       v-btn.btn-primary(@click='demoLogin') Login to Demo Version
       p &nbsp;
     div(v-else)
@@ -206,12 +206,12 @@
                 this.loadEnv()
             },
             demoLogin: function () {
-                var user = this.demoRole
+                var role = this.demoRole
 
-                console.log('logging in as ' + JSON.stringify(user))
+                console.log('logging in as ' + JSON.stringify(role))
                 var form = {
-                    email: user + '@sparcmeup.com',
-                    password: 'demoPassword'
+                    email: 'demo' + role + '@sparcmeup.com',
+                    password: this.demoLogins[role]
                 }
 
                 this.login(form)

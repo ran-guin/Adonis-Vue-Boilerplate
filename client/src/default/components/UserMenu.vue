@@ -8,7 +8,7 @@
 import auth from '@/auth'
 import axios from 'axios'
 import Config from '@/config.js'
-import FormValidator from '@/mixins/FormValidator'
+import FormValidator from '@/default/mixins/FormValidator'
 
 export default {
   data () {

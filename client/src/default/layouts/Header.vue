@@ -10,9 +10,14 @@
       v-tab(v-for='link in headerLinks' v-if='visible(link)' :key='link.name')
         router-link(:to='link.target || "/" + link.name')
           v-btn.btn-primary(v-if='linkType === "button"') {{link.name}}
+          v-btn(v-else-if='link.icon' icon)
+            v-icon {{link.icon}}
           b(v-else-if='visible(link)==="active"') {{link.name}}
           span(v-else) {{link.name}}
       //- UserMenu(v-if='isLoggedIn' :logout='logout')
+      v-tab
+        v-btn(icon) Bugs
+          v-icon(color='green') mdi-bug
       v-tab(v-if='loginEnabled && isLoggedIn')
         v-btn.btn-primary(@click='call_logout()') Logout
       v-tab(v-if='loginEnabled && !isLoggedIn')
