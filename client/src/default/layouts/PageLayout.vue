@@ -12,7 +12,7 @@
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 
-import Authentication from '@/mixins/Authentication.vue'
+import Authentication from '@/default/mixins/Authentication.vue'
 
 import config from '@/config'
 
