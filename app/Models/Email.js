@@ -23,16 +23,17 @@ class Email extends Model {
     // Only needed if you don't have a real mail account for testing
     // let testAccount = await nodemailer.createTestAccount();
     console.log('generate email message')
-    console.log(JSON.stringify(message))
 
     if (!options) { options = {} }
 
     var thisMessage = message || {}
     if (CustomEmail) {
       const email = new CustomEmail()
+      console.log('custom email: ' + JSON.stringify(thisMessage))
+      console.log('Custom Message: ' + JSON.stringify(message))
 
-      thisMessage = email.Messages(message) || message
-      console.log('Std: ' + JSON.stringify(thisMessage))
+      thisMessage = email.Messages(thisMessage, options) || thisMessage
+      console.log('Std Message: ' + JSON.stringify(thisMessage))
 
       if (message.constructor === Object) {
         var keys = Object.keys(message)
@@ -101,7 +102,8 @@ class Email extends Model {
         
     } else {
       console.log('Custom email not defined')
-      return {success: false, message: 'No CustomEmail module defined'}
+      return Promise.resolve({success: false, message: 'No CustomEmail module defined'})
+      // return {success: false, message: 'No CustomEmail module defined'}
     }
         
   }
