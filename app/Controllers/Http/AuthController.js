@@ -16,6 +16,7 @@ const Validator = use('Validator')
 const Custom = use('App/Custom')
 
 const Email = use('App/Models/Email')
+const CustomEmail = use('App/Models/CustomEmail')
 
 const uuidv4 = require('uuid/v4');
 
@@ -89,7 +90,7 @@ class AuthController {
       uuid: 'required'
     }
 
-    console.log('confirm registration')
+    console.log('confirm registration') // use email or uuid.. 
     var user = await User.findBy('uuid', uuid)
 
     if (user) {
@@ -301,9 +302,16 @@ class AuthController {
       }
     }
   }
-
   async register ({auth, request, response}) {
-    const {username, email, password, confirmPassword, shortForm, source, token} = request.all()
+    console.log('Default Register...')
+    var resp = await this.defaultRegistration(request, auth)
+    console.log('Default Registration Response: ' + JSON.stringify(resp))
+    response.json(resp)
+  }
+
+  async defaultRegistration (request, auth) {
+    const input = request.all()
+    const {username, email, password, confirmPassword, shortForm, source, token} = input // request.all()
     const rules = {}
 
     const invitation_required = Shared.registration && Shared.registration.requires_invite
@@ -330,12 +338,18 @@ class AuthController {
         console.log('detected server side registration')
         console.log(errors)
         response.redirect('/#/Public?launch=Register')
+        return Promise.reject({ error: 'server side registration'})
+
       } else {
         var errmsg = 'Failed Validation'
         if (errors.length && errors[0].message && errors[0].message.match(/unique validation/)) {
           errmsg = 'Already Registered'
         }
-        response.json( { error: errmsg, validation_errors: errors, rules: rules} )
+
+        return Promise.reject({ error: errmsg, validation_errors: errors, rules: rules})
+        // return new Promise((resolve, reject) => {
+        //   reject({ error: errmsg, validation_errors: errors, rules: rules})
+        // })
       }
     } else {
       const authenticator = Config.get('auth.authenticator')
@@ -344,7 +358,7 @@ class AuthController {
       var invitation
       var newInvitation
       var initialStatus
-      var validationStatus
+      var validationStatus = ''
       if (token) {
         // invitation token
         console.log('checking registration token: ' + token)
@@ -409,20 +423,22 @@ class AuthController {
           }
         } catch (err) {
           console.log('problem checking for invitations / promo codes')
-          response.json({success: false})
+          return Promise.resolve({success: false})
+          // response.json({success: false})
         }
       } else if (guest_registration) {
         initialStatus = 'Guest'
       } else if (invitation_required) {
-        var invite = new RegistrationInvitation()
-        invite.email = email
-        invite.requested = new Date()
+        var Invite = new RegistrationInvitation()
+        Invite.email = email
+        Invite.requested = new Date()
 
-        await invite.save()
+        await Invite.save()
         console.log('registered request')
 
-        await Email.sendMessage({type: 'pre-register', to: invite.email})
-        response.json({ success: true, message: 'Request acknowledged' })
+        await Email.sendMessage({type: 'pre-register', to: Invite.email})
+        // response.json({ success: true, message: 'Request acknowledged' })
+        return Promise.resolve({ success: true, message: 'Request acknowledged' })
       }
 
       // either invite_id defined OR fialed defined by this stage... 
@@ -430,9 +446,10 @@ class AuthController {
         console.log('failed registration process...')
         console.log(failed)
         response.json({success: false, error: failed })
+        return Promise.reject({success: false, error: failed })
         // return response.redirect('/signUp?error=' + failed)
       } else if (initialStatus) {
-        console.log(validationStatus + ' registration proceeding...')
+        console.log(initialStatus + ' ' + validationStatus + ' registration proceeding...')
         const uuid = uuidv4()
         var user = new User()
         user.username = username
@@ -451,7 +468,7 @@ class AuthController {
             var login = new Login()
             login.user_id = reloaded.id
             login.login = timestamp
-            login.ip = user.IP(request.request)
+            login.ip = user.IP(input.request)
 
             await login.save()
 
@@ -489,7 +506,7 @@ class AuthController {
               // customModel.onLogin(user, {status: initialStatus, token: token})
               console.debug('call custom onLogin method')
             }
-            await Email.sendMessage({type: 'welcome', to: user.email})
+            await Email.sendMessage({type: 'welcome', to: user.email, token: user.UUID})
               .then( response => {
                 console.log('Welcome message response: ' + JSON.stringify(response))
                 returnval.message = returnval.message + ' ' + response.message
@@ -509,26 +526,38 @@ class AuthController {
               console.log('generated token: ' + JSON.stringify(jwtToken))
               returnval.token = jwtToken
             }
-            response.json(returnval)
+            // response.json(returnval)
+            return Promise.resolve(returnval)
           } catch (error) {
               var msg = 'Failed to register'
               console.log('caught registration error: ' + error)
-              response.json({error: msg})
+              return Promise.reject({error: msg})
+              // response.json({error: msg})
           }
         } else {
           console.log('passwords did not match')
-          response.json({error: 'Password Error'})
+          return Promise.reject({error: 'Password Error'})
+          // response.json({error: 'Password Error'})
         }
       }
     }
   }
 
-  async registrationInvite ({request, response}) {
-    const {to, from, host_id, append, prepend} = request.all()
-    console.log('invite to join ...' + JSON.stringify(request.all()))
+  async registrationInvite ({auth, request, response}) {
+    var resp = await this.defaultRegistrationInvite(request, auth)
+    console.log('Default Registration Invite Response: ' + JSON.stringify(resp))
+    response.json(resp)
+  }
 
-    if (!(from && to && host_id)) {
-      response.json({error: 'Missing userid or target address'})
+  async defaultRegistrationInvite (request) {
+    const {to, from, host_id, append, prepend} = request.all()
+    console.log('Registration Invite: ' + JSON.stringify(request.all()))
+
+    if (!(to && host_id)) {
+      // response.json({error: 'Missing userid or target address'}) ... return Promise below to enable customization..
+      console.log('no userid or target...')
+      return Promise.reject({error: 'Missing userid or target address'})
+
       // } else {
       //   const sent = await Email.sendMessage({type: 'invitation', to: to, append: append, prepend: prepend, cc: cc})
       //   response.json({sent: sent, message: 'sent invite to ' + to})
@@ -538,34 +567,54 @@ class AuthController {
       var list = to.split(/[,;]\s*/)
       var existing = []
       var invites = []
+      var failed = []
 
       var invited = 0
       var reminded = 0
 
       for (var i = 0; i < list.length; i++) {
-        console.log('check for user: ' + list[i])
         var member = await User.findBy('email', list[i])
-        console.log('found: ' + JSON.stringify(member))
         if (member) {
-          existing.push({id: member.id, status: member.status})
           console.log(list[i] + ' is already a member with status: ' + member.status)
-          const remind = await Email.sendMessage({type: 'reminder', to: list[i], append: append, prepend: prepend})
-          if (remind && remind.success) { reminded++ }
-        } else {
-          console.log('invite...')
-          var invite = new RegistrationInvitation()
-          console.log('gen token...')
-          var token = uuidv4()
-          console.log('generated token: ' + token)
-          invite.host_id = host_id
-          invite.email = list[i]
-          invite.status = 'sent',
-          invite.token = token
+          // this.reinvite({user_id: member.id, status: member.status})
 
-          await invite.save()
-          invites.push(invite)
-          const sent = await Email.sendMessage({type: 'invitation', to: list[i], append: append, prepend: prepend, token: token})
-          if (sent && sent.success) { invited++ }
+          existing.push({id: member.id, status: member.status})
+          
+          var input = request.all()
+          input.to = list[i]
+          await Email.sendMessage(input, {user_id: member.id})
+          .then (reminder => {
+            if (reminder.success) { invited++ }
+          })
+          .catch (err => {
+            failed.push(list[i])
+          })
+        } else {
+          console.log('invite new user: ' + list[i])
+          
+          var Invite = new RegistrationInvitation()
+          Invite.email = list[i]
+          Invite.host_id = host_id
+          Invite.sent = new Date()
+
+          var token = uuidv4()
+          Invite.token = token
+          await Invite.save()
+          invites.push(Invite)
+          console.log("Invite: " + JSON.stringify(Invite))
+
+          var input = request.all()
+          input.to = list[i]
+          console.log('send message ' + JSON.stringify(input))
+          console.log('send message ' + JSON.stringify(request.all()))
+          await Email.sendMessage(input, { to: list[i], token: token })
+          .then (sent => {
+            console.log('sent invitation: ' + JSON.stringify(sent))
+            if (sent.success) { invited++ }
+          })
+          .catch (err => {
+            failed.push(list[i])
+          })
         }
       }
 
@@ -575,7 +624,8 @@ class AuthController {
       if (invites) {
         console.log(invited + ' new invites: ' + JSON.stringify(invites))
       }
-      response.json({invited: invited, reminded: reminded})
+      // response.json({invited: invited, reminded: reminded})
+      return Promise.resolve({invited: invited, reminded: reminded, failed: failed})
     } 
   }
 
@@ -584,7 +634,7 @@ class AuthController {
     console.log('p ?' + JSON.stringify(payload))
 
     if (payload && payload.userid) {
-      await Email.sendMessage({type: 'welcome', to: user.email, cc: cc})
+      await Email.sendMessage({type: 'welcome', to: payload.email, cc: cc, token: payload.uuid})
     } else {
       return response.json({success: false, error: 'no payload or userid'})
     }
@@ -616,7 +666,7 @@ class AuthController {
         var refresh_token = null
 
         if (authenticator === 'jwt') {
-          console.log('get my token...')
+          console.log('get my token...' + email + ':' + password)
           const access = await auth
             .withRefreshToken()
             .attempt(email, password)
