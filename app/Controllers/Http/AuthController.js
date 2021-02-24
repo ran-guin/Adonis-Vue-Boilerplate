@@ -302,10 +302,17 @@ class AuthController {
       }
     }
   }
+
   async register ({auth, request, response}) {
     console.log('Default Register...')
     var resp = await this.defaultRegistration(request, auth)
     console.log('Default Registration Response: ' + JSON.stringify(resp))
+    response.json(resp)
+  }
+
+  async registrationInvite ({auth, request, response}) {
+    var resp = await this.defaultRegistrationInvite(request, auth)
+    console.log('Default Registration Invite Response: ' + JSON.stringify(resp))
     response.json(resp)
   }
 
@@ -543,15 +550,10 @@ class AuthController {
     }
   }
 
-  async registrationInvite ({auth, request, response}) {
-    var resp = await this.defaultRegistrationInvite(request, auth)
-    console.log('Default Registration Invite Response: ' + JSON.stringify(resp))
-    response.json(resp)
-  }
-
-  async defaultRegistrationInvite (request) {
-    const {to, from, host_id, append, prepend} = request.all()
-    console.log('Registration Invite: ' + JSON.stringify(request.all()))
+  async defaultRegistrationInvite (request, auth) {
+    const input = request.all()
+    const {to, from, host_id, append, prepend} = input
+    console.log('Registration Invite: ' + JSON.stringify(input))
 
     if (!(to && host_id)) {
       // response.json({error: 'Missing userid or target address'}) ... return Promise below to enable customization..
@@ -566,6 +568,7 @@ class AuthController {
 
       var list = to.split(/[,;]\s*/)
       var existing = []
+      var newInvites = []
       var invites = []
       var failed = []
 
@@ -578,20 +581,22 @@ class AuthController {
           console.log(list[i] + ' is already a member with status: ' + member.status)
           // this.reinvite({user_id: member.id, status: member.status})
 
-          existing.push({id: member.id, status: member.status})
+          existing.push({id: member.id, status: member.status, email: member.email})
           
-          var input = request.all()
           input.to = list[i]
+
           await Email.sendMessage(input, {user_id: member.id})
           .then (reminder => {
             if (reminder.success) { invited++ }
           })
           .catch (err => {
+            console.log('failed to send message to: ' + list[i])
             failed.push(list[i])
           })
         } else {
           console.log('invite new user: ' + list[i])
-          
+          newInvites.push(list[i])
+
           var Invite = new RegistrationInvitation()
           Invite.email = list[i]
           Invite.host_id = host_id
@@ -603,13 +608,9 @@ class AuthController {
           invites.push(Invite)
           console.log("Invite: " + JSON.stringify(Invite))
 
-          var input = request.all()
           input.to = list[i]
-          console.log('send message ' + JSON.stringify(input))
-          console.log('send message ' + JSON.stringify(request.all()))
           await Email.sendMessage(input, { to: list[i], token: token })
           .then (sent => {
-            console.log('sent invitation: ' + JSON.stringify(sent))
             if (sent.success) { invited++ }
           })
           .catch (err => {
@@ -617,15 +618,15 @@ class AuthController {
           })
         }
       }
-
+      
       if (existing) {
         console.log(reminded + ' reminders sent: ' + JSON.stringify(existing))
       }
       if (invites) {
         console.log(invited + ' new invites: ' + JSON.stringify(invites))
       }
-      // response.json({invited: invited, reminded: reminded})
-      return Promise.resolve({invited: invited, reminded: reminded, failed: failed})
+      console.log('generated invitations from ' + JSON.stringify(from))
+      return Promise.resolve({invited: invited, reminded: reminded, failed: failed, new: newInvites, existing: existing, inviter: from })
     } 
   }
 
