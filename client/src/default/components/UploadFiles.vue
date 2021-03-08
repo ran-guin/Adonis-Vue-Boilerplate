@@ -12,14 +12,15 @@
         a(@click='myWidth=width')
           v-icon() zoom_out
         br
-      
+      p &nbsp;
+      hr
       v-row.justify-space-around(v-if='onSave')
-        hr
         v-btn.btn-primary.centred(@click='saveImage' v-if='onSave')  Save 
         //- v-row.justify-space-around()        
-        v-btn.btn-primary.centred(@click='imageNames=[]')
-          v-icon replay
-        br
+        v-btn.btn-primary.centred(@click='imageNames=[]' small)
+          v-icon mdi-close
+        h3.error(v-if='message') {{message}}
+
     div(v-else-if='pickList')
       v-card(max-width='800px')
         v-container
@@ -38,11 +39,11 @@
         v-col(cols='8' v-if='!pickList')
           //- v-file-input#files(ref='files' show-size='' label='File input' @change='selectFile()' prepend-icon='camera' multiple)
           div(v-cloak @drop.prevent="addDropFile" @dragover.prevent)
-            v-file-input(v-model='files' show-size='' label='File input' @change='selectFile()' prepend-icon='camera' :multiple='multiple')
+            v-file-input(v-model='files' show-size='' :label='label' @change='selectFile()' prepend-icon='camera' :multiple='multiple')
         v-col.pl-2(cols='4' v-if='!pickList')
           v-btn.btn-primary(small='' @click='upload')
-            span(v-if='onSave') Upload
-            span(v-else-if='onResize') Resize
+            //- span(v-if='onSave') Upload
+            span(v-if='onResize') Resize
             v-icon(right='' dark='') cloud_upload
       v-row(no-gutters='' justify='center' align='center' v-if='targetDirectory')
         v-col(cols='12')
@@ -121,6 +122,14 @@ export default {
     search: {
       type: String,
       default: ''
+    },
+    label: {
+      type: String,
+      default: 'Pick File'
+    },
+    autoUpload: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -194,6 +203,10 @@ export default {
       //     console.log(' FILES FOUND...')
       if (this.files) {
         console.log(this.files.length + ' FILES...')
+
+        if (this.autoUpload) {
+          this.upload()
+        }
       } else {
         this.files = [e]
         console.log('no multiple files found')
@@ -203,6 +216,7 @@ export default {
       //   console.log('no multiple files')
       //   this.files = [this.currentFile]
       // }
+
     },
     async upload () {
       this.message = "";
@@ -210,22 +224,31 @@ export default {
       var formData = new FormData();
       formData.append('size', this.size || 'medium')
       formData.append('quality', this.quality || 80)
-
       formData.append("clientDirectory", this.clientDirectory)
 
-      if (this.multiple && this.files.length > 1) {
+      var uploadData = {
+        size: this.size || 'medium',
+        quality: this.quality || 80,
+        clientDirectory: this.clientDirectory
+      }
+
+      uploadData.files = this.files
+
+      if (this.multiple && this.files.length > 1) {  
         for (var i = 0; i < this.files.length; i++) {
           formData.append("files", this.files[i]);
         }
       } else if (this.files.length) {
           formData.append("file", this.files[0]);
+          console.log('File Data: ' + JSON.stringify(formData))
       } else {
         console.log('no file selected...')
         this.message = "Please select a file! ";
         return;
       }
 
-      console.debug('Upload Files via NEWer http API: ' + JSON.stringify(formData))
+      console.debug('Upload Data: ' + JSON.stringify(uploadData))
+      console.debug('Upload Form Data: ' + JSON.stringify(formData))
 
       this.uploaded = ''
       axios.post('/upload', formData, 
@@ -256,6 +279,8 @@ export default {
 
           if (err.message.match(/code 413/)) {
             err.message = 'File too large'
+          } else {
+            err.message = 'Problem uploading (ensure ext is gif, jpg, jpeg or png)'
           }
           this.progress = 0;
           this.message = err.status + " Could not upload the file! " + err.message;
